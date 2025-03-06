@@ -8,7 +8,7 @@ wheels/
 
 # Virtual environments
 .venv
-
+.env
 
 # The database file should not be tracked as this is no need
 
