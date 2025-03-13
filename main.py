@@ -15,6 +15,8 @@ from telegram.ext import (
 )
 
 
+from my_modules.cmd_handler_modules.start_cmd import start_cmd
+
 load_dotenv()
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 
@@ -64,7 +66,7 @@ def main() -> None:
     application = Application.builder().token(BOT_TOKEN).build()
 
     # on different commands - answer in Telegram
-    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("start", start_cmd))
     application.add_handler(CommandHandler("help", help_command))
 
     # on non command i.e message - echo the message on Telegram
