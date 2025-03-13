@@ -1,3 +1,13 @@
+## Making New account:
+
+The process of this, first it will start a conversation handler:
+
+
+
+
+
+
+
 ## My Ideas
 
 Here i will keep writing some ideas i want to do with bot or related this project.

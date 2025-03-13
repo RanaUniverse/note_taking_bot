@@ -15,17 +15,9 @@ from my_modules.cmd_handler_modules.start_module import start_cmd
 from my_modules.cmd_handler_modules.help_module import help_cmd
 
 from my_modules.conv_handlers_modules.example_1 import conv_example_1
-
+from my_modules.conv_handlers_modules.new_account import conv_new_account
 
 from my_modules.message_handlers_modules.text_msg_module import echo_text
-
-
-# if BOT_TOKEN:
-#     print("BotToken got ✅ This is come from the .env file")
-
-# else:
-#     BOT_TOKEN = "RanaUniverse🍌🍌🍌"  # type: ignore
-#     print(".no .env file or env file has not any bot token.")
 
 
 def main() -> None:
@@ -37,7 +29,7 @@ def main() -> None:
 
     if BOT_TOKEN is None:
         print(
-            ".no .env file or env file has not any bot token. Please make sure the token is there and rerun this program."
+            ".no .env file or env file has not any bot token. Please make sure the token is there and re run this program."
         )
         return
 
@@ -46,6 +38,7 @@ def main() -> None:
     # on different commands - answer in Telegram
 
     application.add_handler(conv_example_1)
+    application.add_handler(conv_new_account)
 
     application.add_handler(CommandHandler("start", start_cmd))
     application.add_handler(CommandHandler("help", help_cmd))
