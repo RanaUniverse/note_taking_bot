@@ -165,15 +165,74 @@ async def otp_verification(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     if user_otp in OTP_LIST:
         text = (
             "✅ This is a valid OTP.\n\n"
-            "Your account has been registered successfully...🍌🍌🍌"
+            "Your account has been created just you need to make a login password"
         )
         await context.bot.send_message(user.id, text, ParseMode.HTML)
-        return ConversationHandler.END
+        return PASSWORD
 
     else:
         text = "❌ This OTP is invalid. Please type the correct OTP again."
         await context.bot.send_message(user.id, text, ParseMode.HTML)
         return OTP
+
+
+async def set_password(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """
+    it will ask for a password from user and then it will
+    """
+    if (
+        update.message is None
+        or update.message.from_user is None
+        or update.message.text is None
+    ):
+        logger.warning(
+            f"Something in my side cause some problme so conv is ending at now time."
+        )
+        return ConversationHandler.END
+
+    user = update.message.from_user
+    user_msg = update.message.text
+
+    text = (
+        f"Your Password is: \n\n"
+        f"<tg-spoiler>{user_msg}</tg-spoiler>\n\n"
+        f"Please write this password again to confirm."
+    )
+
+    await context.bot.send_message(user.id, text, ParseMode.HTML)
+
+    return PASSWORD_AGAIN
+
+
+async def set_password_again(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """
+    This is the place where i will enter the password again to confirm
+    """
+    if (
+        update.message is None
+        or update.message.from_user is None
+        or update.message.text is None
+    ):
+        logger.warning(
+            f"Something in my side cause some problme so conv is ending at now time."
+        )
+        return ConversationHandler.END
+
+    user = update.message.from_user
+    user_msg = update.message.text
+
+    login_details = f"EMAIL ID: iamadog@example.com" f"\n\n" f"PASSWORD: my_password"
+
+    text = (
+        f"{user_msg}\n\n"
+        f"This is a demo text, as till now i have not make thsi how i will do this "
+        f"Here i write the password and this got match suppose. "
+        f"Now Your account has been created successfully ✅✅✅\n\n"
+        f"{login_details}"
+    )
+
+    await context.bot.send_message(user.id, text, ParseMode.HTML)
+    return ConversationHandler.END
 
 
 async def close_this_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -206,6 +265,10 @@ conv_new_account = ConversationHandler(
     states={
         EMAIL: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_the_email)],
         OTP: [MessageHandler(filters.TEXT & ~filters.COMMAND, otp_verification)],
+        PASSWORD: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_password)],
+        PASSWORD_AGAIN: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, set_password_again)
+        ],
     },
     fallbacks=[
         CommandHandler("cancel", close_this_chat),
