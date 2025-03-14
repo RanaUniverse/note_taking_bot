@@ -46,10 +46,10 @@ def main() -> None:
     application.add_handler(CommandHandler("help", help_cmd))
 
     # on non command i.e message - echo the message on Telegram
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo_text))
     application.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, str_checking_logic)
     )
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo_text))
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling(allowed_updates=Update.ALL_TYPES)
