@@ -9,6 +9,9 @@ Note taking application
 - allows editing of notes (only owner of the note)
 - allows deleting the note (only owner)
 
+- allow user to create/edit/delete categories and put notes in categoris
+
+
 It would be nice if it would allow markdown also
 
 ```
