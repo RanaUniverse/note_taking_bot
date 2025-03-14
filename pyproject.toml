@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13.0"
 dependencies = [
+    "email-validator>=2.2.0",
     "faker>=36.1.1",
     "pillow>=11.1.0",
     "python-dotenv>=1.0.1",
