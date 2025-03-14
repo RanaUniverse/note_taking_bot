@@ -10,6 +10,8 @@ from telegram.ext import (
     filters,
 )
 
+# Below is for checking my string logic
+from my_modules.message_handlers_modules.z_checking_msg import str_checking_logic
 
 from my_modules.cmd_handler_modules.start_module import start_cmd
 from my_modules.cmd_handler_modules.help_module import help_cmd
@@ -44,6 +46,9 @@ def main() -> None:
     application.add_handler(CommandHandler("help", help_cmd))
 
     # on non command i.e message - echo the message on Telegram
+    application.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, str_checking_logic)
+    )
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo_text))
 
     # Run the bot until the user presses Ctrl-C
