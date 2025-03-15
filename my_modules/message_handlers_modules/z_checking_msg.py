@@ -15,7 +15,7 @@ from telegram.constants import ParseMode
 
 
 class EmailValidator(BaseModel):
-    email: EmailStr 
+    email: EmailStr
 
 
 async def str_checking_logic(
@@ -43,3 +43,15 @@ async def str_checking_logic(
         text = f"{e}"
         await context.bot.send_message(user.id, text, ParseMode.HTML)
 
+
+async def checking_filters(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    i will just differet filters logic here in this function
+    just to know how to use different filters
+    """
+
+    user = update.message.from_user
+    
+    text = f"Thanks i got ur message,\n\n" f"<b>{user.full_name}</b>"
+
+    await context.bot.send_message(user.id, text, ParseMode.HTML)
