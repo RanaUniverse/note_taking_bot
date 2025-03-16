@@ -9,6 +9,6 @@ dependencies = [
     "faker>=36.1.1",
     "pillow>=11.1.0",
     "python-dotenv>=1.0.1",
-    "python-telegram-bot[all]>=22.0",
+    "python-telegram-bot>=22.0",
     "sqlmodel>=0.0.23",
 ]
