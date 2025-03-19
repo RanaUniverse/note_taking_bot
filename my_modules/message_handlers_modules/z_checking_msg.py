@@ -51,7 +51,20 @@ async def checking_filters(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     """
 
     user = update.message.from_user
-    
-    text = f"Thanks i got ur message,\n\n" f"<b>{user.full_name}</b>"
+
+    text = f"Thanks i got ur message of custom filters,\n\n" f"<b>{user.full_name}</b>"
 
     await context.bot.send_message(user.id, text, ParseMode.HTML)
+
+
+async def filters_all(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    this fun will execute when filters.ALL is used"
+    """
+
+    text = (
+        f"Thanks i got ur message which do filters.ALL,\n\n"
+        f"<b>{update.message.from_user.full_name}</b>"
+        f"{update}"
+    )
+    await context.bot.send_message(update.message.from_user.id, text)
