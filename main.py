@@ -17,9 +17,6 @@ from telegram.constants import MessageEntityType
 from my_modules.cmd_handler_modules.start_module import start_cmd
 from my_modules.cmd_handler_modules.help_module import help_cmd
 
-from my_modules.conv_handlers_modules.example_1 import conv_example_1
-from my_modules.conv_handlers_modules.new_account import conv_new_account
-from my_modules.conv_handlers_modules.activate_my_account_old import new_account_cmd
 
 from my_modules.message_handlers_modules.text_msg_module import echo_text
 from my_modules.message_handlers_modules.z_text_related_module import email_find
@@ -31,7 +28,6 @@ from my_modules.message_handlers_modules.z_checking_msg import (
 
 
 from my_modules.database_code.database_make import create_db_and_engine
-from my_modules.database_code.models_table import NotePart, UserPart
 
 
 def main() -> None:
@@ -56,14 +52,6 @@ def main() -> None:
 
     application.add_handler(CommandHandler("start", start_cmd))
     application.add_handler(CommandHandler("help", help_cmd))
-    application.add_handler(
-        CommandHandler(
-            command=["activate_my_account", "new_account"],
-            callback=new_account_cmd,
-            block=False,
-        )
-    )
-
     application.add_handler(
         MessageHandler(
             filters=filters.Entity(entity_type=MessageEntityType.EMAIL),
