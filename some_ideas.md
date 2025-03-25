@@ -3,9 +3,19 @@
 The process of this, first it will start a conversation handler:
 
 
+## /start :-
+
+1. When user will send this bot will say a welcome message and say to use `/my_notes`, `/info`- showing the user status. 
+/info :-Knows about your full informations 
+/my_notes :-Shows All My Notes 
+/search_my_notes :- Search My Notes in Title
 
 
 
+## /help :-
+
+1. It will show different commands and it work.
+/activate_my_account :- Ask for some user informations step by step to save in the database.
 
 
 ## My Ideas
