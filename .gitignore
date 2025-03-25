@@ -12,6 +12,8 @@ wheels/
 
 # The database file should not be tracked as this is no need
 
-database.db
 
+# This below are for database.
+database.db
+DATABASE.db
 
