@@ -1,6 +1,12 @@
 from telegram import Update
 from telegram import User
+from telegram import InlineKeyboardMarkup
 from telegram.ext import ContextTypes
+
+from telegram.constants import ParseMode
+
+
+from my_modules.some_inline_keyboards import MyInlineKeyboard
 
 
 async def start_cmd_old(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -23,6 +29,7 @@ def get_simple_message(user: User) -> str:
         f"/info :-Knows about your full informations \n"
         f"/my_notes :-Shows All My Notes \n"
         f"/search_my_notes :- Search My Notes in Title \n"
+        f"/new_account or /register_me :- To make new account."
     )
     return text
 
@@ -43,5 +50,19 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
 
     user = update.message.from_user
-    text = get_simple_message(user)
-    await context.bot.send_message(user.id, text)
+    text = (
+        f"Thanks {user.first_name}, welcome to <b>The Note Taking Bot</b>.\n"
+        f"I can help you to store Notes, in my side, and you can get the notes "
+        f"back later any time.\n\n"
+        f"/info :-Knows about your full informations \n"
+        f"/my_notes :-Shows All My Notes \n"
+        f"/search_my_notes :- Search My Notes in Title \n"
+        f"/new_account or /register_me :- To make new account."
+    )
+
+    await context.bot.send_message(
+        chat_id=user.id,
+        text=text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=InlineKeyboardMarkup(MyInlineKeyboard.START_MENU.value),
+    )
