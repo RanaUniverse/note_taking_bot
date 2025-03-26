@@ -18,6 +18,17 @@ The process of this, first it will start a conversation handler:
 /activate_my_account :- Ask for some user informations step by step to save in the database.
 
 
+
+
+## /register :-
+
+1. First it will try to add him in the databse. if it ok then ok
+2. If it got failed it should check if this already in the database table or not,
+3. I have added this successfully.
+
+
+
+
 ## My Ideas
 
 Here i will keep writing some ideas i want to do with bot or related this project.

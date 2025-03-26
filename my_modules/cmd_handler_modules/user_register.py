@@ -7,7 +7,7 @@ I will use SqlModel here...
 """
 
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from telegram import Update
 from telegram import InlineKeyboardMarkup
@@ -41,6 +41,7 @@ async def new_acc_register(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         return
 
     user = update.message.from_user
+    user_mention = f'<a href="tg://user?id={user.id}">{user.full_name}</a>'
 
     # Below part code will try to save the user details in the user table. with try except also
     # i will make the user row instance and then in try except i will
@@ -68,7 +69,7 @@ async def new_acc_register(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         phone_no = user_row.phone_no if user_row.phone_no else "❌❌❌"
 
         text = (
-            f"Hello {user.first_name}, You Have successfully registered now on our side.\n"
+            f"Hello {user_mention}, You Have successfully registered now on our side.\n"
             f"Your Current Information is:\n\n"
             f"<b>Name</b>:- {full_name}\n"
             f"<b>Username</b>:- {username}\n"
@@ -89,8 +90,32 @@ async def new_acc_register(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         logger.info(e)
         # It will check if the user is in the database or not, if in database
         # then it will say him his details, otherwise, say to contact customer care
+        with Session(engine) as session:
+            statement = select(UserPart).where(UserPart.user_id == user.id)
+            results = session.exec(statement)
+            user_row = results.first()
+
+        if user_row is None:
+            logger.warning(f"This should not happens")
+            return
+
+        text = (
+            f"Hello {user_mention}, You are already register in our side, you dont "
+            f"need to register here again, you can simply use this bot."
+            f"\n\n"
+            f"{user_row}"
+        )
+        await context.bot.send_message(
+            chat_id=user.id,
+            text=text,
+            parse_mode=ParseMode.HTML,
+        )
 
     except Exception as e:
         logger.info(e)
+        print("Something wrong happens")
+        text = f"Hello Somethings Unexpected happesn"
+        await context.bot.send_message(user.id, text)
+
         # it will try to say him to contact admin, as still now i dont get any concept
         # why this can happens.
