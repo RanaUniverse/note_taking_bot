@@ -46,3 +46,8 @@ class MessageEffectEmojies(Enum):
     FLAME = "5104841245755180586"
     TADA = "5046509860389126442"
     POO = "5046589136895476101"
+
+
+import datetime
+
+IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))

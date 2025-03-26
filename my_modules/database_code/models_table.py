@@ -27,7 +27,7 @@ class UserPart(SQLModel, table=True):
     first_name: str | None = Field(default=None)
     last_name: str | None = Field(default=None)
     note_count: int = Field(default=0)
-    points: int | None = Field(default=None)
+    points: int = Field(default=0)
     account_creation_time: datetime.datetime | None = Field(
         default_factory=lambda: datetime.datetime.now(IST),
     )
