@@ -50,14 +50,19 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
 
     user = update.message.from_user
+
+    user_mention = f'<a href="tg://user?id={user.id}">{user.full_name}</a>'
+
     text = (
-        f"Thanks {user.first_name}, welcome to <b>The Note Taking Bot</b>.\n"
-        f"I can help you to store Notes, in my side, and you can get the notes "
-        f"back later any time.\n\n"
-        f"/info :-Knows about your full informations \n"
-        f"/my_notes :-Shows All My Notes \n"
-        f"/search_my_notes :- Search My Notes in Title \n"
-        f"/new_account or /register_me :- To make new account."
+        f"👋 Thanks, {user_mention}! Welcome to <b><u>The Note-Taking Bot</u></b> 📝🤖\n\n"
+        f"I can help you store your notes securely and retrieve them anytime! 🔒🗂️\n\n"
+        f"<b>Here below are some useful commands to check:</b>\n"
+        f"📝 /new_note - Create a new note\n"
+        f"✏️ /edit_note - Edit an existing note\n"
+        f"❌ /delete_note - Delete a note\n"
+        f"🔍 /search_note - Search notes by title\n"
+        f"ℹ️ /my_info - View your information\n"
+        f"⚠️ <b>WARNING:</b> The buttons below are still in development. Please use the commands above for now. 🚧🔄"
     )
 
     await context.bot.send_message(
