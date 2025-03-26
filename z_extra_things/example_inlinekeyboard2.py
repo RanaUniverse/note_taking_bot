@@ -14,6 +14,13 @@ ConversationHandler.
 Send /start to initiate the conversation.
 Press Ctrl-C on the command line to stop the bot.
 """
+
+
+import os
+
+from dotenv import load_dotenv
+
+
 import logging
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
@@ -57,7 +64,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     # Send message with text and appended InlineKeyboard
-    await update.message.reply_text("Start handler, Choose a route", reply_markup=reply_markup)
+    await update.message.reply_text(
+        "Start handler, Choose a route", reply_markup=reply_markup
+    )
     # Tell ConversationHandler that we're in state `FIRST` now
     return START_ROUTES
 
@@ -79,7 +88,9 @@ async def start_over(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     # Instead of sending a new message, edit the message that
     # originated the CallbackQuery. This gives the feeling of an
     # interactive menu.
-    await query.edit_message_text(text="Start handler, Choose a route", reply_markup=reply_markup)
+    await query.edit_message_text(
+        text="Start handler, Choose a route", reply_markup=reply_markup
+    )
     return START_ROUTES
 
 
@@ -129,7 +140,8 @@ async def three(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.edit_message_text(
-        text="Third CallbackQueryHandler. Do want to start over?", reply_markup=reply_markup
+        text="Third CallbackQueryHandler. Do want to start over?",
+        reply_markup=reply_markup,
     )
     # Transfer to conversation state `SECOND`
     return END_ROUTES
@@ -164,8 +176,17 @@ async def end(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 def main() -> None:
     """Run the bot."""
-    # Create the Application and pass it your bot's token.
-    application = Application.builder().token("TOKEN").build()
+    load_dotenv()
+
+    BOT_TOKEN = os.environ.get("BOT_TOKEN")
+
+    if BOT_TOKEN is None:
+        print(
+            ".no .env file or env file has not any bot token. Please make sure the token is there and re run this program."
+        )
+        return
+
+    application = Application.builder().token(BOT_TOKEN).build()
 
     # Setup conversation handler with the states FIRST and SECOND
     # Use the pattern parameter to pass CallbackQueries with specific

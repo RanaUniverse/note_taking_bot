@@ -6,6 +6,12 @@
 Basic example for a bot that uses inline keyboards. For an in-depth explanation, check out
  https://github.com/python-telegram-bot/python-telegram-bot/wiki/InlineKeyboard-Example.
 """
+
+import os
+
+from dotenv import load_dotenv
+
+
 import logging
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
@@ -21,15 +27,17 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
+keyboard = [
+    [
+        InlineKeyboardButton("Option 1", callback_data="1"),
+        InlineKeyboardButton("Option 2", callback_data="2"),
+    ],
+    [InlineKeyboardButton("Option 3", callback_data="3")],
+]
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Sends a message with three inline buttons attached."""
-    keyboard = [
-        [
-            InlineKeyboardButton("Option 1", callback_data="1"),
-            InlineKeyboardButton("Option 2", callback_data="2"),
-        ],
-        [InlineKeyboardButton("Option 3", callback_data="3")],
-    ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -44,7 +52,10 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
     await query.answer()
 
-    await query.edit_message_text(text=f"Selected option: {query.data}")
+    await query.edit_message_text(
+        text=f"Selected option: {query.data}",
+        reply_markup=InlineKeyboardMarkup(keyboard),
+    )
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -54,12 +65,21 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 def main() -> None:
     """Run the bot."""
-    # Create the Application and pass it your bot's token.
-    application = Application.builder().token("TOKEN").build()
+    load_dotenv()
+
+    BOT_TOKEN = os.environ.get("BOT_TOKEN")
+
+    if BOT_TOKEN is None:
+        print(
+            ".no .env file or env file has not any bot token. Please make sure the token is there and re run this program."
+        )
+        return
+
+    application = Application.builder().token(BOT_TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(button))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CallbackQueryHandler(button))
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling(allowed_updates=Update.ALL_TYPES)
