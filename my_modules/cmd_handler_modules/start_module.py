@@ -57,6 +57,7 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         f"👋 Thanks, {user_mention}! Welcome to <b><u>The Note-Taking Bot</u></b> 📝🤖\n\n"
         f"I can help you store your notes securely and retrieve them anytime! 🔒🗂️\n\n"
         f"<b>Here below are some useful commands to check:</b>\n"
+        f"🍌 /register or /register_me :- Register Yourself First\n"
         f"📝 /new_note - Create a new note\n"
         f"✏️ /edit_note - Edit an existing note\n"
         f"❌ /delete_note - Delete a note\n"

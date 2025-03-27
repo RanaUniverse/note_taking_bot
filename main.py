@@ -59,6 +59,10 @@ def main() -> None:
         account_register_conv_handler,
     )
 
+    from my_modules.conv_handlers_modules.note_making import conv_new_note
+
+    application.add_handler(conv_new_note)
+
     from my_modules.cmd_handler_modules.zzz_extra_things import rana_checking
 
     application.add_handler(
