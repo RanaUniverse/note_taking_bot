@@ -59,6 +59,14 @@ def main() -> None:
         account_register_conv_handler,
     )
 
+    from my_modules.cmd_handler_modules.zzz_extra_things import rana_checking
+
+    application.add_handler(
+        CommandHandler(
+            "rana",
+            rana_checking,
+        )
+    )
     application.add_handler(
         CommandHandler(
             "start",
@@ -70,6 +78,16 @@ def main() -> None:
         CommandHandler(
             command=["register_me", "new_account", "register"],
             callback=new_acc_register,
+            block=False,
+        )
+    )
+
+    from my_modules.conv_handlers_modules.note_making import new_note_cmd
+
+    application.add_handler(
+        CommandHandler(
+            command=["new_note"],
+            callback=new_note_cmd,
             block=False,
         )
     )
