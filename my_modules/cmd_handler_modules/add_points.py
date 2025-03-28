@@ -123,6 +123,24 @@ async def add_points_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             )
             return
 
+        if points_to_add > 30:
+            text = (
+                f"⚠️ You are requesting too many points ({points_to_add})!\n"
+                f"🔹 The maximum allowed per request is <b>30</b> points.\n"
+                f"Please enter a smaller value.\n"
+                f"Example:\n<blockquote><code>/add_points 20</code></blockquote>\n"
+                f"If you want to add many points pls contact admin."
+            )
+            await context.bot.send_message(
+                chat_id=user.id,
+                text=text,
+                parse_mode=ParseMode.HTML,
+            )
+            return
+
+        # i made at last as i want to open the database and check only when the condition
+        # all got satisfied.
+
         with Session(engine) as session:
             statement = select(UserPart).where(UserPart.user_id == user.id)
             results = session.exec(statement)
