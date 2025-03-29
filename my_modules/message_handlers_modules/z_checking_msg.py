@@ -62,9 +62,21 @@ async def filters_all(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     this fun will execute when filters.ALL is used"
     """
 
+    if (
+        update.message is None
+        or update.message.from_user is None
+    ):
+        print("I used this to prevent the type hint of pyright. for all filters.all")
+        return
+
+    user = update.message.from_user
+    user_text = update.message.text_html
+
+    print(user_text)
+
     text = (
         f"Thanks i got ur message which do filters.ALL,\n\n"
-        f"<b>{update.message.from_user.full_name}</b>"
-        f"{update}"
+        f"You send me, \n"
+        f"{user_text}"
     )
-    await context.bot.send_message(update.message.from_user.id, text)
+    await context.bot.send_message(user.id, text, "html")
