@@ -13,41 +13,18 @@ async def rana_checking(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if update.message is None or update.message.from_user is None:
         print("I used this to prevent the type hint of pyright. in ranachecking")
         return
+    from telegram import ReplyKeyboardMarkup
+    from my_modules.some_reply_keyboards import yes_no_reply_keyboard
 
     user = update.message.from_user
-
-    user_mention = f'<a href="tg://user?id={user.id}">{user.full_name}</a>'
-
-    print(context.user_data)
-
-    if context.user_data is None:
-        print("user data value is None")
-        return
-
-    context.user_data.setdefault("total_messages", 0)
-
-    context.user_data["a's"] = "A is a astring"
-
-    context.user_data["B's"] = "B is a astring"
-
-    text = f"{context.user_data}"
-
+    text = f"Please send me a text now,"
     await context.bot.send_message(
         chat_id=user.id,
         text=text,
         parse_mode=ParseMode.HTML,
-    )
-
-    context.user_data.clear()
-    context.user_data["C's"] = "C is a astring"
-
-    text = (
-        f"<b>{user_mention}</b> below is ur information👇🏻👇🏻👇🏻"
-        f"{context.user_data}"
-    )
-
-    await context.bot.send_message(
-        chat_id=user.id,
-        text=text,
-        parse_mode=ParseMode.HTML,
+        reply_markup=ReplyKeyboardMarkup(
+            yes_no_reply_keyboard,
+            one_time_keyboard=True,
+            input_field_placeholder="yes not button here."
+        ),
     )
