@@ -44,11 +44,11 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     # First it will check if user is in database if not say him to go and register
     # and then come back here ot make new note
     if update.message is None or update.message.from_user is None:
-        print("I used this to prevent the type hint of pyright.")
+        print("I used this to prevent the type hint of pyright. in newnotecmd")
         return ConversationHandler.END
 
     user = update.message.from_user
-    user_mention = f'<a href="tg://user?id={user.id}">{user.full_name}</a>'
+    user_mention = f'<a href="tg://user?id={user.id}">{user.first_name}</a>'
 
     with Session(engine) as session:
         statement = select(UserPart).where(UserPart.user_id == user.id)
@@ -57,7 +57,11 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
     if user_row is None:
         # it means user has not register so it need to go back and register
-        text = "⚠️ You are not registered! Please use /register_me to create an account first."
+        text = (
+            f"Hello {user_mention} 😢😢😢\n"
+            "⚠️ You are not registered! Please use /register_me to create an account first."
+            "Then you will able to make new notes and use this Bot "
+        )
         await context.bot.send_message(
             chat_id=user.id,
             text=text,
@@ -70,11 +74,13 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     if his_points <= 0:
         text = (
             "❌ You don't have enough points to create a note. "
+            f"Creating a note will deduct <b>1 point</b> from your balance. ⚠️\n\n"
             "Pls send /add_points to add some points here."
         )
         await context.bot.send_message(
             chat_id=user.id,
             text=text,
+            parse_mode=ParseMode.HTML,
         )
         return ConversationHandler.END
 
@@ -82,8 +88,9 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
     text = (
         f"Hello {user_mention}, You have <b>{his_points}</b> Points. 🎉\n"
-        f"You can now create your note.\n\n"
-        f"📝 <b>Step 1:</b> Please send me the <b>Title</b> of your note below. 👇👇👇"
+        f"Creating a note will deduct <b>1 point</b> from your balance. ⚠️\n\n"
+        f"If you want not to make note now send, /cancel\n\n"
+        f"📝 <b>Step 1:</b> Please send me the <b>Title of Your note below.👇👇👇</b>"
     )
 
     await context.bot.send_message(
@@ -98,32 +105,52 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 async def get_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
     This will get the note title and it will keep save it in the running time
-    until it got saved in the datbase
+    until it got saved in the datbase.
     """
     if (
         update.message is None
         or update.message.from_user is None
         or context.user_data is None
     ):
-        print("I used this to prevent the type hint of pyright.")
+        print("/get_note_title thsi should not executes")
         return ConversationHandler.END
 
     user = update.message.from_user
-    user_mention = f'<a href="tg://user?id={user.id}">{user.full_name}</a>'
+    context.user_data["note_title"] = update.message.text_html
+    # i used .text_html as i want to store the formatting also.
 
-    context.user_data["note_title"] = update.message.text
     text = (
-        f"{user_mention}\n\n"
-        "✅ Great! Now send me the <b>Content</b> of your note. 📝"
+        f"✅ <b>Great!</b> Your note title has been saved. 🎯\n"
+        f"📜 <b>Step 2:</b> Now, please send me the <b>Content</b> of your note. 📝\n\n"
+        f"💡 Tip: You can send a long message, and I'll save it as your note content."
     )
 
     await context.bot.send_message(
-        chat_id=update.message.from_user.id,
+        chat_id=user.id,
         text=text,
-        parse_mode="HTML",
+        parse_mode=ParseMode.HTML,
     )
 
     return CONTENT
+
+
+async def bad_update_in_title(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> int:
+    """
+    This will execute when bot need title text but user send somethign else
+    """
+
+    if update.message is None or update.message.from_user is None:
+        print("a user should have here also when he send not text in title")
+        return ConversationHandler.END
+    user = update.message.from_user
+
+    print("Somthing bad in title part.")
+
+    text = f"You Need to send a text in the Title Part. Pls send Text"
+    await context.bot.send_message(user.id, text)
+    return TITLE
 
 
 async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -140,7 +167,7 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         or update.message.from_user is None
         or context.user_data is None
     ):
-        print("I used this to prevent the type hint of pyright.")
+        print("I used this to prevent the type hint of pyright. get note content")
         return ConversationHandler.END
 
     user = update.message.from_user
@@ -155,7 +182,7 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     )
 
     await context.bot.send_message(
-        chat_id=update.message.from_user.id,
+        chat_id=user.id,
         text=text,
         parse_mode=ParseMode.HTML,
     )
@@ -163,15 +190,32 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     return CONFIRM
 
 
+async def bad_update_in_content(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> int:
+    """
+    This function is triggered when the bot expects note content,
+    but the user sends something else (e.g., a photo, sticker, voice message).
+    """
+    if update.message is None or update.message.from_user is None:
+        print("Unexpected input received in content step.")
+        return ConversationHandler.END
+
+    user = update.message.from_user
+
+    print("Something bad in content part.")
+
+    text = "⚠️ Please send a valid text message for the note content. Images, stickers, or other media are not allowed."
+    await context.bot.send_message(user.id, text)
+
+    return CONTENT
+
+
 async def cancel_note_making(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
     the note making has been stopped
     """
-    if (
-        update.message is None
-        or update.message.from_user is None
-        or context.user_data is None
-    ):
+    if update.message is None or update.message.from_user is None:
         print("I used this to prevent the type hint of pyright.")
         return ConversationHandler.END
 
@@ -190,10 +234,56 @@ async def cancel_note_making(update: Update, context: ContextTypes.DEFAULT_TYPE)
     )
 
 
+async def confirm_note_saving(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> int:
+    """
+    This will handle the confirmation if the user wants to save the note.
+    """
+    if (
+        update.message is None
+        or update.message.from_user is None
+        or update.message.text is None
+    ):
+        return ConversationHandler.END
+
+    user = update.message.from_user
+
+    if update.message.text.lower() == "/yes":
+        # Here, add code to save the note into the database
+
+        with Session(engine) as session:
+            statement = select(UserPart).where(UserPart.user_id==user.id)
+            results = session.exec(statement)
+            user_row = results.first()
+        
+        if user_row is None:
+
+
+
+        text = f"✅ Your note has been successfully saved! 🎉"
+
+    else:
+        text = f"❌ You canceled saving the note."
+
+    await context.bot.send_message(
+        chat_id=user.id,
+        text=text,
+        parse_mode=ParseMode.HTML,
+    )
+
+    return ConversationHandler.END
+
+
 conv_new_note = ConversationHandler(
     entry_points=[
         CommandHandler(
             command=["new_note", "make_note"],
+            callback=new_note_cmd,
+            block=False,
+        ),
+        MessageHandler(
+            filters=filters.Text(["NEW NOTE"]),
             callback=new_note_cmd,
             block=False,
         ),
@@ -205,11 +295,28 @@ conv_new_note = ConversationHandler(
                 callback=get_note_title,
                 block=False,
             ),
+            MessageHandler(
+                filters=~filters.TEXT,
+                callback=bad_update_in_title,
+                block=False,
+            ),
         ],
         CONTENT: [
             MessageHandler(
                 filters=filters.TEXT,
                 callback=get_note_content,
+                block=False,
+            ),
+            MessageHandler(
+                filters=~filters.TEXT,
+                callback=bad_update_in_content,
+                block=False,
+            ),
+        ],
+        CONFIRM: [  # <-- ADD THIS MISSING STATE
+            MessageHandler(
+                filters=filters.Text(["/yes", "/no"]),
+                callback=confirm_note_saving,
                 block=False,
             ),
         ],
@@ -219,4 +326,5 @@ conv_new_note = ConversationHandler(
         CommandHandler("abord_setup", cancel_note_making),
         CommandHandler("start_later", cancel_note_making),
     ],
+    allow_reentry=True,
 )
