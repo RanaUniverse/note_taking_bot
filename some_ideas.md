@@ -29,6 +29,26 @@ The process of this, first it will start a conversation handler:
 
 
 
+## /new_notes :-
+
+This part is for making new note.
+1. This will a conversation where it need title, content and confirmation to save thsi note.
+
+2. Here i need to make some command related to this, `register`- when user is not register.
+
+3. `/add_points` - i will make it to add some points which will need to make one note, this need to be make like it will need some things like balance topup to get to new point.
+
+
+
+
+
+## /add_points:-
+1. This need to be a Admin wish to give the points to a user or not.
+2. For now i make it as a demo
+
+
+
+
 ## My Ideas
 
 Here i will keep writing some ideas i want to do with bot or related this project.
