@@ -15,10 +15,13 @@ async def echo_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         or update.message.from_user is None
         or update.message.text is None
     ):
-        print("I used this to prevent the type hint of pyright.")
+        print("I used this to prevent the type hint of pyright. for any text msg")
         return
+
     user = update.message.from_user
     user_text = update.message.text
+    
+    print(user_text)
 
     text_100 = f"{user_text.upper()[0:100]} ..."
     text = (
@@ -27,4 +30,3 @@ async def echo_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
     await context.bot.send_message(user.id, text, ParseMode.HTML)
-

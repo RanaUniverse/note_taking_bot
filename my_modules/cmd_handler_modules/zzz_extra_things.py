@@ -11,7 +11,7 @@ async def rana_checking(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     """This is for checking purpose only"""
 
     if update.message is None or update.message.from_user is None:
-        print("I used this to prevent the type hint of pyright.")
+        print("I used this to prevent the type hint of pyright. in ranachecking")
         return
 
     user = update.message.from_user

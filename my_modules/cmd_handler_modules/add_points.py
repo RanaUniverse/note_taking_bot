@@ -35,10 +35,9 @@ async def add_points_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     if user dont send any value after the command it will ask him to send right
     """
-    print("this has get by suer")
 
     if update.message is None or update.message.from_user is None:
-        print("I used this to prevent the type hint of pyright.")
+        print("I used this to prevent the type hint of pyright. in add_points_cmd")
         return
 
     user = update.message.from_user
@@ -166,9 +165,7 @@ async def add_points_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             session.add(user_row)
             session.commit()
             session.refresh(user_row)
-
-        print(user_row)
-
+        logger.info(f"{user.full_name} has added {points_to_add} point.")
         await asyncio.sleep(1)
 
         text = (

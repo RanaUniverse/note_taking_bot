@@ -258,8 +258,8 @@ account_register_conv_handler = ConversationHandler(
     entry_points=[
         CommandHandler(
             command=[
-                "new_account",
-                "register_me",
+                "new_account_full",
+                "register_me_full",
             ],
             callback=new_account_cmd,
             block=False,

@@ -11,7 +11,7 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """This is when user will send /help"""
 
     if update.message is None or update.message.from_user is None:
-        print("I used this to prevent the type hint of pyright.")
+        print("I used this to prevent the type hint of pyright. in help cmd")
         return
 
     user = update.message.from_user

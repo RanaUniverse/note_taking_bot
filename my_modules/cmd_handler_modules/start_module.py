@@ -13,7 +13,7 @@ async def start_cmd_old(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     """When user will send /start this should execute"""
 
     if update.message is None or update.message.from_user is None:
-        print("I used this to prevent the type hint of pyright.")
+        print("I used this to prevent the type hint of pyright. in start cmd old")
         return
 
     user = update.message.from_user
@@ -46,7 +46,7 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """When user sends /start, this executes"""
 
     if update.message is None or update.message.from_user is None:
-        print("I used this to prevent the type hint of pyright.")
+        print("I used this to prevent the type hint of pyright. in start cmd")
         return
 
     user = update.message.from_user
