@@ -4,11 +4,12 @@ edit note,
 delte note and so on
 """
 
-from telegram.ext import filters
+from telegram import ReplyKeyboardMarkup
 from telegram import Update
 
 from telegram.constants import ParseMode
 
+from telegram.ext import filters
 from telegram.ext import ContextTypes
 
 from telegram.ext import (
@@ -19,11 +20,15 @@ from telegram.ext import (
 
 
 from sqlmodel import Session, select
+
 from my_modules.database_code.models_table import UserPart, NotePart
 from my_modules.database_code.database_make import engine
 
 
-TITLE, CONTENT, CONFIRM = range(3)
+from my_modules.some_reply_keyboards import yes_no_reply_keyboard
+
+
+TITLE, CONTENT, CONFIRMATION = range(3)
 
 
 async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -65,6 +70,7 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         await context.bot.send_message(
             chat_id=user.id,
             text=text,
+            parse_mode=ParseMode.HTML,
         )
         return ConversationHandler.END
 
@@ -75,7 +81,8 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         text = (
             "❌ You don't have enough points to create a note. "
             f"Creating a note will deduct <b>1 point</b> from your balance. ⚠️\n\n"
-            "Pls send /add_points to add some points here."
+            "Pls send /add_points followed by a value (<code>/add_points 10</code>) "
+            "to add some points here."
         )
         await context.bot.send_message(
             chat_id=user.id,
@@ -88,9 +95,9 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
     text = (
         f"Hello {user_mention}, You have <b>{his_points}</b> Points. 🎉\n"
-        f"Creating a note will deduct <b>1 point</b> from your balance. ⚠️\n\n"
+        f"Creating a note will deduct <b>1 point</b> from your Points({his_points}). ⚠️\n\n"
         f"If you want not to make note now send, /cancel\n\n"
-        f"📝 <b>Step 1:</b> Please send me the <b>Title of Your note below.👇👇👇</b>"
+        f"📝 <b>Step 1:</b> Please send me the <b><u>Title of Your Note</u> below.👇👇👇</b>"
     )
 
     await context.bot.send_message(
@@ -141,14 +148,18 @@ async def bad_update_in_title(
     This will execute when bot need title text but user send somethign else
     """
 
-    if update.message is None or update.message.from_user is None:
-        print("a user should have here also when he send not text in title")
+    # if update.message is None or update.message.from_user is None:
+    #     print("a user should have here also when he send not text in title")
+    #     return ConversationHandler.END
+
+    # user = update.message.from_user
+    user = update.effective_user
+
+    if user is None:
+        print(f"This is unexpected in the bad update when title need.")
         return ConversationHandler.END
-    user = update.message.from_user
 
-    print("Somthing bad in title part.")
-
-    text = f"You Need to send a text in the Title Part. Pls send Text"
+    text = f"You Need to send a Text in the Title Part. Pls send Text"
     await context.bot.send_message(user.id, text)
     return TITLE
 
@@ -171,23 +182,29 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         return ConversationHandler.END
 
     user = update.message.from_user
-    user_mention = f'<a href="tg://user?id={user.id}">{user.full_name}</a>'
 
     context.user_data["note_content"] = update.message.text
 
     text = (
-        f"{user_mention}\n"
-        f" I have got your note title and content both, now if you want to "
-        f"save this note pls send /yes else /no."
+        "📌 <b>Note Received!</b>\n\n"
+        "I have saved your Note Title and Content. Now, if you want to "
+        "<b>save This Note permanently</b>, please send `Yes` or `No` or /cancel"
     )
 
     await context.bot.send_message(
         chat_id=user.id,
         text=text,
         parse_mode=ParseMode.HTML,
+        reply_markup=ReplyKeyboardMarkup(
+            yes_no_reply_keyboard,
+            one_time_keyboard=True,
+            input_field_placeholder="yes not button here.",
+        ),
     )
 
-    return CONFIRM
+    print(context.user_data)
+
+    return CONFIRMATION
 
 
 async def bad_update_in_content(
@@ -197,15 +214,16 @@ async def bad_update_in_content(
     This function is triggered when the bot expects note content,
     but the user sends something else (e.g., a photo, sticker, voice message).
     """
-    if update.message is None or update.message.from_user is None:
-        print("Unexpected input received in content step.")
-        return ConversationHandler.END
 
-    user = update.message.from_user
+    user = update.effective_user
+
+    if user is None:
+        print("This should not execute")
+        return ConversationHandler.END
 
     print("Something bad in content part.")
 
-    text = "⚠️ Please send a valid text message for the note content. Images, stickers, or other media are not allowed."
+    text = "⚠️ Please send a valid text message for the note content. Images, stickers, or other media are not allowed for Now."
     await context.bot.send_message(user.id, text)
 
     return CONTENT
@@ -232,47 +250,76 @@ async def cancel_note_making(update: Update, context: ContextTypes.DEFAULT_TYPE)
         text=text,
         parse_mode=ParseMode.HTML,
     )
+    return ConversationHandler.END
 
 
-async def confirm_note_saving(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> int:
+async def save_note(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
-    This will handle the confirmation if the user wants to save the note.
+    When user want to save his note 'Yes'
     """
-    if (
-        update.message is None
-        or update.message.from_user is None
-        or update.message.text is None
-    ):
+    if update.message is None or update.message.from_user is None:
+        print("save note yes should not be none")
         return ConversationHandler.END
+
+    print("Note is going to save")
 
     user = update.message.from_user
 
-    if update.message.text.lower() == "/yes":
-        # Here, add code to save the note into the database
+    with Session(engine) as session:
+        statement = select(UserPart).where(UserPart.user_id == user.id)
+        results = session.exec(statement)
+        user_row = results.first()
 
-        with Session(engine) as session:
-            statement = select(UserPart).where(UserPart.user_id==user.id)
-            results = session.exec(statement)
-            user_row = results.first()
-        
-        if user_row is None:
+    if user_row is None:
+        text = (
+            f"This should not happens as in start time of the note making it "
+            f"already checked if the user is register or not, maybe in the "
+            f"time of conversation it got delete."
+        )
+        await context.bot.send_message(user.id, text)
+        return ConversationHandler.END
 
+    # NOw it means userrow has a value so now i will use to save this note
+    if context.user_data is None:
+        print(f"User should have some context.data as it is come")
+        return ConversationHandler.END
 
+    note_row = NotePart(
+        note_title=context.user_data.get("note_title", None),
+        note_content=context.user_data.get("note_content", None),
+        is_available=True,
+    )
+    # i need to open with session again and use this insert
 
-        text = f"✅ Your note has been successfully saved! 🎉"
+    with Session(engine) as session:
 
-    else:
-        text = f"❌ You canceled saving the note."
+        note_row.user = user_row
+        user_row.points -= 1
+
+        session.add(note_row)
+        session.add(user_row)
+        session.commit()
+        session.refresh(note_row)
+        session.refresh(user_row)
+
+    text = (
+        f"Hello {user.first_name}, Your new Note has been Saved Successfully. "
+        f"Your Private Note ID: <tg-spoiler><code>{note_row.note_id}</code></tg-spoiler>, "
+        f"Please keep it hidden to get your note back."
+    )
+
+    from telegram import ReplyKeyboardRemove
 
     await context.bot.send_message(
         chat_id=user.id,
         text=text,
         parse_mode=ParseMode.HTML,
+        reply_markup=ReplyKeyboardRemove(),
     )
 
-    return ConversationHandler.END
+
+async def discard_note(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """thsi will execute when note will not saved but it will send the note back to user now"""
 
 
 conv_new_note = ConversationHandler(
@@ -290,38 +337,63 @@ conv_new_note = ConversationHandler(
     ],
     states={
         TITLE: [
+            CommandHandler(
+                command="cancel",
+                callback=cancel_note_making,
+                filters=filters.COMMAND & filters.UpdateType.MESSAGE,
+            ),
             MessageHandler(
-                filters=filters.TEXT,
+                filters=filters.TEXT & filters.UpdateType.MESSAGE,
                 callback=get_note_title,
                 block=False,
             ),
             MessageHandler(
-                filters=~filters.TEXT,
+                filters=filters.ALL,
                 callback=bad_update_in_title,
                 block=False,
             ),
         ],
         CONTENT: [
+            CommandHandler(
+                command="cancel",
+                callback=cancel_note_making,
+                filters=filters.COMMAND & filters.UpdateType.MESSAGE,
+            ),
             MessageHandler(
-                filters=filters.TEXT,
+                filters=filters.TEXT & filters.UpdateType.MESSAGE,
                 callback=get_note_content,
                 block=False,
             ),
             MessageHandler(
-                filters=~filters.TEXT,
+                filters=filters.ALL,
                 callback=bad_update_in_content,
                 block=False,
             ),
         ],
-        CONFIRM: [  # <-- ADD THIS MISSING STATE
+        CONFIRMATION: [
+            CommandHandler(
+                command="cancel",
+                callback=cancel_note_making,
+                filters=filters.COMMAND & filters.UpdateType.MESSAGE,
+            ),
             MessageHandler(
-                filters=filters.Text(["/yes", "/no"]),
-                callback=confirm_note_saving,
+                filters=filters.Text(["Yes"]) & filters.UpdateType.MESSAGE,
+                callback=save_note,  # Function to save the note
+                block=False,
+            ),
+            MessageHandler(
+                filters=filters.Text(["No"]) & filters.UpdateType.MESSAGE,
+                callback=discard_note,  # Function to discard the note
                 block=False,
             ),
         ],
     },
     fallbacks=[
+        CommandHandler(
+            command="cancel",
+            callback=cancel_note_making,
+            filters=filters.COMMAND & filters.UpdateType.MESSAGE,
+        ),
         CommandHandler("cancel", cancel_note_making),
         CommandHandler("abord_setup", cancel_note_making),
         CommandHandler("start_later", cancel_note_making),

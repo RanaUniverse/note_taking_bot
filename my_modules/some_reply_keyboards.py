@@ -8,8 +8,8 @@ from telegram import KeyboardButton
 
 yes_no_reply_keyboard = [
     [
-        KeyboardButton(text="yes"),
-        KeyboardButton(text="no"),
+        KeyboardButton(text="Yes"),
+        KeyboardButton(text="No"),
     ],
     [
         KeyboardButton(text="/cancel"),

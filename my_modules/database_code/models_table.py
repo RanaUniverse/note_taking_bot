@@ -54,7 +54,7 @@ class NotePart(SQLModel, table=True):
         default_factory=lambda: datetime.datetime.now(IST),
     )
     edited_time: datetime.datetime | None = Field(default=None)
-    availability: bool | None = Field(default=None)
+    is_available: bool = Field(default=True)
 
     user: UserPart = Relationship(back_populates="notes")
 

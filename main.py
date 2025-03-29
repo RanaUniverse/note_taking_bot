@@ -35,6 +35,12 @@ from my_modules.message_handlers_modules.z_checking_msg import (
 from my_modules.database_code.database_make import create_db_and_engine
 
 
+from my_modules.conv_handlers_modules.note_making import conv_new_note
+from my_modules.cmd_handler_modules.zzz_extra_things import rana_checking
+from my_modules.cmd_handler_modules.add_points import add_points_cmd
+from my_modules.conv_handlers_modules.note_making import new_note_cmd
+
+
 def main() -> None:
     """Start the bot."""
     # Create the Application and pass it your bot's token.
@@ -51,19 +57,14 @@ def main() -> None:
     application = Application.builder().token(BOT_TOKEN).build()
 
     # on different commands - answer in Telegram
+    from my_modules.conv_handlers_modules.example_1 import conv_example_1
 
-    # application.add_handler(conv_example_1)
+    application.add_handler(conv_example_1)
     # application.add_handler(conv_new_account)
 
-    application.add_handler(
-        account_register_conv_handler,
-    )
-
-    from my_modules.conv_handlers_modules.note_making import conv_new_note
+    application.add_handler(account_register_conv_handler)
 
     application.add_handler(conv_new_note)
-
-    from my_modules.cmd_handler_modules.zzz_extra_things import rana_checking
 
     application.add_handler(
         CommandHandler(
@@ -71,6 +72,15 @@ def main() -> None:
             rana_checking,
         )
     )
+
+    application.add_handler(
+        CommandHandler(
+            command=["add_points", "add_point"],
+            callback=add_points_cmd,
+            block=False,
+        )
+    )
+
     application.add_handler(
         CommandHandler(
             "start",
@@ -85,8 +95,6 @@ def main() -> None:
             block=False,
         )
     )
-
-    from my_modules.conv_handlers_modules.note_making import new_note_cmd
 
     application.add_handler(
         CommandHandler(
@@ -110,7 +118,7 @@ def main() -> None:
             callback=email_find,
         )
     )
-    application.add_handler(MessageHandler(filters.ALL, filters_all))
+    # application.add_handler(MessageHandler(filters.ALL, filters_all))
 
     application.add_handler(
         MessageHandler(
