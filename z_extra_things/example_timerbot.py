@@ -1,3 +1,8 @@
+"""
+This code is good, and it is easy as a fun will run
+in a interval, this is just for testing
+"""
+
 import logging
 
 from telegram import Update
@@ -11,12 +16,6 @@ logging.basicConfig(
 )
 
 
-# Define a few command handlers. These usually take the two arguments update and
-# context.
-# Best practice would be to replace context with an underscore,
-# since context is an unused local variable.
-# This being an example and not having context present confusing beginners,
-# we decided to have it present as context.
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Sends explanation on how to use the bot."""
     await update.message.reply_text("Hi! Use /set <seconds> to set a timer")
@@ -79,6 +78,43 @@ async def unset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(text)
 
 
+import datetime
+
+IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+
+
+async def callback_alarm(context: ContextTypes.DEFAULT_TYPE):
+    now_time = datetime.datetime.now(IST)
+    text = f"Current Time is: {now_time}"
+
+    await context.bot.send_message(
+        chat_id=context.job.user_id,
+        text=text,
+    )
+
+
+async def callback_timer(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # chat_id = update.message.chat_id
+    if update.message is None or update.message:
+        return
+    user = update.message.from_user
+    text = "Setting a timer for continuous beep!"
+
+    await context.bot.send_message(
+        chat_id=user.id,
+        text=text,
+    )
+
+    # context.job_queue.run_once(callback_alarm, 1, data=name, chat_id=chat_id)
+
+    context.job_queue.run_repeating(
+        callback_alarm,
+        interval=3,
+        first=0,
+        user_id=user.id,
+    )
+
+
 def main() -> None:
     """Run bot."""
     # Create the Application and pass it your bot's token.
@@ -93,9 +129,10 @@ def main() -> None:
     application = Application.builder().token(BOT_TOKEN).build()
 
     # on different commands - answer in Telegram
-    application.add_handler(CommandHandler(["start", "help"], start))
+    application.add_handler(CommandHandler(["start"], start))
     application.add_handler(CommandHandler("set", set_timer))
     application.add_handler(CommandHandler("unset", unset))
+    application.add_handler(CommandHandler("help", callback_timer))
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling(allowed_updates=Update.ALL_TYPES)
