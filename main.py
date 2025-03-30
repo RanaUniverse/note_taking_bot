@@ -1,5 +1,6 @@
 import os
 
+
 from dotenv import load_dotenv
 
 from telegram import Update
@@ -11,6 +12,8 @@ from telegram.ext import (
 )
 
 from telegram.constants import MessageEntityType
+from telegram.ext import CallbackQueryHandler
+from telegram.ext import ContextTypes
 
 # Below is for checking my string logic
 
@@ -41,7 +44,7 @@ from my_modules.cmd_handler_modules.add_points import add_points_cmd
 from my_modules.conv_handlers_modules.note_making import new_note_cmd
 
 
-from telegram.ext import ContextTypes
+from my_modules.callback_modules.start_cmd_buttons import button_for_start
 
 
 async def handle_edited_command(
@@ -124,13 +127,20 @@ def main() -> None:
         )
     )
 
-    # Below start is comes from any group 
+    # Below start is comes from any group
     application.add_handler(
         CommandHandler(
             command="start",
             callback=start_module.start_cmd_group,
             filters=filters.ChatType.GROUPS & filters.UpdateType.MESSAGE,
             block=False,
+        )
+    )
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=button_for_start,
+            pattern="^(new_note|view_notes|edit_note|search_note)$",
         )
     )
 

@@ -1,6 +1,5 @@
 """
 /start From User Direct Message
-/start From user Edited
 /start From Group Chat
 
 
@@ -64,15 +63,18 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_mention = f'<a href="tg://user?id={user.id}">{user.full_name}</a>'
 
     text = (
-        f"👋 Thanks, {user_mention}! Welcome to <b><u>The Note-Taking Bot</u></b> 📝🤖\n\n"
-        f"I can help you store your notes securely and retrieve them anytime! 🔒🗂️\n\n"
-        f"<b>Here below are some useful commands to check:</b>\n"
-        f"🍌 /register or /register_me :- Register Yourself First\n"
+        f"👋 Hello, {user_mention}! Welcome to <b><u>The Note-Taking Bot</u></b> 📝🤖\n\n"
+        f"Use the buttons below to manage your notes, or use commands if needed! 🔒🗂️\n\n"
+        f"<b>🔹 Available Commands:</b>\n"
         f"📝 /new_note - Create a new note\n"
+        f"📂 /view_notes - View all your notes\n"
         f"✏️ /edit_note - Edit an existing note\n"
-        f"❌ /delete_note - Delete a note\n"
         f"🔍 /search_note - Search notes by title\n"
-        f"ℹ️ /my_info - View your information\n"
+        f"❌ /delete_note - Delete a note\n"
+        f"📤 /export_notes - Export all notes\n"
+        f"⚙️ /update_profile - Update your profile\n"
+        f"❓ /help - Get help and usage instructions\n\n"
+        f"⚠️ <b>Note:</b> If buttons don't work, use the above commands manually."
         f"⚠️ <b>WARNING:</b> The buttons below are still in development. Please use the commands above for now. 🚧🔄"
     )
 
@@ -82,6 +84,8 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         parse_mode=ParseMode.HTML,
         reply_markup=InlineKeyboardMarkup(MyInlineKeyboard.START_MENU.value),
     )
+    # For now there is the button not works, for now the buttons
+    # will show a alart that it not implimented yet, rather use this command.
 
 
 async def start_cmd_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
