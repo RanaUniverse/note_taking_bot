@@ -3,6 +3,8 @@ Here will some buttons representing the keyboards
 which i can import and use later
 """
 
+from enum import Enum
+
 from telegram import InlineKeyboardButton
 
 
@@ -27,6 +29,29 @@ keyboard_options_aplhabet = [
     [
         InlineKeyboardButton(text="Button D", callback_data="D4"),
         InlineKeyboardButton(text="Button E", callback_data="E5"),
+    ],
+]
+
+
+# Below will use with the /start get by user. This need to call with appropriat callback
+# but till now i dont make it.
+
+keyboard_start_menu = [
+    [
+        InlineKeyboardButton("📝 New Note", callback_data="new_note"),
+        InlineKeyboardButton("📂 View All Notes", callback_data="view_notes"),
+    ],
+    [
+        InlineKeyboardButton("✏️ Edit Note", callback_data="edit_note"),
+        InlineKeyboardButton("🔍 Search Note", callback_data="search_note"),
+    ],
+    [
+        InlineKeyboardButton("❌ Delete Note", callback_data="delete_note"),
+        InlineKeyboardButton("📤 Export Notes", callback_data="export_notes"),
+    ],
+    [
+        InlineKeyboardButton("⚙️ Profile Update", callback_data="update_profile"),
+        InlineKeyboardButton("❓ Help Section", callback_data="help_section"),
     ],
 ]
 
@@ -56,50 +81,6 @@ keyboard_account_register = [
         InlineKeyboardButton(
             text="✅Confirm & Save",
             callback_data="save_now",
-        ),
-    ],
-]
-
-
-keyboard_start_menu = [
-    [
-        InlineKeyboardButton(
-            text="📝 New Note",
-            callback_data="new_note",
-        ),
-        InlineKeyboardButton(
-            text="✏️ Edit Old Note",
-            callback_data="edit_note",
-        ),
-    ],
-    [
-        InlineKeyboardButton(
-            text="❌ Delete Note",
-            callback_data="delete_note",
-        ),
-        InlineKeyboardButton(
-            text="🔍 Search Notes",
-            callback_data="search_note",
-        ),
-    ],
-    [
-        InlineKeyboardButton(
-            text="⚙️ Edit My Details",
-            callback_data="edit_details",
-        ),
-        InlineKeyboardButton(
-            text="📂 View All Notes",
-            callback_data="view_notes",
-        ),
-    ],
-    [
-        InlineKeyboardButton(
-            text="📤 Export Notes",
-            callback_data="export_notes",
-        ),
-        InlineKeyboardButton(
-            text="❓ Help Section",
-            callback_data="help_section",
         ),
     ],
 ]
@@ -145,12 +126,9 @@ keyboard_user_info = [
 ]
 
 
-from enum import Enum
-
-
 class MyInlineKeyboard(Enum):
 
+    START_MENU = keyboard_start_menu
     OPTIONS = keyboard_options
     ALPHABET = keyboard_options_aplhabet
     ACCOUNT_REGISTER = keyboard_account_register
-    START_MENU = keyboard_start_menu

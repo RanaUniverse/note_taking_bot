@@ -1,5 +1,16 @@
+"""
+/start From User Direct Message
+/start From user Edited
+/start From Group Chat
+
+
+"""
+
+import os
+
 from telegram import Update
 from telegram import User
+from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
@@ -9,16 +20,13 @@ from telegram.constants import ParseMode
 from my_modules.some_inline_keyboards import MyInlineKeyboard
 
 
-async def start_cmd_old(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """When user will send /start this should execute"""
+BOT_USERNAME = os.environ.get("BOT_USERNAME", None)
 
-    if update.message is None or update.message.from_user is None:
-        print("I used this to prevent the type hint of pyright. in start cmd old")
-        return
 
-    user = update.message.from_user
-    text = f"Thanks {user.first_name.upper()} For starting this bot"
-    await context.bot.send_message(user.id, text)
+if not BOT_USERNAME:
+    raise ValueError("❌ BOT_USERNAME not found in .env file!")
+
+# Below 3 Functions i made just to call and take a input i just keep it now, no need in code.
 
 
 def get_simple_message(user: User) -> str:
@@ -43,7 +51,9 @@ def get_leaving_message(user: User) -> str:
 
 
 async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """When user sends /start, this executes"""
+    """
+    When user sends /start in private chat, this executes
+    """
 
     if update.message is None or update.message.from_user is None:
         print("I used this to prevent the type hint of pyright. in start cmd")
@@ -71,4 +81,43 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         text=text,
         parse_mode=ParseMode.HTML,
         reply_markup=InlineKeyboardMarkup(MyInlineKeyboard.START_MENU.value),
+    )
+
+
+async def start_cmd_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    When a edite /start get by groups
+    i need to use chat , as user maybe not available when user is hidden admin
+    """
+    chat = update.effective_chat
+
+    if chat is None:
+        print("This should not execute as start in groups.")
+        return
+
+    text = (
+        "📢 <b>Notice:</b>\n\n"
+        "⚠️ This bot currently <b>cannot take notes in groups</b>.\n"
+        "🛠️ This feature is <b>is not implimenteds yet available</b>, but it will be added in a future update.\n"
+        "🔔 Stay tuned for updates!"
+        "Please Press This button To Accss This Bot..."
+    )
+
+    url_value = f"https://t.me/{BOT_USERNAME}?start=start"
+
+    button = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    text="Go to Private Chat",
+                    url=url_value,
+                ),
+            ]
+        ]
+    )
+    await context.bot.send_message(
+        chat_id=chat.id,
+        text=text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=button,
     )
