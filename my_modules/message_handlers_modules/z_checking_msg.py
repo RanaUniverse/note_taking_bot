@@ -18,7 +18,7 @@ class EmailValidator(BaseModel):
     email: EmailStr
 
 
-async def str_checking_logic(
+async def str_checking_logic_no_used(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """This is just send same message to user with the"""

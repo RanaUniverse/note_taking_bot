@@ -30,6 +30,7 @@ from my_modules.logger_related import logger
 
 async def new_acc_register(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
+    only = "register"
     command=["register_me", "new_account", "register"],
 
     When user want to make his account he need to press this and bot will

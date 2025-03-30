@@ -26,13 +26,7 @@ from my_modules.conv_handlers_modules.account_register import (
 )
 
 
-from my_modules.message_handlers_modules.text_msg_module import echo_text
 from my_modules.message_handlers_modules.z_text_related_module import email_find
-
-from my_modules.message_handlers_modules.z_checking_msg import (
-    str_checking_logic,
-    filters_all,
-)
 
 
 from my_modules.database_code.database_make import create_db_and_engine
@@ -41,10 +35,10 @@ from my_modules.database_code.database_make import create_db_and_engine
 from my_modules.conv_handlers_modules.note_making import conv_new_note
 from my_modules.cmd_handler_modules.zzz_extra_things import rana_checking
 from my_modules.cmd_handler_modules.add_points import add_points_cmd
-from my_modules.conv_handlers_modules.note_making import new_note_cmd
 
 
 from my_modules.callback_modules.start_cmd_buttons import button_for_start
+from my_modules.callback_modules.some_buttons import update_profile_button
 
 
 async def handle_edited_command(
@@ -79,8 +73,6 @@ def main() -> None:
 
     application = Application.builder().token(BOT_TOKEN).build()
 
-    # on different commands - answer in Telegram
-    from my_modules.conv_handlers_modules.example_1 import conv_example_1
 
     # application.add_handler(conv_example_1)
     # application.add_handler(conv_new_account)
@@ -137,28 +129,40 @@ def main() -> None:
         )
     )
 
+    # i have separate this one button for now just for checking
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=update_profile_button,
+            pattern="^update_profile$",
+        )
+    )
+
+    ## for this will handle the buttons having this callback data, for now
+    # i kept all at once maybe it need to separate each to different functions for easy works
     application.add_handler(
         CallbackQueryHandler(
             callback=button_for_start,
-            pattern="^(new_note|view_notes|edit_note|search_note|delete_note|export_notes|update_profile|help_section)$",
+            pattern="^(new_note|view_notes|edit_note|search_note|delete_note|export_notes|help_section)$",
         )
     )
 
     application.add_handler(
         CommandHandler(
-            command=["register_me", "new_account", "register"],
+            command="register",
             callback=new_acc_register,
             block=False,
         )
     )
 
-    application.add_handler(
-        CommandHandler(
-            command=["new_note"],
-            callback=new_note_cmd,
-            block=False,
-        )
-    )
+    # This below will be come in conversation handler,
+
+    # application.add_handler(
+    #     CommandHandler(
+    #         command="new_note",
+    #         callback=new_note_cmd,
+    #         block=False,
+    #     )
+    # )
 
     application.add_handler(
         CommandHandler(
@@ -176,18 +180,12 @@ def main() -> None:
     )
     # application.add_handler(MessageHandler(filters.ALL, filters_all))
 
-    application.add_handler(
-        MessageHandler(
-            filters.TEXT & ~filters.COMMAND,
-            echo_text,
-        )
-    )
-    application.add_handler(
-        MessageHandler(
-            filters.TEXT & ~filters.COMMAND,
-            str_checking_logic,
-        )
-    )
+    # application.add_handler(
+    #     MessageHandler(
+    #         filters.TEXT & ~filters.COMMAND,
+    #         echo_text,
+    #     )
+    # )
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling(allowed_updates=Update.ALL_TYPES)
