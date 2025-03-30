@@ -140,7 +140,7 @@ def main() -> None:
     application.add_handler(
         CallbackQueryHandler(
             callback=button_for_start,
-            pattern="^(new_note|view_notes|edit_note|search_note)$",
+            pattern="^(new_note|view_notes|edit_note|search_note|delete_note|export_notes|update_profile|help_section)$",
         )
     )
 

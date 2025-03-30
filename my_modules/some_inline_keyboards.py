@@ -35,23 +35,25 @@ keyboard_options_aplhabet = [
 
 # Below will use with the /start get by user. This need to call with appropriat callback
 # but till now i dont make it.
+# For Now dont change the button and its callback query data
+# ✅ ❌ first which are made and second which i need to made yet
 
 keyboard_start_menu = [
     [
-        InlineKeyboardButton("📝 New Note", callback_data="new_note"),
-        InlineKeyboardButton("📂 View All Notes", callback_data="view_notes"),
+        InlineKeyboardButton("📝 New Note ✅", callback_data="new_note"),
+        InlineKeyboardButton("📂 View All Notes ❌", callback_data="view_notes"),
     ],
     [
-        InlineKeyboardButton("✏️ Edit Note", callback_data="edit_note"),
-        InlineKeyboardButton("🔍 Search Note", callback_data="search_note"),
+        InlineKeyboardButton("✏️ Edit Note ❌", callback_data="edit_note"),
+        InlineKeyboardButton("🔍 Search Note ❌", callback_data="search_note"),
     ],
     [
-        InlineKeyboardButton("❌ Delete Note", callback_data="delete_note"),
-        InlineKeyboardButton("📤 Export Notes", callback_data="export_notes"),
+        InlineKeyboardButton("❌ Delete Note ❌", callback_data="delete_note"),
+        InlineKeyboardButton("📤 Export Notes ❌", callback_data="export_notes"),
     ],
     [
-        InlineKeyboardButton("⚙️ Profile Update", callback_data="update_profile"),
-        InlineKeyboardButton("❓ Help Section", callback_data="help_section"),
+        InlineKeyboardButton("⚙️ Profile Update ❌", callback_data="update_profile"),
+        InlineKeyboardButton("❓ Help Section ❌", callback_data="help_section"),
     ],
 ]
 

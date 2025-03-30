@@ -4,6 +4,7 @@ i will handle the buttons having on this message.
 """
 
 from telegram import Update
+from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
 
@@ -18,11 +19,81 @@ async def button_for_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if query.data == "new_note":
-        print("New Button Has Been pressed")
         await query.answer(
-            text="This Button is in Development",
+            text="⚠️ This feature is still in development. Please use the corresponding command instead! 🚧",
             show_alert=True,
         )
         await query.edit_message_text(
-            text="Please send /new_note and then you can make a note here.",
+            text="📝 To create a new note, use the command:\n<b>/new_note</b>",
+            parse_mode=ParseMode.HTML,
+        )
+
+    elif query.data == "view_notes":
+        await query.answer(
+            text="⚠️ This feature is still in development. Please use the corresponding command instead! 🚧",
+            show_alert=True,
+        )
+        await query.edit_message_text(
+            text="📂 To view all notes, use the command:\n<b>/view_notes</b>",
+            parse_mode=ParseMode.HTML,
+        )
+
+    elif query.data == "edit_note":
+        await query.answer(
+            text="⚠️ This feature is still in development. Please use the corresponding command instead! 🚧",
+            show_alert=True,
+        )
+        await query.edit_message_text(
+            text="✏️ To edit an existing note, use the command:\n<b>/edit_note</b>",
+            parse_mode=ParseMode.HTML,
+        )
+
+    elif query.data == "search_note":
+        await query.answer(
+            text="⚠️ This feature is still in development. Please use the corresponding command instead! 🚧",
+            show_alert=True,
+        )
+        await query.edit_message_text(
+            text="🔍 To search for a note, use the command:\n<b>/search_note</b>",
+            parse_mode=ParseMode.HTML,
+        )
+
+    elif query.data == "delete_note":
+        await query.answer(
+            text="⚠️ This feature is still in development. Please use the corresponding command instead! 🚧",
+            show_alert=True,
+        )
+        await query.edit_message_text(
+            text="❌ To delete a note, use the command:\n<b>/delete_note</b>",
+            parse_mode=ParseMode.HTML,
+        )
+
+    elif query.data == "export_notes":
+        await query.answer(
+            text="⚠️ This feature is still in development. Please use the corresponding command instead! 🚧",
+            show_alert=True,
+        )
+        await query.edit_message_text(
+            text="📤 To export all notes, use the command:\n<b>/export_notes</b>",
+            parse_mode=ParseMode.HTML,
+        )
+
+    elif query.data == "update_profile":
+        await query.answer(
+            text="⚠️ This feature is still in development. Please use the corresponding command instead! 🚧",
+            show_alert=True,
+        )
+        await query.edit_message_text(
+            text="⚙️ To update your profile, use the command:\n<b>/update_profile</b>",
+            parse_mode=ParseMode.HTML,
+        )
+
+    elif query.data == "help_section":
+        await query.answer(
+            text="⚠️ This feature is still in development. Please use the corresponding command instead! 🚧",
+            show_alert=True,
+        )
+        await query.edit_message_text(
+            text=f"This is same as /help",
+            parse_mode=ParseMode.HTML,
         )
