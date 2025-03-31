@@ -73,7 +73,6 @@ def main() -> None:
 
     application = Application.builder().token(BOT_TOKEN).build()
 
-
     # application.add_handler(conv_example_1)
     # application.add_handler(conv_new_account)
 
@@ -143,6 +142,23 @@ def main() -> None:
         CallbackQueryHandler(
             callback=button_for_start,
             pattern="^(new_note|view_notes|edit_note|search_note|delete_note|export_notes|help_section)$",
+        )
+    )
+
+    from my_modules.admin_related_code import update_commands_cmd, show_bot_commands
+
+    application.add_handler(
+        CommandHandler(
+            command=["update_commands"],
+            callback=update_commands_cmd,
+            block=False,
+        )
+    )
+    application.add_handler(
+        CommandHandler(
+            command=["show_commands"],
+            callback=show_bot_commands,
+            block=False,
         )
     )
 
