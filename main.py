@@ -76,6 +76,7 @@ def main() -> None:
     # application.add_handler(conv_example_1)
     # application.add_handler(conv_new_account)
 
+    # This is first user register conversation this need
     application.add_handler(account_register_conv_handler)
 
     application.add_handler(conv_new_note)
@@ -165,8 +166,8 @@ def main() -> None:
     application.add_handler(
         CommandHandler(
             command=[
-                "register",
-                "register_me",
+                "help",
+                "c",
             ],
             callback=new_acc_register,
             block=False,

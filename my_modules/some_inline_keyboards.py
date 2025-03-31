@@ -58,31 +58,35 @@ keyboard_start_menu = [
 ]
 
 
-keyboard_account_register = [
+keyboard_account_new_register = [
     [
         InlineKeyboardButton(
             text="📧Add Email ID",
-            callback_data="email",
+            callback_data="add_email",
         ),
         InlineKeyboardButton(
             text="📱Add Phone No",
-            callback_data="phone",
+            callback_data="add_phone",
         ),
     ],
     [
         InlineKeyboardButton(
             text="🎟Add Referral Code",
-            callback_data="referral",
+            callback_data="add_referral",
+        ),
+        InlineKeyboardButton(
+            text="My Account Details",
+            callback_data="account_details",
         ),
     ],
     [
         InlineKeyboardButton(
             text="❌Terminate Now",
-            callback_data="terminate",
+            callback_data="register_terminate",
         ),
         InlineKeyboardButton(
             text="✅Confirm & Save",
-            callback_data="save_now",
+            callback_data="register_save_now",
         ),
     ],
 ]
@@ -128,9 +132,44 @@ keyboard_user_info = [
 ]
 
 
+keyboard_account_already_register = [
+    [
+        InlineKeyboardButton(
+            text="📝 Make New Note",
+            callback_data="make_new_note",
+        ),
+        InlineKeyboardButton(
+            text="✏️ Edit My Profile",
+            callback_data="edit_profile",
+        ),
+    ],
+    [
+        InlineKeyboardButton(
+            text="🗑️ Delete My Account",
+            callback_data="delete_account",
+        ),
+        InlineKeyboardButton(
+            text="💎 Upgrade to Pro Plan",
+            callback_data="upgrade_pro",
+        ),
+    ],
+    [
+        InlineKeyboardButton(
+            text="📂 View My Data",
+            callback_data="view_my_data",
+        ),
+        InlineKeyboardButton(
+            text="🔄 Sync & Backup",
+            callback_data="sync_backup",
+        ),
+    ],
+]
+
+
 class MyInlineKeyboard(Enum):
 
     START_MENU = keyboard_start_menu
     OPTIONS = keyboard_options
     ALPHABET = keyboard_options_aplhabet
-    ACCOUNT_REGISTER = keyboard_account_register
+    ACCOUNT_NEW_REGISTER = keyboard_account_new_register
+    ACCOUNT_ALREADY_REGISTER = keyboard_account_already_register

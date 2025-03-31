@@ -21,6 +21,7 @@ The process of this, first it will start a conversation handler:
 
 
 ## /register :-
+### /register_me 
 
 1. First it will try to add him in the databse. if it ok then ok
 2. If it got failed it should check if this already in the database table or not,
