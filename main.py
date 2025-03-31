@@ -164,7 +164,10 @@ def main() -> None:
 
     application.add_handler(
         CommandHandler(
-            command="register",
+            command=[
+                "register",
+                "register_me",
+            ],
             callback=new_acc_register,
             block=False,
         )
