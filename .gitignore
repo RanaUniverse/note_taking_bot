@@ -17,3 +17,6 @@ wheels/
 database.db
 DATABASE.db
 
+# Below is the log file which i dont want to be tracked by github
+
+RanaUniverse_Log_File.log
