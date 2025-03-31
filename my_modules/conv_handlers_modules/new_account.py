@@ -22,7 +22,7 @@ from telegram.ext import (
 from telegram.constants import ParseMode
 
 
-from my_modules.logger_related import logger
+from my_modules.logger_related_old import logger
 
 
 class EmailValidator(BaseModel):

@@ -25,7 +25,7 @@ from my_modules.some_inline_keyboards import MyInlineKeyboard
 from my_modules.some_constants import IST
 
 
-from my_modules.logger_related import logger
+from my_modules.logger_related_old import logger
 
 
 async def new_acc_register(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

@@ -28,7 +28,7 @@ from telegram.constants import ParseMode
 
 
 from my_modules.some_constants import MessageEffectEmojies
-from my_modules.logger_related import logger
+from my_modules.logger_related_old import logger
 
 
 from my_modules.some_inline_keyboards import keyboard_account_register

@@ -23,7 +23,7 @@ from telegram.constants import ParseMode, ChatAction
 
 from sqlmodel import Session, select
 
-from my_modules.logger_related import logger
+from my_modules.logger_related_old import logger
 
 from my_modules.database_code.models_table import UserPart
 from my_modules.database_code.database_make import engine

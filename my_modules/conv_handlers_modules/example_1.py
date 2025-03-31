@@ -13,7 +13,7 @@ from telegram.ext import (
     filters,
 )
 
-from my_modules.logger_related import logger
+from my_modules.logger_related_old import logger
 
 
 GENDER, PHOTO, LOCATION, BIO = range(4)
