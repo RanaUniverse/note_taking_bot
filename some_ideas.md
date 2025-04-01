@@ -41,6 +41,12 @@ This part is for making new note.
 
 
 
+## /new_fake_note or /fake_note /generate_fake_note.
+
+1. For this it will check about user's row is available or not.
+2. it will use faker library and it will insert this.
+
+
 
 
 ## /add_points:-

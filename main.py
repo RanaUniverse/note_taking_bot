@@ -193,6 +193,21 @@ def main() -> None:
         )
     )
 
+    from my_modules.notes_related.fake_note_make import fake_note_cmd
+
+    application.add_handler(
+        CommandHandler(
+            command=[
+                "new_fake_note",
+                "fake_note",
+                "generate_fake_note",
+            ],
+            callback=fake_note_cmd,
+            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
+            block=False,
+        )
+    )
+
     application.add_handler(
         MessageHandler(
             filters=filters.Entity(
