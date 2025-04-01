@@ -32,7 +32,7 @@ from my_modules.message_handlers_modules.z_text_related_module import email_find
 from my_modules.database_code.database_make import create_db_and_engine
 
 
-from my_modules.conv_handlers_modules.note_making import conv_new_note
+from my_modules.conv_handlers_modules.note_making_old import conv_new_note
 from my_modules.cmd_handler_modules.zzz_extra_things import rana_checking
 from my_modules.cmd_handler_modules.add_points import add_points_cmd
 
@@ -77,6 +77,12 @@ def main() -> None:
     # application.add_handler(conv_new_account)
 
     # This is first user register conversation this need
+
+    from my_modules.conv_handlers_modules.new_note import new_note_conv_handler
+
+    # This will start making a note, when user send "/new_note"
+    application.add_handler(new_note_conv_handler)
+
     application.add_handler(account_register_conv_handler)
 
     application.add_handler(conv_new_note)
