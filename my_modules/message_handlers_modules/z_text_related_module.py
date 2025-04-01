@@ -39,6 +39,8 @@ async def email_find_old(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def email_find(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
+    This functions is not usable, this is not used yet
+
     I am trying to find the email id from user message
     this fun will execute where filters = filters.EMAIL in text like this
     """

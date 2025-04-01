@@ -13,26 +13,20 @@ from telegram.ext import (
 
 from telegram.constants import MessageEntityType
 from telegram.ext import CallbackQueryHandler
-from telegram.ext import ContextTypes
 
 # Below is for checking my string logic
 
 from my_modules.cmd_handler_modules import start_module
-from my_modules.cmd_handler_modules.help_module import help_cmd
-from my_modules.cmd_handler_modules.user_register import new_acc_register
+from my_modules.cmd_handler_modules.help_module import help_cmd, help_cmd_group
 
 from my_modules.conv_handlers_modules.account_register import (
     account_register_conv_handler,
 )
 
-
 from my_modules.message_handlers_modules.z_text_related_module import email_find
-
 
 from my_modules.database_code.database_make import create_db_and_engine
 
-
-from my_modules.conv_handlers_modules.note_making_old import conv_new_note
 from my_modules.cmd_handler_modules.zzz_extra_things import rana_checking
 from my_modules.cmd_handler_modules.add_points import add_points_cmd
 
@@ -41,21 +35,10 @@ from my_modules.callback_modules.start_cmd_buttons import button_for_start
 from my_modules.callback_modules.some_buttons import update_profile_button
 
 
-async def handle_edited_command(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
-    """
-    This will execute when any command comes here edited condition
-    """
+GROUP_LINK = os.environ.get("GROUP_LINK", None)
 
-    user = update.effective_user
-    if user is None:
-        print("This should be a user has")
-        return
-
-    text = "⚠️ Please don't edit a message to a command. Instead, send a fresh command."
-
-    await context.bot.send_message(user.id, text)
+if GROUP_LINK is None:
+    raise ValueError("❌ GROUP_LINK is not present in .env file!")
 
 
 def main() -> None:
@@ -85,8 +68,6 @@ def main() -> None:
 
     application.add_handler(account_register_conv_handler)
 
-    application.add_handler(conv_new_note)
-
     application.add_handler(
         CommandHandler(
             "rana",
@@ -104,6 +85,7 @@ def main() -> None:
 
     # This below is for when user send any edited command, i
     # keep it as firs so that i don't need to worry about edited messag in any place
+    from my_modules.cmd_handler_modules.all_edited_command import handle_edited_command
 
     application.add_handler(
         MessageHandler(
@@ -169,17 +151,6 @@ def main() -> None:
         )
     )
 
-    application.add_handler(
-        CommandHandler(
-            command=[
-                "help",
-                "c",
-            ],
-            callback=new_acc_register,
-            block=False,
-        )
-    )
-
     # This below will be come in conversation handler,
 
     # application.add_handler(
@@ -192,10 +163,22 @@ def main() -> None:
 
     application.add_handler(
         CommandHandler(
-            "help",
-            help_cmd,
+            command="help",
+            callback=help_cmd,
+            filters=filters.ChatType.PRIVATE,
+            block=False,
         )
     )
+
+    application.add_handler(
+        CommandHandler(
+            command="help",
+            callback=help_cmd_group,
+            filters=filters.ChatType.GROUPS,
+            block=False,
+        )
+    )
+
     application.add_handler(
         MessageHandler(
             filters=filters.Entity(
