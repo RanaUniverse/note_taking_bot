@@ -179,6 +179,20 @@ def main() -> None:
         )
     )
 
+    from my_modules.notes_related.search_notes import all_notes_cmd
+
+    application.add_handler(
+        CommandHandler(
+            command=[
+                "all_notes",
+                "my_notes",
+            ],
+            callback=all_notes_cmd,
+            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
+            block=False,
+        )
+    )
+
     application.add_handler(
         MessageHandler(
             filters=filters.Entity(

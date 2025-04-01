@@ -31,7 +31,7 @@ from sqlmodel import (
 )
 
 from telegram import Update
-
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 from telegram.ext import ContextTypes, filters
 
@@ -46,6 +46,7 @@ from telegram.ext import (
 from my_modules.database_code.database_make import engine
 from my_modules.database_code.models_table import UserPart, NotePart
 
+from my_modules.some_reply_keyboards import yes_no_reply_keyboard
 from my_modules.logger_related import RanaLogger
 
 
@@ -220,7 +221,15 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         f"💡 Tip: You can cancel anytime with /cancel."
     )
 
-    await update.effective_message.reply_html(text=text)
+    await update.effective_message.reply_html(
+        text=text,
+        reply_markup=ReplyKeyboardMarkup(
+            keyboard=yes_no_reply_keyboard,
+            resize_keyboard=True,
+            one_time_keyboard=True,
+            input_field_placeholder="Press Button Shortcut",
+        ),
+    )
     return CONFIRMATION
 
 
@@ -275,7 +284,11 @@ async def note_confirmation_yes(
         RanaLogger.warning(f"This must have a message")
         return ConversationHandler.END
 
-    await update.effective_message.reply_html(text, do_quote=True)
+    await update.effective_message.reply_html(
+        text,
+        do_quote=True,
+        reply_markup=ReplyKeyboardRemove(),
+    )
     return ConversationHandler.END
 
 
@@ -305,7 +318,11 @@ async def note_confirmation_no(
         RanaLogger.warning(f"This must have a message")
         return ConversationHandler.END
 
-    await update.effective_message.reply_html(text, do_quote=True)
+    await update.effective_message.reply_html(
+        text,
+        do_quote=True,
+        reply_markup=ReplyKeyboardRemove(),
+    )
     return ConversationHandler.END
 
 
@@ -423,12 +440,12 @@ new_note_conv_handler = ConversationHandler(
                 block=False,
             ),
             MessageHandler(
-                filters=filters.Text(["yes", "/yes"]),
+                filters=filters.Text(["Yes", "/yes"]),
                 callback=note_confirmation_yes,
                 block=False,
             ),
             MessageHandler(
-                filters=filters.Text(["no", "/no"]),
+                filters=filters.Text(["No", "/no"]),
                 callback=note_confirmation_no,
                 block=False,
             ),

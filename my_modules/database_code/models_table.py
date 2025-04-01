@@ -48,7 +48,7 @@ class NotePart(SQLModel, table=True):
     # Use a lambda function for unique id i will for each note.
     note_title: str | None = Field(default=None)
     note_content: str | None = Field(default=None)
-    user_id: int | None = Field(default=None, foreign_key="user_data.id_")
+    user_id: int | None = Field(default=None, foreign_key="user_data.user_id")
     # i kept None, for some checking when user delete his note, i used to find easily
     created_time: datetime.datetime | None = Field(
         default_factory=lambda: datetime.datetime.now(IST),
