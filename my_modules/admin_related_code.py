@@ -42,6 +42,10 @@ cmds_list: list[BotCommand] = [
         command="update_commands",
         description="Changes All The commands of this bot",
     ),
+    BotCommand(
+        command="new_note",
+        description="Make a new note and store it.",
+    ),
 ]
 
 
