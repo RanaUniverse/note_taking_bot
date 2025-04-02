@@ -24,7 +24,6 @@ it will ask for note title and content, and it will save those in the database
 
 import os
 
-
 from sqlmodel import (
     select,
     Session,
@@ -331,11 +330,209 @@ async def bad_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     This will execute when user need title but user send different udpate
     """
 
+    user = update.effective_user
+
+    if update.effective_message is None or user is None:
+        RanaLogger.warning("it should has something why title is showing")
+        return ConversationHandler.END
+
+    # THis has maybe some logic issue as i only check when command is at beginning.
+    if (
+        update.effective_message.entities
+        and update.effective_message.entities[0].type == "bot_command"
+        and update.effective_message.entities[0].offset == 0
+    ):
+        text = (
+            "🛠️ This is a command input! Oh sorry please send "
+            f"/cancel to stop this note making..."
+        )
+
+    # Checking the type of message and responding accordingly
+    elif update.effective_message.photo:
+        text = (
+            f"📸 <b>Oops! That's a photo!</b>\n\n"
+            f"I need a <b>text message</b> to set as the note's title.\n"
+            f"Please send only text here. 📝"
+        )
+    elif update.effective_message.animation:
+        text = (
+            f"🎞️ <b>Oops! That's an animation (GIF)!</b>\n\n"
+            f"I need a simple <b>text message</b> to use as the note title.\n"
+            f"Please type and send your title. 📝"
+        )
+    elif update.effective_message.document:
+        text = (
+            f"📄 <b>Oops! That's a document!</b>\n\n"
+            f"A file can't be used as a note title.\n"
+            f"Please type the note title and send it as a message. 📝"
+        )
+    elif update.effective_message.game:
+        text = (
+            f"🎮 <b>Oops! That's a game!</b>\n\n"
+            f"I can't use a game as a note title.\n"
+            f"Please send only text. 📝"
+        )
+    elif update.effective_message.sticker:
+        text = (
+            f"🎭 <b>Oops! That's a sticker!</b>\n\n"
+            f"I need a text message for the note title, not a sticker.\n"
+            f"Please type and send your note title. 📝"
+        )
+    elif update.effective_message.story:
+        text = (
+            f"📖 <b>Oops! That's a story!</b>\n\n"
+            f"A story can't be used as a note title.\n"
+            f"Please send only text. 📝"
+        )
+    elif update.effective_message.video:
+        text = (
+            f"🎥 <b>Oops! That's a video!</b>\n\n"
+            f"A video can't be used as a note title.\n"
+            f"Please send only text to set your note title. 📝"
+        )
+    elif update.effective_message.voice:
+        text = (
+            f"🎙️ <b>Oops! That's a voice message!</b>\n\n"
+            f"I can't use voice messages for a note title.\n"
+            f"Please send only text. 📝"
+        )
+    elif update.effective_message.video_note:
+        text = (
+            f"📹 <b>Oops! That's a video note!</b>\n\n"
+            f"I need a text message, not a video note.\n"
+            f"Please type and send the title. 📝"
+        )
+    elif update.effective_message.audio:
+        text = (
+            f"🎵 <b>Oops! That's an audio file!</b>\n\n"
+            f"I need a text input, not an audio file.\n"
+            f"Please type the note title and send it as a message. 📝"
+        )
+    elif update.effective_message.poll:
+        text = (
+            f"📊 <b>Oops! That's a poll!</b>\n\n"
+            f"I can't use a poll as a note title.\n"
+            f"Please send only text. 📝"
+        )
+    elif update.effective_message.dice:
+        text = (
+            f"🎲 <b>Oops! That's a dice roll!</b>\n\n"
+            f"A dice roll can't be used as a note title.\n"
+            f"Please send only text. 📝"
+        )
+    else:
+        text = (
+            f"❌ <b>Oops! Unsupported format!</b>\n\n"
+            f"I need a simple text message as your note title.\n"
+            f"Please type and send the title again. 📝"
+        )
+
+    await update.effective_message.reply_html(text=text)
+
+    return TITLE
+
 
 async def bad_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
-    This will execute when user need content as text but user send differntly
+    This will execute when the user needs to provide note content as text
+    but sends an unsupported message type.
     """
+    user = update.effective_user
+
+    if update.effective_message is None or user is None:
+        RanaLogger.warning("Expected message content, but something is missing!")
+        return ConversationHandler.END
+
+    # Check if it's a bot command at the beginning
+    if (
+        update.effective_message.entities
+        and update.effective_message.entities[0].type == "bot_command"
+        and update.effective_message.entities[0].offset == 0
+    ):
+        text = (
+            "🛠️ This is a command input! Oh sorry, please send "
+            f"/cancel to stop this note-making..."
+        )
+    elif update.effective_message.photo:
+        text = (
+            f"📸 <b>Oops! That's a photo!</b>\n\n"
+            f"Currently The Photo cannot be saved as note, stay for update."
+        )
+    elif update.effective_message.animation:
+        text = (
+            f"🎞️ <b>Oops! That's an animation (GIF)!</b>\n\n"
+            f"I need a text message for the note content.\n"
+            f"Please type and send your note content. 📝"
+        )
+    elif update.effective_message.document:
+        text = (
+            f"📄 <b>Oops! That's a document!</b>\n\n"
+            f"A file can't be used as note content.\n"
+            f"Please type and send the content as a text message. 📝"
+        )
+    elif update.effective_message.game:
+        text = (
+            f"🎮 <b>Oops! That's a game!</b>\n\n"
+            f"I can't use a game as note content.\n"
+            f"Please send only text. 📝"
+        )
+    elif update.effective_message.sticker:
+        text = (
+            f"🎭 <b>Oops! That's a sticker!</b>\n\n"
+            f"Stickers can't be used as note content.\n"
+            f"Please send text instead. 📝"
+        )
+    elif update.effective_message.story:
+        text = (
+            f"📖 <b>Oops! That's a story!</b>\n\n"
+            f"A story can't be used as note content.\n"
+            f"Please send only text. 📝"
+        )
+    elif update.effective_message.video:
+        text = (
+            f"🎥 <b>Oops! That's a video!</b>\n\n"
+            f"Videos aren't supported as note content.\n"
+            f"Please send text instead. 📝"
+        )
+    elif update.effective_message.voice:
+        text = (
+            f"🎙️ <b>Oops! That's a voice message!</b>\n\n"
+            f"Voice messages can't be used as note content.\n"
+            f"Please type and send your note content as text. 📝"
+        )
+    elif update.effective_message.video_note:
+        text = (
+            f"📹 <b>Oops! That's a video note!</b>\n\n"
+            f"A video note can't be used as note content.\n"
+            f"Please type and send your note content. 📝"
+        )
+    elif update.effective_message.audio:
+        text = (
+            f"🎵 <b>Oops! That's an audio file!</b>\n\n"
+            f"I need a text input for the note content.\n"
+            f"Please type and send it as a message. 📝"
+        )
+    elif update.effective_message.poll:
+        text = (
+            f"📊 <b>Oops! That's a poll!</b>\n\n"
+            f"A poll can't be used as note content.\n"
+            f"Please send only text. 📝"
+        )
+    elif update.effective_message.dice:
+        text = (
+            f"🎲 <b>Oops! That's a dice roll!</b>\n\n"
+            f"A dice roll can't be used as note content.\n"
+            f"Please send only text. 📝"
+        )
+    else:
+        text = (
+            f"❌ <b>Oops! Unsupported format!</b>\n\n"
+            f"I need a simple text message as your note content.\n"
+            f"Please type and send the content again. 📝"
+        )
+
+    await update.effective_message.reply_html(text=text)
+    return CONTENT
 
 
 async def bad_note_confirmation(
@@ -344,6 +541,16 @@ async def bad_note_confirmation(
     """
     user need yes or no from keyboard but user send different thigns
     """
+    if update.effective_message is None:
+        RanaLogger.warning("when user need yes no it need good why wrng")
+        return ConversationHandler.END
+
+    text = (
+        f"Please Just send me 'Yes' or 'No', or /cancel. "
+        f"Please try again with the buttons 👇🏽"
+    )
+    await update.effective_message.reply_html(text)
+    return CONFIRMATION
 
 
 async def cancel_fallbacks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -386,6 +593,10 @@ new_note_conv_handler = ConversationHandler(
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
             block=False,
         ),
+        # This below going to same fun, though it should looks wired
+        MessageHandler(
+            filters=filters.Text(["Make New Note"]), callback=new_note_cmd, block=False
+        ),
     ],
     states={
         TITLE: [
@@ -395,6 +606,11 @@ new_note_conv_handler = ConversationHandler(
                 filters=filters.COMMAND
                 & filters.ChatType.PRIVATE
                 & filters.UpdateType.MESSAGE,
+            ),
+            MessageHandler(
+                filters=filters.Command(),
+                callback=bad_note_title,
+                block=False,
             ),
             MessageHandler(
                 filters=filters.TEXT
@@ -471,4 +687,5 @@ new_note_conv_handler = ConversationHandler(
             block=False,
         ),
     ],
+    allow_reentry=True,
 )
