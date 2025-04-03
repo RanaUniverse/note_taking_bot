@@ -40,6 +40,10 @@ This part is for making new note.
 3. `/add_points` - i will make it to add some points which will need to make one note, this need to be make like it will need some things like balance topup to get to new point.
 
 
+## A BIG ISSUE
+I need to solve the problem wheere i past store the note title and content in formatting, but i found i need to have 2 more column or what i dont understnad uflly for now.
+
+
 
 ## /new_fake_note or /fake_note /generate_fake_note.
 

@@ -41,6 +41,23 @@ if GROUP_LINK is None:
     raise ValueError("❌ GROUP_LINK is not present in .env file!")
 
 
+from telegram import Update
+from telegram.ext import ContextTypes
+
+
+async def echo_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """for testing how message will come to user"""
+
+    user = update.effective_user
+    msg = update.effective_message
+    if user is None or msg is None:
+        return
+
+    text = msg.text_html
+    print(text)
+    await msg.reply_html(f"{text}")
+
+
 def main() -> None:
     """Start the bot."""
     # Create the Application and pass it your bot's token.
@@ -134,6 +151,14 @@ def main() -> None:
         )
     )
 
+    from my_modules.notes_related.search_notes import button_for_search_notes
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=button_for_search_notes,
+            pattern=None,
+        )
+    )
+
     from my_modules.admin_related_code import update_commands_cmd, show_bot_commands
 
     application.add_handler(
@@ -186,6 +211,7 @@ def main() -> None:
             command=[
                 "all_notes",
                 "my_notes",
+                "n"
             ],
             callback=all_notes_cmd,
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
@@ -218,12 +244,12 @@ def main() -> None:
     )
     # application.add_handler(MessageHandler(filters.ALL, filters_all))
 
-    # application.add_handler(
-    #     MessageHandler(
-    #         filters.TEXT & ~filters.COMMAND,
-    #         echo_text,
-    #     )
-    # )
+    application.add_handler(
+        MessageHandler(
+            filters.TEXT & ~filters.COMMAND,
+            echo_text,
+        )
+    )
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling(allowed_updates=Update.ALL_TYPES)
