@@ -64,88 +64,11 @@ from telegram.ext import ContextTypes
 
 from my_modules.logger_related import RanaLogger
 from my_modules.database_code.database_make import engine
-from my_modules.database_code.models_table import NotePart, UserPart
+from my_modules.database_code.models_table import NotePart
 
 
-async def all_notes_cmd_old(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """
-    The work of this functions is for when user want to
-    know all his notes he want to see
-
-                "/all_notes",
-                "/my_notes",
-
-    """
-
-    user = update.effective_user
-
-    if user is None:
-        RanaLogger.warning("User need to have in this case")
-        return
-
-    if update.effective_message is None:
-        RanaLogger.warning("User should has the message obj")
-        return
-
-    with Session(engine) as session:
-        statement = select(UserPart).where(UserPart.user_id == user.id)
-        results = session.exec(statement)
-        user_row = results.first()
-
-    if user_row is None:
-        text = (
-            f"You Have Not Any Note & you have not made any note yet. "
-            f"To make new note send /new_note to make new note"
-        )
-        await update.effective_message.reply_html(text)
-        return
-
-    all_notes = user_row.notes
-
-    text = f"You Have Total {len(all_notes)} Notes."
-    await update.effective_message.reply_html(text)
-
-
-async def all_notes_cmd_1(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """
-    The work of this functions is for when user want to
-    know all his notes he want to see
-
-                "/all_notes",
-                "/my_notes",
-    """
-
-    user = update.effective_user
-
-    if user is None:
-        RanaLogger.warning("User need to have in this case")
-        return
-
-    if update.effective_message is None:
-        RanaLogger.warning("User should has the message obj")
-        return
-
-    with Session(engine) as session:
-        statement = select(NotePart).where(NotePart.user_id == user.id)
-        results = session.exec(statement)
-
-        notes = results.all()
-
-    if not notes:
-        await update.effective_message.reply_html("📭 You have no saved notes.")
-        return
-
-    text = f"📜 <b>You have {len(notes)} notes:</b>\n\n"
-
-    for idx, note in enumerate(notes, start=1):
-        text += (
-            f"{idx}. <b><u>Title</u></b>: <b>{note.note_title}</b> - "
-            f"<b><u>ID</u></b>: <code>{note.note_id}</code>\n\n"
-        )
-
-    await update.effective_message.reply_html(
-        text,
-    )
+NOTES_PER_PAGE = 5
+OFFSET_VALUE = 0
 
 
 async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -158,11 +81,14 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return
 
     with Session(engine) as session:
-        statement = select(NotePart).where(NotePart.user_id == user.id)
+        statement = (
+            select(NotePart)
+            .where(NotePart.user_id == user.id)
+            .offset(OFFSET_VALUE)
+            .limit(NOTES_PER_PAGE)
+        )
         results = session.exec(statement)
         notes = results.all()
-
-    print(f"{user.name} has total notes of count:-", len(notes))
 
     if len(notes) == 0:
         text = (
@@ -193,58 +119,21 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
         all_buttons.append(button_row)
 
+    current_page = 1
+    next_page = current_page + 1
+
+    next_button = [
+        InlineKeyboardButton(
+            text=f"More Notes (Page {next_page}) →",
+            callback_data=f"notes_page_{next_page}",  # Send next page number
+        )
+    ]
+    all_buttons.append(next_button)
+
     await msg.reply_html(
         text=text,
         reply_markup=InlineKeyboardMarkup(all_buttons),
     )
-
-
-async def button_for_search_notes_1(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
-    """
-    This will when user want to get his notes which he press on the search notes
-    """
-
-    query = update.callback_query
-
-    if query is None:
-        RanaLogger.warning(
-            f"When user press button on search note, it should have the data."
-        )
-        return
-
-    await query.answer("Please check Your Message.", True)
-
-    note_id = query.data
-
-    with Session(engine) as session:
-        statement = select(NotePart).where(NotePart.note_id == note_id)
-        results = session.exec(statement)
-        note_row = results.one()
-
-    text = f"The Note Information is: \n\n" f"{note_row}"
-
-    await query.edit_message_text(text)
-
-    msg = query.message
-
-    if msg is None:
-        RanaLogger.warning("When button is pressed which has a message")
-        return
-
-    from telegram import Message, InaccessibleMessage
-
-    if isinstance(msg, Message):
-        print("This has a message")
-        user = msg.from_user
-        if user is None:
-            return
-        text = f"this is your note"
-        await context.bot.send_message(user.id, text)
-
-    elif isinstance(msg, InaccessibleMessage):
-        print("Maybe message got deleted.")
 
 
 async def button_for_search_notes(
@@ -286,7 +175,7 @@ async def button_for_search_notes(
         await msg.reply_html(text)
         return
 
-    # Format the timestamps
+    # Format the timestamps for clearification saw.
     created_time = (
         note_row.created_time.strftime("%Y-%m-%d %H:%M:%S")
         if note_row.created_time
@@ -301,7 +190,7 @@ async def button_for_search_notes(
     # Create the formatted message
     text = (
         f"📝 <b>Note Details:</b>\n\n"
-        f"📌 <b>Title:</b> {note_row.note_title}\n\n"
+        f"📌 <b>Title:</b> \n{note_row.note_title}\n\n"
         f"📖 <b>Content:</b>\n{note_row.note_content}\n\n"
         f"🕒 <b>Created On:</b> {created_time}\n\n"
         f"🛠 <b>Last Edited:</b> {edited_time}\n\n"
@@ -309,3 +198,103 @@ async def button_for_search_notes(
     )
 
     await msg.reply_html(text)
+
+
+async def button_for_next_page(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    when user will press the next button to see more extra notes user want to see
+    here it will search for the page number which is attached with the button
+    from there it will search the page number, and it will calculate the offser and limit value
+
+    """
+
+    query = update.callback_query
+
+    if query is None:
+        RanaLogger.warning(
+            f"When user press button on search note, it should have the data."
+        )
+        return
+
+    await query.answer("Please check Your Notes Below 👇👇👇.")
+
+    user = update.effective_user
+
+    if user is None:
+        RanaLogger.warning("User should has some value in the next button press")
+        return
+
+    msg = update.effective_message
+
+    if msg is None:
+        RanaLogger.warning("When button is pressed this should have the msg obj")
+        return
+
+    # This data is attached with the button user has just pressed
+    print("A User Has send", query.data)
+
+    if query.data is None:
+        RanaLogger.warning("The query should be a button attached with next button")
+        return None
+
+    if query.data.startswith("notes_page_"):
+        current_page = int(query.data.split("_")[-1])
+        # this upper formatting is when i am using the constitanty value in the button
+
+    else:
+        current_page = 1
+        RanaLogger.warning("Current page should not be 1 ever as i can think")
+
+    OFFSET_VALUE = (current_page - 1) * NOTES_PER_PAGE
+
+    with Session(engine) as session:
+        statement = (
+            select(NotePart)
+            .where(NotePart.user_id == user.id)
+            .offset(OFFSET_VALUE)
+            .limit(NOTES_PER_PAGE)
+        )
+        results = session.exec(statement)
+        notes = results.all()
+
+    if len(notes) == 0:
+        await msg.reply_html("📭 You have no MOre saved notes.")
+
+        return None
+
+    text = (
+        f"Hello <b>{user.mention_html()}</b>, You have total {len(notes)} Notes. "
+        f"You can see the notes below after pressing on the buttons."
+    )
+
+    all_buttons: list[list[InlineKeyboardButton]] = []
+
+    for note_row in notes:
+        title = f"{note_row.note_title}"
+        note_id = note_row.note_id
+
+        button_row = [
+            InlineKeyboardButton(
+                text=title,
+                callback_data=note_id,
+            )
+        ]
+
+        all_buttons.append(button_row)
+
+    next_page = current_page + 1
+
+    next_button = [
+        InlineKeyboardButton(
+            text=f"More Notes (Page {next_page}) →",
+            callback_data=f"notes_page_{next_page}",
+        )
+    ]
+    all_buttons.append(next_button)
+
+    await msg.reply_html(
+        text=text,
+        reply_markup=InlineKeyboardMarkup(all_buttons),
+    )

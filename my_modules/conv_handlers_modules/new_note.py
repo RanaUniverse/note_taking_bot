@@ -172,10 +172,11 @@ async def get_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             RanaLogger.warning(f"User Data Must be a empty list atleast not none")
             return ConversationHandler.END
 
-        context.user_data["note_title"] = user_msg_html
+        # For now i add this so that it will not save formatting in the title
+        # context.user_data["note_title"] = user_msg_html
+        context.user_data["note_title"] = user_msg
 
         text = (
-            # f"<b>Title:</b><blockquote>{user_msg_html}</blockquote>\n\n"
             f"✅ <b>Great!</b> Your note title has been saved. 🎯\n"
             f"📜 <b>Step 2:</b> Now, please send me the <u><b>Content</b> of your note</u>. 📝\n\n"
             f"💡 Tip: You can send a long message, and I'll save it as your note content."

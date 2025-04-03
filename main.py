@@ -34,6 +34,8 @@ from my_modules.cmd_handler_modules.add_points import add_points_cmd
 from my_modules.callback_modules.start_cmd_buttons import button_for_start
 from my_modules.callback_modules.some_buttons import update_profile_button
 
+from my_modules.notes_related import search_notes
+
 
 GROUP_LINK = os.environ.get("GROUP_LINK", None)
 
@@ -151,10 +153,16 @@ def main() -> None:
         )
     )
 
-    from my_modules.notes_related.search_notes import button_for_search_notes
     application.add_handler(
         CallbackQueryHandler(
-            callback=button_for_search_notes,
+            callback=search_notes.button_for_next_page,
+            pattern=r"^notes_page_\d+$",
+        )
+    )
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=search_notes.button_for_search_notes,
             pattern=None,
         )
     )
@@ -204,16 +212,10 @@ def main() -> None:
         )
     )
 
-    from my_modules.notes_related.search_notes import all_notes_cmd
-
     application.add_handler(
         CommandHandler(
-            command=[
-                "all_notes",
-                "my_notes",
-                "n"
-            ],
-            callback=all_notes_cmd,
+            command=["all_notes", "my_notes", "n"],
+            callback=search_notes.all_notes_cmd,
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
             block=False,
         )
