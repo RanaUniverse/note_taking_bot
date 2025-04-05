@@ -67,7 +67,7 @@ from my_modules.database_code.database_make import engine
 from my_modules.database_code.models_table import NotePart
 
 
-NOTES_PER_PAGE = 5
+NOTES_PER_PAGE: int = 5
 OFFSET_VALUE = 0
 
 
@@ -85,10 +85,15 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             select(NotePart)
             .where(NotePart.user_id == user.id)
             .offset(OFFSET_VALUE)
-            .limit(NOTES_PER_PAGE)
+            .limit(NOTES_PER_PAGE + 1)
         )
         results = session.exec(statement)
         notes = results.all()
+
+    notes_extra_1 = notes
+    notes = notes_extra_1[:NOTES_PER_PAGE]
+
+    # upper i add extra 1 so that i can get to know if i have extra note for next page
 
     if len(notes) == 0:
         text = (
@@ -100,6 +105,7 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return None
 
     text = (
+        f"Below sentence and logic of note count is wrong i need to fix this."
         f"Hello <b>{user.mention_html()}</b>, You have total {len(notes)} Notes. "
         f"You can see the notes below after pressing on the buttons."
     )
@@ -119,16 +125,30 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
         all_buttons.append(button_row)
 
-    current_page = 1
-    next_page = current_page + 1
+    # Here i faced a problem long long time because when below was checking and i was
+    # using .limit(NOtesPerPage) it below will not execute ever, so else part will
+    # execute always so i need to change some logic,
 
-    next_button = [
-        InlineKeyboardButton(
-            text=f"More Notes (Page {next_page}) →",
-            callback_data=f"notes_page_{next_page}",  # Send next page number
-        )
-    ]
-    all_buttons.append(next_button)
+    if len(notes_extra_1) > NOTES_PER_PAGE:
+        current_page = 1
+        next_page = current_page + 1
+
+        next_button = [
+            InlineKeyboardButton(
+                text=f"More Notes (Page {next_page}) →",
+                callback_data=f"notes_page_{next_page}",  # Send next page number
+            )
+        ]
+        all_buttons.append(next_button)
+
+    else:
+        end_button = [
+            InlineKeyboardButton(
+                text="✅ No more notes.",
+                callback_data="no_more_notes",
+            )
+        ]
+        all_buttons.append(end_button)
 
     await msg.reply_html(
         text=text,
