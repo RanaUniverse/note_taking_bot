@@ -72,6 +72,10 @@ OFFSET_VALUE = 0
 
 
 async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    First i will try to search the total number of notes row only count
+    2nd i will try to get full some row's data completely so that i can work with this
+    """
     user = update.effective_user
     if not user:
         return
@@ -81,19 +85,22 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return
 
     with Session(engine) as session:
+
+        statement = select(NotePart).where(NotePart.user_id == user.id)
+        results = session.exec(statement).all()
+        note_count = len(results)
+
+        # Upper part just for output the total user's row count
+        # Below part is for ouput some of the note's row details to use
+
         statement = (
             select(NotePart)
             .where(NotePart.user_id == user.id)
             .offset(OFFSET_VALUE)
-            .limit(NOTES_PER_PAGE + 1)
+            .limit(NOTES_PER_PAGE)
         )
         results = session.exec(statement)
         notes = results.all()
-
-    notes_extra_1 = notes
-    notes = notes_extra_1[:NOTES_PER_PAGE]
-
-    # upper i add extra 1 so that i can get to know if i have extra note for next page
 
     if len(notes) == 0:
         text = (
@@ -105,8 +112,7 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return None
 
     text = (
-        f"Below sentence and logic of note count is wrong i need to fix this."
-        f"Hello <b>{user.mention_html()}</b>, You have total {len(notes)} Notes. "
+        f"Hello <b>{user.mention_html()}</b>, You have total {note_count} Notes.\n"
         f"You can see the notes below after pressing on the buttons."
     )
 
@@ -129,7 +135,10 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     # using .limit(NOtesPerPage) it below will not execute ever, so else part will
     # execute always so i need to change some logic,
 
-    if len(notes_extra_1) > NOTES_PER_PAGE:
+    if note_count > NOTES_PER_PAGE:
+        # As this is the starting of the note lists send, so it means it will be start
+        # from current page as 1, and nextpage value will be used in the button pressed
+
         current_page = 1
         next_page = current_page + 1
 
@@ -145,7 +154,7 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         end_button = [
             InlineKeyboardButton(
                 text="✅ No more notes.",
-                callback_data="no_more_notes",
+                callback_data=f"no_more_notes_{note_count}",
             )
         ]
         all_buttons.append(end_button)
@@ -304,17 +313,101 @@ async def button_for_next_page(
 
         all_buttons.append(button_row)
 
-    next_page = current_page + 1
+    # Below logic i checked when user's last page shows less than max page
+    # note's count it will realize no more notes left and it will say user
+    # directly there without showing 'next_page' button, but the problem is
+    # it is not fully correct when user's last page reach same amount of notes button
 
-    next_button = [
-        InlineKeyboardButton(
-            text=f"More Notes (Page {next_page}) →",
-            callback_data=f"notes_page_{next_page}",
-        )
-    ]
-    all_buttons.append(next_button)
+    if len(notes) < NOTES_PER_PAGE:
+
+        end_button = [
+            InlineKeyboardButton(
+                text="✅ No more notes.",
+                callback_data=f"no_more_notes_end_page",
+            )
+        ]
+        all_buttons.append(end_button)
+
+    else:
+
+        next_page = current_page + 1
+
+        next_button = [
+            InlineKeyboardButton(
+                text=f"More Notes (Page {next_page}) →",
+                callback_data=f"notes_page_{next_page}",
+            )
+        ]
+        all_buttons.append(next_button)
 
     await msg.reply_html(
         text=text,
         reply_markup=InlineKeyboardMarkup(all_buttons),
     )
+
+
+async def button_for_no_more_notes(
+    update: Update, cotnext: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    This time when user has no more notes and the last button will pressed by user this
+    below funcions logic will be executed and this will run
+
+    For now i though when user will press this it will just say this infromation
+    """
+
+    query = update.callback_query
+
+    if query is None:
+        RanaLogger.warning(
+            f"When user press button on search note, it should have the data."
+        )
+        return
+
+    if query.data is None:
+        RanaLogger.warning("The query should be a button attached with next button")
+        return None
+
+    if query.data.startswith("no_more_notes_"):
+        note_count = int(query.data.split("_")[-1])
+
+    else:
+        note_count = 0
+        RanaLogger.warning("Current page should not be 1 ever as i can think")
+
+    text = (
+        f"You Have just own {note_count} Numbers of Notes. \n"
+        f"Please Make More if you want."
+    )
+
+    await query.answer(text)
+
+
+async def button_for_no_more_notes_last_page(
+    update: Update, cotnext: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    This time when user has no more notes and the last button will pressed by user this
+    below funcions logic will be executed and this will run
+
+    For now i though when user will press this it will just say this infromation
+    """
+
+    query = update.callback_query
+
+    if query is None:
+        RanaLogger.warning(
+            f"When user press button on search note, it should have the data."
+        )
+        return
+
+    if query.data is None:
+        RanaLogger.warning("The query should be a button attached with next button")
+        return None
+
+    text = (
+        f"You have reached the end of your Notes.\n"
+        f"You have not left any more note for now. 😢"
+    )
+
+    await query.answer(text)

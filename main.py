@@ -159,6 +159,18 @@ def main() -> None:
             pattern=r"^notes_page_\d+$",
         )
     )
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=search_notes.button_for_no_more_notes_last_page,
+            pattern="no_more_notes_end_page",
+        )
+    )
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=search_notes.button_for_no_more_notes,
+            pattern=r"^no_more_notes_\d+$",
+        )
+    )
 
     application.add_handler(
         CallbackQueryHandler(
