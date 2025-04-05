@@ -155,7 +155,7 @@ async def get_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return ConversationHandler.END
 
     user_msg = update.effective_message.text
-    user_msg_html = update.effective_message.text_html
+    user_msg_html = update.effective_message.text_html  # type: ignore
 
     if user_msg is None:
         RanaLogger.warning(f"This should be any value not None ever.")

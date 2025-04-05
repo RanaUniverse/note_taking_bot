@@ -1,5 +1,8 @@
-import os
+"""
+i just need to run this
+"""
 
+import os
 
 from dotenv import load_dotenv
 
@@ -233,7 +236,7 @@ def main() -> None:
         )
     )
 
-    from my_modules.notes_related.fake_note_make import fake_note_cmd
+    from my_modules.notes_related import fake_note_make
 
     application.add_handler(
         CommandHandler(
@@ -241,8 +244,23 @@ def main() -> None:
                 "new_fake_note",
                 "fake_note",
                 "generate_fake_note",
+                "f",
             ],
-            callback=fake_note_cmd,
+            callback=fake_note_make.fake_notes_many,
+            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
+            block=False,
+            has_args=1,
+        )
+    )
+    application.add_handler(
+        CommandHandler(
+            command=[
+                "new_fake_note",
+                "fake_note",
+                "generate_fake_note",
+                "f",
+            ],
+            callback=fake_note_make.fake_note_cmd,
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
             block=False,
         )
