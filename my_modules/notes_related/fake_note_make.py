@@ -23,8 +23,6 @@ from my_modules.database_code.models_table import UserPart, NotePart
 
 from my_modules.logger_related import RanaLogger
 
-fake = Faker()
-
 
 MAX_TITLE_STR = os.environ.get("MAX_TITLE", None)
 
@@ -44,6 +42,9 @@ try:
     MAX_CONTENT_LEN = int(MAX_CONTENT_STR)  # Convert to int
 except ValueError:
     raise ValueError("❌ MAX_CONTENT must be a valid integer!")
+
+
+fake = Faker()
 
 
 MAX_FAKE_NOTE = 10000
@@ -137,18 +138,18 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     """
 
     if context.args is None:
-        print("This is unexpected 🍌🍌🍌")
-        return
+        print("This is unexpected as the args value =1 will pass in add handler")
+        return None
 
     user = update.effective_user
     if user is None:
         RanaLogger.warning("user need to exists when he send /fake_note")
-        return
+        return None
 
     msg = update.effective_message
     if msg is None:
         RanaLogger.warning("msg is present when user send /fake_ntoe")
-        return
+        return None
 
     # Below first i will check if user send correct format or not if not it will return
 
@@ -156,7 +157,7 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         how_many_note = int(context.args[0])
         text = (
             f"Hello <b>{user.mention_html()}</b>, You want to add "
-            f"{how_many_note} notes in your account."
+            f"{how_many_note} notes in your account.\n\n"
         )
         new_msg = await msg.reply_html(text)
 
@@ -164,7 +165,7 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         text = (
             f"⚠️ Invalid input!\n"
             f"Please send a valid number. If You want to add 10 fake note, send,\n"
-            f"<blockquote><code>/fake_note 10</code></blockquote>"
+            f"<blockquote><code>/fake_note 10</code></blockquote>\n\n"
         )
         await msg.reply_html(text)
         return None
@@ -177,18 +178,26 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     await asyncio.sleep(1)
 
     if how_many_note <= 0:
+        text += (
+            f"⚠️ Please provide a <b>positive number</b> of notes to create.\n\n"
+            f"📌 Example: <code>/fake_note 5</code>"
+        )
         await new_msg.edit_text(
-            "⚠️ Please provide a <b>positive number</b> of notes to create.\n\n"
-            "📌 Example: /fake_note 5",
+            text=text,
             parse_mode=ParseMode.HTML,
         )
         return None
 
     if how_many_note > MAX_FAKE_NOTE:
-        await new_msg.edit_text(
+
+        text += (
             f"🚫 Please don't send too many notes at once. "
             f"<b>Maximum allowed is {MAX_FAKE_NOTE}.</b>\n\n"
-            "📌 Example: <code>/fake_note 10</code>",
+            "📌 Example: <code>/fake_note 10</code>"
+        )
+
+        await new_msg.edit_text(
+            text=text,
             parse_mode=ParseMode.HTML,
         )
         return None
@@ -202,7 +211,7 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         text = (
             f"Hello <b>{user.mention_html()}</b>, You Are Not Registered Yet 😢\n"
             f"Please send /register_me and then come back to use this bot.\n"
-            f"Else Contact Customer Support /help."
+            f"If You already register but see this, please Contact Customer Support /help."
         )
         await msg.reply_html(
             text=text,
@@ -210,10 +219,8 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return None
 
     user_points = user_row.points
-    print("This line execute", how_many_note, user_points)
 
     if how_many_note > user_points:
-        print("This is sexedjk")
         text = (
             f"🚫 <b>Not Enough Points!</b>\n\n"
             f"👤 You currently have <b>{user_points} points</b>, "
@@ -223,28 +230,6 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         )
         await msg.reply_html(text)
         return None
-
-    # From now it means user is able to add this number of note to the ntoe section.
-
-    # with Session(engine) as session:
-
-    #     for _ in range(how_many_note):
-    #         print(_ + 1, "making a new note row")
-    #         fake_title = fake.sentence(20)[:MAX_TITLE_LEN]
-    #         fake_content = fake.paragraph(50)[:MAX_CONTENT_LEN]
-
-    #         note_row = NotePart(
-    #             note_title=fake_title,
-    #             note_content=fake_content,
-    #             is_available=True,
-    #             user_id=user_row.user_id,
-    #         )
-
-    #         session.add(note_row)
-    #         user_row.points -= 1
-
-    #     session.add(user_row)
-    #     session.commit()
 
     with Session(engine) as session:
         notes_to_add: list[NotePart] = []

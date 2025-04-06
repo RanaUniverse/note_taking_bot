@@ -61,7 +61,6 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 from telegram.ext import ContextTypes
 
-
 from my_modules.logger_related import RanaLogger
 from my_modules.database_code.database_make import engine
 from my_modules.database_code.models_table import NotePart
@@ -73,6 +72,7 @@ OFFSET_VALUE = 0
 
 async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
+    /my_notes /all_notes /n
     First i will try to search the total number of notes row only count
     2nd i will try to get full some row's data completely so that i can work with this
     """
@@ -88,7 +88,7 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
         statement = select(NotePart).where(NotePart.user_id == user.id)
         results = session.exec(statement).all()
-        note_count = len(results)
+        all_note_count = len(results)
 
         # Upper part just for output the total user's row count
         # Below part is for ouput some of the note's row details to use
@@ -102,25 +102,42 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         results = session.exec(statement)
         notes = results.all()
 
-    if len(notes) == 0:
+    if all_note_count == 0:
         text = (
             f"Hello <b>{user.mention_html()}</b>, You have not made any note yet. "
-            f"Please make a note by sending /new_note."
+            f"Please make a note by sending /new_note ."
+            f"If You want a fake note pls send /fake_note or followed by a number."
         )
 
         await msg.reply_html(text)
         return None
 
     text = (
-        f"Hello <b>{user.mention_html()}</b>, You have total {note_count} Notes.\n"
+        f"Hello <b>{user.mention_html()}</b>, You have total {all_note_count} Notes.\n"
         f"You can see the notes below after pressing on the buttons."
     )
 
     all_buttons: list[list[InlineKeyboardButton]] = []
 
-    for note_row in notes:
-        title = f"{note_row.note_title}"
-        note_id = note_row.note_id
+    # for note_row in notes:
+    #     title = f"{note_row.note_title}"
+    #     note_id = note_row.note_id
+
+    #     button_row = [
+    #         InlineKeyboardButton(
+    #             text=title,
+    #             callback_data=note_id,
+    #         )
+    #     ]
+
+    #     all_buttons.append(button_row)
+
+    for i, note_row in enumerate(
+        iterable=notes,
+        start=1,
+    ):
+        title = f"{i}. {note_row.note_title}"
+        note_id = f"{note_row.note_id}"
 
         button_row = [
             InlineKeyboardButton(
@@ -128,14 +145,13 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 callback_data=note_id,
             )
         ]
-
         all_buttons.append(button_row)
 
     # Here i faced a problem long long time because when below was checking and i was
     # using .limit(NOtesPerPage) it below will not execute ever, so else part will
     # execute always so i need to change some logic,
 
-    if note_count > NOTES_PER_PAGE:
+    if all_note_count > NOTES_PER_PAGE:
         # As this is the starting of the note lists send, so it means it will be start
         # from current page as 1, and nextpage value will be used in the button pressed
 
@@ -144,8 +160,8 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
         next_button = [
             InlineKeyboardButton(
-                text=f"More Notes (Page {next_page}) →",
-                callback_data=f"notes_page_{next_page}",  # Send next page number
+                text=f"More Notes (Page No. {next_page}) →",
+                callback_data=f"notes_page_{next_page}",  # Send next page number in query.data
             )
         ]
         all_buttons.append(next_button)
@@ -153,11 +169,13 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     else:
         end_button = [
             InlineKeyboardButton(
-                text="✅ No more notes.",
-                callback_data=f"no_more_notes_{note_count}",
+                text="📄 No More Notes",
+                callback_data=f"no_more_notes_{all_note_count}",
             )
         ]
         all_buttons.append(end_button)
+        # when this upper button will be pressed it will just let the
+        # user known that the not more note left in a pop up message
 
     await msg.reply_html(
         text=text,
@@ -169,6 +187,8 @@ async def button_for_search_notes(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """
+    When The Button is pressed on the note's title it will execute and send the
+    note back to user. it will check note_id value.
     This will when user want to get his notes which he press on the search notes
     """
 
@@ -180,16 +200,18 @@ async def button_for_search_notes(
         )
         return
 
-    await query.answer("Please check Your Message.")
+    await query.answer("Please check Your Note Below.")
 
     msg = update.effective_message
 
     if msg is None:
         RanaLogger.warning("When button is pressed this should have the msg obj")
-        return
+        return None
 
     # This data is attached with the button user has just pressed
+
     note_id = query.data
+    # This upper value should be the note_id which i need to serach on the database
 
     with Session(engine) as session:
         statement = select(NotePart).where(NotePart.note_id == note_id)
@@ -198,12 +220,15 @@ async def button_for_search_notes(
 
     if note_row is None:
         text = (
-            f"This Note is Not Accessable Anymore 😢😢😢\n"
-            f"Maybe This got deleted or some problem"
+            f"🚫 <b>Note Not Accessible</b>\n\n"
+            f"😢 This note is no longer available.\n"
+            f"It might have been <b>deleted</b> or there was an <b>unexpected issue</b>.\n\n"
+            f"📌 Try checking your other notes using /all_notes."
         )
         await msg.reply_html(text)
-        return
+        return None
 
+    # Below part will execute when note id match the value.
     # Format the timestamps for clearification saw.
     created_time = (
         note_row.created_time.strftime("%Y-%m-%d %H:%M:%S")
@@ -216,7 +241,6 @@ async def button_for_search_notes(
         else "Never Edited"
     )
 
-    # Create the formatted message
     text = (
         f"📝 <b>Note Details:</b>\n\n"
         f"📌 <b>Title:</b> \n{note_row.note_title}\n\n"
@@ -224,9 +248,37 @@ async def button_for_search_notes(
         f"🕒 <b>Created On:</b> {created_time}\n\n"
         f"🛠 <b>Last Edited:</b> {edited_time}\n\n"
         f"🆔 <b>Note ID:</b> <code>{note_row.note_id}</code>\n\n"
+        f"Below BUttons is in Development will not work maybe"
     )
 
-    await msg.reply_html(text)
+    keyboard_view_note = [
+        [
+            InlineKeyboardButton(
+                "✏️ Edit Note", callback_data=f"edit_note_{note_row.note_id}"
+            ),
+            InlineKeyboardButton(
+                "🗑️ Delete Note", callback_data=f"delete_note_{note_row.note_id}"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                "🔄 Transfer Ownership",
+                callback_data=f"transfer_note_{note_row.note_id}",
+            ),
+            InlineKeyboardButton(
+                "📋 Duplicate Note", callback_data=f"duplicate_note_{note_row.note_id}"
+            ),
+        ],
+    ]
+
+    await msg.reply_html(
+        text=text,
+        do_quote=True,
+        reply_markup=InlineKeyboardMarkup(keyboard_view_note),
+    )
+
+    # This upper functions is a potential issue, when the last text exceed the
+    # 4096 character limit it will raise a error, in future i need to add broke this text
 
 
 async def button_for_next_page(
@@ -411,3 +463,64 @@ async def button_for_no_more_notes_last_page(
     )
 
     await query.answer(text)
+
+
+# Below part is for when the buttons includes the view note has been pressed
+
+
+async def handle_edit_note_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+
+    if query is None or query.data is None:
+        RanaLogger.warning("Edit Note button pressed but no callback data found.")
+        return
+
+    await query.answer(
+        text="✏️ Edit Note feature will be available soon. Stay tuned! 🚧",
+        show_alert=True,
+    )
+
+
+async def handle_delete_note_button(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    query = update.callback_query
+
+    if query is None or query.data is None:
+        RanaLogger.warning("Delete Note button pressed but no callback data found.")
+        return
+
+    await query.answer(
+        text="🗑️ Delete Note feature is coming soon. Not available yet! ⏳",
+        show_alert=True,
+    )
+
+
+async def handle_transfer_note_button(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    query = update.callback_query
+
+    if query is None or query.data is None:
+        RanaLogger.warning("Transfer Note button pressed but no callback data found.")
+        return
+
+    await query.answer(
+        text="🔄 Transfer Note feature is under development. Coming soon! 🛠️",
+        show_alert=True,
+    )
+
+
+async def handle_duplicate_note_button(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    query = update.callback_query
+
+    if query is None or query.data is None:
+        RanaLogger.warning("Duplicate Note button pressed but no callback data found.")
+        return
+
+    await query.answer(
+        text="📋 Duplicate Note feature will be added in future update. 🚧",
+        show_alert=True,
+    )

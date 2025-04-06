@@ -8,45 +8,22 @@
 import os
 
 from telegram import Update
-from telegram import User
 from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
-from telegram.ext import ContextTypes
 
 from telegram.constants import ParseMode
 
+from telegram.ext import ContextTypes
+
 
 from my_modules.some_inline_keyboards import MyInlineKeyboard
+from my_modules.logger_related import RanaLogger
 
 
 BOT_USERNAME = os.environ.get("BOT_USERNAME", None)
 
-
 if not BOT_USERNAME:
     raise ValueError("❌ BOT_USERNAME not found in .env file!")
-
-# Below 3 Functions i made just to call and take a input i just keep it now, no need in code.
-
-
-def get_simple_message(user: User) -> str:
-    text = (
-        f"Thanks {user.first_name}, welcome to <b>The Note Taking Bot</b>.\n"
-        f"I can help you to store Notes, in my side, and you can get the notes "
-        f"back later any time.\n\n"
-        f"/info :-Knows about your full informations \n"
-        f"/my_notes :-Shows All My Notes \n"
-        f"/search_my_notes :- Search My Notes in Title \n"
-        f"/new_account or /register_me :- To make new account."
-    )
-    return text
-
-
-def get_greeting_message(user: User) -> str:
-    return f"Hello {user.first_name}, how can I assist you today?"
-
-
-def get_leaving_message(user: User) -> str:
-    return f"Goodbye {user.first_name}, see you soon!"
 
 
 async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -60,10 +37,8 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     user = update.message.from_user
 
-    user_mention = f'<a href="tg://user?id={user.id}">{user.full_name}</a>'
-
     text = (
-        f"👋 Hello, {user_mention}! Welcome to <b><u>The Note-Taking Bot</u></b> 📝🤖\n\n"
+        f"👋 Hello, {user.mention_html()}! Welcome to <b><u>The Note-Taking Bot</u></b> 📝🤖\n\n"
         f"Use the buttons below to manage your notes, or use commands if needed! 🔒🗂️\n\n"
         f"<b>🔹 Available Commands:</b>\n"
         f"📝 /new_note - Create a new note\n"
@@ -75,7 +50,8 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         f"⚙️ /update_profile - Update your profile\n"
         f"❓ /help - Get help and usage instructions\n\n"
         f"⚠️ <b>Note:</b> If buttons don't work, use the above commands manually."
-        f"⚠️ <b>WARNING:</b> The buttons below are still in development. Please use the commands above for now. 🚧🔄"
+        f"⚠️ <b>WARNING:</b> The buttons below are still in development. "
+        f"Please use the commands above for now. 🚧🔄"
     )
 
     await context.bot.send_message(
@@ -90,7 +66,7 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def start_cmd_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    When a edite /start get by groups
+    When a /start get by groups
     i need to use chat , as user maybe not available when user is hidden admin
     """
     chat = update.effective_chat
@@ -102,12 +78,13 @@ async def start_cmd_group(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     text = (
         "📢 <b>Notice:</b>\n\n"
         "⚠️ This bot currently <b>cannot take notes in groups</b>.\n"
-        "🛠️ This feature is <b>is not implimenteds yet available</b>, but it will be added in a future update.\n"
+        "🛠️ This feature is <b>is not implimenteds yet not available</b>, "
+        f"but it will be added in a future update.\n"
         "🔔 Stay tuned for updates!"
         "Please Press This button To Accss This Bot..."
     )
 
-    url_value = f"https://t.me/{BOT_USERNAME}?start=start"
+    url_value = f"https://t.me/{BOT_USERNAME}?start=group_start"
 
     button = InlineKeyboardMarkup(
         [
@@ -125,3 +102,43 @@ async def start_cmd_group(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         parse_mode=ParseMode.HTML,
         reply_markup=button,
     )
+
+
+async def start_cmd_from_group_to_private(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    This will execute when /start has a deep link which comes
+    from the group /start button to private chat this is very
+    just for a differentiate how to use this
+    """
+
+    if context.args is None:
+        RanaLogger.warning("When deep link is used the value should has somethign")
+        return None
+
+    if update.message is None or update.message.from_user is None:
+        print("I used this to prevent the type hint of pyright. in start cmd")
+        return
+
+    user = update.message.from_user
+
+    if context.args[0] == "group_start":
+        print("something happens")
+        text = (
+            "You have started this bot from a group chat, "
+            f"Currently please just use this bot in private and "
+            f"later use this bot until we will update this in a official update.\n"
+            f"Please see the below message."
+        )
+
+        await context.bot.send_message(
+            chat_id=user.id,
+            text=text,
+            parse_mode=ParseMode.HTML,
+        )
+
+        await start_cmd(update=update, context=context)
+
+    else:
+        print("another button")

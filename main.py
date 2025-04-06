@@ -39,6 +39,9 @@ from my_modules.callback_modules.some_buttons import update_profile_button
 
 from my_modules.notes_related import search_notes
 
+from my_modules.notes_related import fake_note_make
+
+from my_modules.admin_related_code import update_commands_cmd, show_bot_commands
 
 GROUP_LINK = os.environ.get("GROUP_LINK", None)
 
@@ -119,6 +122,38 @@ def main() -> None:
         )
     )
 
+    # this was just for a testing very warning code is update_commands
+    # this is just for testing how to use command handle when bot is
+    # running from the admin commands and admin update
+
+    application.add_handler(
+        CommandHandler(
+            command=["update_commands"],
+            callback=update_commands_cmd,
+            block=False,
+        )
+    )
+    application.add_handler(
+        CommandHandler(
+            command=["show_commands"],
+            callback=show_bot_commands,
+            block=False,
+        )
+    )
+
+    # Below is when user press a button in gropup and this automaticaly
+    # send a deep link to the bot in private chat. i need to keep this at before others
+
+    application.add_handler(
+        CommandHandler(
+            command="start",
+            callback=start_module.start_cmd_from_group_to_private,
+            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
+            block=False,
+            has_args=1,
+        )
+    )
+
     # Below is user start the bot in private chat from user.
     application.add_handler(
         CommandHandler(
@@ -136,6 +171,98 @@ def main() -> None:
             callback=start_module.start_cmd_group,
             filters=filters.ChatType.GROUPS & filters.UpdateType.MESSAGE,
             block=False,
+        )
+    )
+
+    application.add_handler(
+        CommandHandler(
+            command="help",
+            callback=help_cmd,
+            filters=filters.ChatType.PRIVATE,
+            block=False,
+        )
+    )
+
+    application.add_handler(
+        CommandHandler(
+            command="help",
+            callback=help_cmd_group,
+            filters=filters.ChatType.GROUPS,
+            block=False,
+        )
+    )
+
+    # This is for user has a ability to make some fake note in this account it
+    # need to specefy how many notes he wants to make in this account
+    application.add_handler(
+        CommandHandler(
+            command=[
+                "f",
+                "fake_note",
+                "generate_fake_note",
+                "new_fake_note",
+            ],
+            callback=fake_note_make.fake_notes_many,
+            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
+            block=False,
+            has_args=1,
+        )
+    )
+
+    # i twill just make one note and show user the note informaiton back to user
+    application.add_handler(
+        CommandHandler(
+            command=[
+                "f",
+                "fake_note",
+                "generate_fake_note",
+                "new_fake_note",
+            ],
+            callback=fake_note_make.fake_note_cmd,
+            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
+            block=False,
+        )
+    )
+
+    # this will help to search all notes of a user
+    application.add_handler(
+        CommandHandler(
+            command=[
+                "all_notes",
+                "my_notes",
+                "n",
+            ],
+            callback=search_notes.all_notes_cmd,
+            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
+            block=False,
+        )
+    )
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=search_notes.handle_edit_note_button,
+            pattern=r"^edit_note_.*$",
+        )
+    )
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=search_notes.handle_delete_note_button,
+            pattern=r"^delete_note_.*$",
+        )
+    )
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=search_notes.handle_transfer_note_button,
+            pattern=r"^transfer_note_.*$",
+        )
+    )
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=search_notes.handle_duplicate_note_button,
+            pattern=r"^duplicate_note_.*$",
         )
     )
 
@@ -182,23 +309,6 @@ def main() -> None:
         )
     )
 
-    from my_modules.admin_related_code import update_commands_cmd, show_bot_commands
-
-    application.add_handler(
-        CommandHandler(
-            command=["update_commands"],
-            callback=update_commands_cmd,
-            block=False,
-        )
-    )
-    application.add_handler(
-        CommandHandler(
-            command=["show_commands"],
-            callback=show_bot_commands,
-            block=False,
-        )
-    )
-
     # This below will be come in conversation handler,
 
     # application.add_handler(
@@ -208,63 +318,6 @@ def main() -> None:
     #         block=False,
     #     )
     # )
-
-    application.add_handler(
-        CommandHandler(
-            command="help",
-            callback=help_cmd,
-            filters=filters.ChatType.PRIVATE,
-            block=False,
-        )
-    )
-
-    application.add_handler(
-        CommandHandler(
-            command="help",
-            callback=help_cmd_group,
-            filters=filters.ChatType.GROUPS,
-            block=False,
-        )
-    )
-
-    application.add_handler(
-        CommandHandler(
-            command=["all_notes", "my_notes", "n"],
-            callback=search_notes.all_notes_cmd,
-            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
-            block=False,
-        )
-    )
-
-    from my_modules.notes_related import fake_note_make
-
-    application.add_handler(
-        CommandHandler(
-            command=[
-                "new_fake_note",
-                "fake_note",
-                "generate_fake_note",
-                "f",
-            ],
-            callback=fake_note_make.fake_notes_many,
-            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
-            block=False,
-            has_args=1,
-        )
-    )
-    application.add_handler(
-        CommandHandler(
-            command=[
-                "new_fake_note",
-                "fake_note",
-                "generate_fake_note",
-                "f",
-            ],
-            callback=fake_note_make.fake_note_cmd,
-            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
-            block=False,
-        )
-    )
 
     application.add_handler(
         MessageHandler(
