@@ -86,10 +86,10 @@ def main() -> None:
 
     # This is first user register conversation this need
 
-    from my_modules.conv_handlers_modules.new_note import new_note_conv_handler
+    from my_modules.conv_handlers_modules import new_note
 
     # This will start making a note, when user send "/new_note"
-    application.add_handler(new_note_conv_handler)
+    application.add_handler(new_note.new_note_conv_handler)
 
     application.add_handler(account_register_conv_handler)
 
@@ -154,22 +154,22 @@ def main() -> None:
         )
     )
 
-    # Below is user start the bot in private chat from user.
-    application.add_handler(
-        CommandHandler(
-            command="start",
-            callback=start_module.start_cmd,
-            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
-            block=False,
-        )
-    )
-
     # Below start is comes from any group
     application.add_handler(
         CommandHandler(
             command="start",
             callback=start_module.start_cmd_group,
             filters=filters.ChatType.GROUPS & filters.UpdateType.MESSAGE,
+            block=False,
+        )
+    )
+
+    # Below is user start the bot in private chat from user.
+    application.add_handler(
+        CommandHandler(
+            command="start",
+            callback=start_module.start_cmd,
+            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
             block=False,
         )
     )
@@ -194,6 +194,7 @@ def main() -> None:
 
     # This is for user has a ability to make some fake note in this account it
     # need to specefy how many notes he wants to make in this account
+    # /fake_note 10
     application.add_handler(
         CommandHandler(
             command=[
@@ -276,6 +277,15 @@ def main() -> None:
 
     ## for this will handle the buttons having this callback data, for now
     # i kept all at once maybe it need to separate each to different functions for easy works
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=new_note.new_note_button_press,
+            pattern="new_note",
+            block=False,
+        )
+    )
+
     application.add_handler(
         CallbackQueryHandler(
             callback=button_for_start,

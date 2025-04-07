@@ -12,21 +12,18 @@ for now i will make it as demo so that use can by himself add notes.
 """
 
 import asyncio
-
-
-from telegram import Update
-
-from telegram.ext import ContextTypes
-
-from telegram.constants import ParseMode, ChatAction
-
-
 from sqlmodel import Session, select
 
+from telegram import Update
+from telegram.constants import ParseMode, ChatAction
+from telegram.ext import ContextTypes
+
+
+from my_modules.database_code.database_make import engine
+from my_modules.database_code.models_table import UserPart
 from my_modules.logger_related_old import logger
 
-from my_modules.database_code.models_table import UserPart
-from my_modules.database_code.database_make import engine
+MAX_POINT = 500
 
 
 async def add_points_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -61,7 +58,7 @@ async def add_points_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             parse_mode=ParseMode.HTML,
         )
 
-        return
+        return None
 
     if len(context.args) > 1:
         text = (
@@ -75,7 +72,7 @@ async def add_points_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             text=text,
             parse_mode=ParseMode.HTML,
         )
-        return
+        return None
 
     if len(context.args) == 1:
         try:
@@ -102,7 +99,7 @@ async def add_points_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 text=text,
                 parse_mode=ParseMode.HTML,
             )
-            return
+            return None
 
         await context.bot.send_chat_action(user.id, ChatAction.TYPING)
 
@@ -122,10 +119,10 @@ async def add_points_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             )
             return
 
-        if points_to_add > 30:
+        if points_to_add > MAX_POINT:
             text = (
                 f"⚠️ You are requesting too many points ({points_to_add})!\n"
-                f"🔹 The maximum allowed per request is <b>30</b> points.\n"
+                f"🔹 The maximum allowed per request is <b>{MAX_POINT}</b> points.\n"
                 f"Please enter a smaller value.\n"
                 f"Example:\n<blockquote><code>/add_points 20</code></blockquote>\n"
                 f"If you want to add many points pls contact admin."

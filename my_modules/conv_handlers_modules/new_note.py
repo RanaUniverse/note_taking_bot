@@ -36,7 +36,7 @@ from telegram.ext import ContextTypes, filters
 
 
 from telegram.ext import (
-    # CallbackQueryHandler,
+    CallbackQueryHandler,
     CommandHandler,
     ConversationHandler,
     MessageHandler,
@@ -73,6 +73,93 @@ except ValueError:
 
 
 TITLE, CONTENT, CONFIRMATION = range(3)
+
+
+async def new_note_button_press(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> int:
+    """
+    This fun is a large of copy of the /new_note fun in this converstaion's entry point
+
+    When the button pressed for making new note start this will execute this is
+    same as /new_note conversation handler starting
+
+        InlineKeyboardButton("📝 New Note ✅", callback_data="new_note"),
+    This upper is one of the button which is pressed for this.
+
+    """
+
+    user = update.effective_user
+    if user is None:
+        RanaLogger.warning("User should has some value in the next button press")
+        return ConversationHandler.END
+
+    msg = update.effective_message
+    if msg is None:
+        RanaLogger.warning("When button is pressed this should have the msg obj")
+        return ConversationHandler.END
+
+    query = update.callback_query
+
+    if query is None or query.data is None:
+        RanaLogger.warning("Duplicate Note button pressed but no callback data found.")
+        return ConversationHandler.END
+
+    await query.answer(
+        text="📋 You are going to make new note, Please Follow The Steps Below 🚧",
+        show_alert=True,
+    )
+
+    with Session(engine) as session:
+        statement = select(UserPart).where(UserPart.user_id == user.id)
+        results = session.exec(statement)
+        user_row = results.first()
+
+    # This row can be None when user is not register in the database,
+    # in this case it will say him to /register, else proceed with check points and
+    # allow him to ask for title and then content, at last it will reduce the point and save
+
+    if user_row is None:
+        text = (
+            f"Hello <b>{user.mention_html()}</b>, You Are Not Registered Yet 😢\n"
+            f"Please send /register_me and then come back to use this bot.\n"
+            f"Else Contact Customer Support /help."
+        )
+        await msg.reply_html(
+            text=text,
+        )
+        return ConversationHandler.END
+
+    # This line comes means user row is available.
+
+    user_points = user_row.points
+
+    if user_points <= 0:
+        text = (
+            f"You Have Finished All Your Points, Now You Cannot "
+            f"make new note until you add new points, /add_points followed by int.\n\n"
+            f"Example if you want 20 Token, <blockquote><code>/add_points 20</code></blockquote>"
+        )
+
+        await msg.reply_html(
+            text=text,
+        )
+        return ConversationHandler.END
+
+    # Below part is for when user has sufficient points and he is going to make
+    # new note lets return him to a states for later input from user
+
+    text = (
+        f"You are going to make new note by pressing the button... \n\n"
+        f"Hello {user.mention_html()}, You have <b>{user_points} Tokens.</b> 🎉\n"
+        f"Creating a note will deduct <b>1 Token</b>. ⚠️\n\n"
+        f"If you want not to make note now send, /cancel anytime\n\n"
+        f"📝 <b>Step 1:</b> Please send me the <b><u>Title of Your Note</u> below.👇👇👇</b>"
+    )
+
+    await msg.reply_html(text=text)
+
+    return TITLE
 
 
 async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -134,6 +221,7 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     # new note lets return him to a states for later input from user
 
     text = (
+        f"You are making new row by sending /new_note or 'Make New Note'\n\n"
         f"Hello {user.mention_html()}, You have <b>{user_points} Tokens.</b> 🎉\n"
         f"Creating a note will deduct <b>1 Token</b>. ⚠️\n\n"
         f"If you want not to make note now send, /cancel anytime\n\n"
@@ -596,7 +684,14 @@ new_note_conv_handler = ConversationHandler(
         ),
         # This below going to same fun, though it should looks wired
         MessageHandler(
-            filters=filters.Text(["Make New Note"]), callback=new_note_cmd, block=False
+            filters=filters.Text(["Make New Note"]),
+            callback=new_note_cmd,
+            block=False,
+        ),
+        CallbackQueryHandler(
+            callback=new_note_button_press,
+            pattern="new_note",
+            block=False,
         ),
     ],
     states={

@@ -466,9 +466,12 @@ async def button_for_no_more_notes_last_page(
 
 
 # Below part is for when the buttons includes the view note has been pressed
+# Below parts are not developed yet.
 
 
-async def handle_edit_note_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_edit_note_button(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
     query = update.callback_query
 
     if query is None or query.data is None:

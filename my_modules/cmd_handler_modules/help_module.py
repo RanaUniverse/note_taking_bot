@@ -35,7 +35,8 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = (
         f"Hello you are requesting for a help in the private chat with bot. "
         f"You can just start chat with the admin privately, the button for "
-        f"admin contact will added soon."
+        f"admin contact will added soon.\n"
+        
     )
 
     await update.effective_message.reply_html(text)
