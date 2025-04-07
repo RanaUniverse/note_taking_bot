@@ -245,7 +245,7 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             notes_to_add.append(note)
             user_row.points -= 1
 
-        print(notes_to_add)
+        # print(notes_to_add)
 
         session.add_all(notes_to_add)
         session.add(user_row)

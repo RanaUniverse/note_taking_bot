@@ -51,10 +51,10 @@ Below is a code example:
 
 """
 
-from sqlmodel import (
-    select,
-    Session,
-)
+# from sqlmodel import (
+#     select,
+#     Session,
+# )
 
 from telegram import Update
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -62,8 +62,11 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
 from my_modules.logger_related import RanaLogger
+
 from my_modules.database_code.database_make import engine
-from my_modules.database_code.models_table import NotePart
+
+# from my_modules.database_code.models_table import NotePart
+from my_modules.database_code import some_functions
 
 
 NOTES_PER_PAGE: int = 5
@@ -84,23 +87,35 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if msg is None:
         return
 
-    with Session(engine) as session:
+    # with Session(engine) as session:
 
-        statement = select(NotePart).where(NotePart.user_id == user.id)
-        results = session.exec(statement).all()
-        all_note_count = len(results)
+    #     statement = select(NotePart).where(NotePart.user_id == user.id)
+    #     results = session.exec(statement).all()
+    #     all_note_count = len(results)
 
-        # Upper part just for output the total user's row count
-        # Below part is for ouput some of the note's row details to use
+    #     # Upper part just for output the total user's row count
+    #     # Below part is for ouput some of the note's row details to use
 
-        statement = (
-            select(NotePart)
-            .where(NotePart.user_id == user.id)
-            .offset(OFFSET_VALUE)
-            .limit(NOTES_PER_PAGE)
-        )
-        results = session.exec(statement)
-        notes = results.all()
+    #     statement = (
+    #         select(NotePart)
+    #         .where(NotePart.user_id == user.id)
+    #         .offset(OFFSET_VALUE)
+    #         .limit(NOTES_PER_PAGE)
+    #     )
+    #     results = session.exec(statement)
+    #     notes = results.all()
+
+    all_note_count = some_functions.count_user_notes(
+        engine=engine,
+        user_id=user.id,
+    )
+
+    notes = some_functions.get_user_notes(
+        engine=engine,
+        offset_value=OFFSET_VALUE,
+        limit_value=NOTES_PER_PAGE,
+        user_id=user.id,
+    )
 
     if all_note_count == 0:
         text = (
@@ -211,12 +226,22 @@ async def button_for_search_notes(
     # This data is attached with the button user has just pressed
 
     note_id = query.data
+
+    if note_id is None:
+        RanaLogger.warning("Some Problem happens in note_id in query")
+        return None
+
     # This upper value should be the note_id which i need to serach on the database
 
-    with Session(engine) as session:
-        statement = select(NotePart).where(NotePart.note_id == note_id)
-        results = session.exec(statement)
-        note_row = results.first()
+    # with Session(engine) as session:
+    #     statement = select(NotePart).where(NotePart.note_id == note_id)
+    #     results = session.exec(statement)
+    #     note_row = results.first()
+
+    note_row = some_functions.note_obj_from_note_id(
+        engine=engine,
+        note_id=note_id,
+    )
 
     if note_row is None:
         text = (
@@ -330,15 +355,22 @@ async def button_for_next_page(
 
     OFFSET_VALUE = (current_page - 1) * NOTES_PER_PAGE
 
-    with Session(engine) as session:
-        statement = (
-            select(NotePart)
-            .where(NotePart.user_id == user.id)
-            .offset(OFFSET_VALUE)
-            .limit(NOTES_PER_PAGE)
-        )
-        results = session.exec(statement)
-        notes = results.all()
+    # with Session(engine) as session:
+    #     statement = (
+    #         select(NotePart)
+    #         .where(NotePart.user_id == user.id)
+    #         .offset(OFFSET_VALUE)
+    #         .limit(NOTES_PER_PAGE)
+    #     )
+    #     results = session.exec(statement)
+    #     notes = results.all()
+
+    notes = some_functions.get_user_notes(
+        engine=engine,
+        offset_value=OFFSET_VALUE,
+        limit_value=NOTES_PER_PAGE,
+        user_id=user.id,
+    )
 
     if len(notes) == 0:
         await msg.reply_html("📭 You have no MOre saved notes.")
@@ -352,9 +384,25 @@ async def button_for_next_page(
 
     all_buttons: list[list[InlineKeyboardButton]] = []
 
-    for note_row in notes:
-        title = f"{note_row.note_title}"
-        note_id = note_row.note_id
+    # for note_row in notes:
+    #     title = f"{note_row.note_title}"
+    #     note_id = note_row.note_id
+
+    #     button_row = [
+    #         InlineKeyboardButton(
+    #             text=title,
+    #             callback_data=note_id,
+    #         )
+    #     ]
+
+    #     all_buttons.append(button_row)
+
+    for i, note_row in enumerate(
+        iterable=notes,
+        start=(current_page - 1) * NOTES_PER_PAGE + 1,
+    ):
+        title = f"{i}. {note_row.note_title}"
+        note_id = f"{note_row.note_id}"
 
         button_row = [
             InlineKeyboardButton(
@@ -362,7 +410,6 @@ async def button_for_next_page(
                 callback_data=note_id,
             )
         ]
-
         all_buttons.append(button_row)
 
     # Below logic i checked when user's last page shows less than max page
