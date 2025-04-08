@@ -66,7 +66,7 @@ from my_modules.logger_related import RanaLogger
 from my_modules.database_code.database_make import engine
 
 # from my_modules.database_code.models_table import NotePart
-from my_modules.database_code import some_functions
+from my_modules.database_code import db_functions
 
 
 NOTES_PER_PAGE: int = 5
@@ -87,30 +87,12 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if msg is None:
         return
 
-    # with Session(engine) as session:
-
-    #     statement = select(NotePart).where(NotePart.user_id == user.id)
-    #     results = session.exec(statement).all()
-    #     all_note_count = len(results)
-
-    #     # Upper part just for output the total user's row count
-    #     # Below part is for ouput some of the note's row details to use
-
-    #     statement = (
-    #         select(NotePart)
-    #         .where(NotePart.user_id == user.id)
-    #         .offset(OFFSET_VALUE)
-    #         .limit(NOTES_PER_PAGE)
-    #     )
-    #     results = session.exec(statement)
-    #     notes = results.all()
-
-    all_note_count = some_functions.count_user_notes(
+    all_note_count = db_functions.count_user_notes(
         engine=engine,
         user_id=user.id,
     )
 
-    notes = some_functions.get_user_notes(
+    notes = db_functions.get_user_notes(
         engine=engine,
         offset_value=OFFSET_VALUE,
         limit_value=NOTES_PER_PAGE,
@@ -127,25 +109,14 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await msg.reply_html(text)
         return None
 
+    # This below part is for when a user has some notes row
     text = (
-        f"Hello <b>{user.mention_html()}</b>, You have total {all_note_count} Notes.\n"
-        f"You can see the notes below after pressing on the buttons."
+        f"👋 Hello <b>{user.mention_html()}</b>,\n\n"
+        f"📊 You have a total of <b>{all_note_count}</b> notes.\n\n"
+        f"📝 You can view your notes by pressing the buttons below."
     )
 
     all_buttons: list[list[InlineKeyboardButton]] = []
-
-    # for note_row in notes:
-    #     title = f"{note_row.note_title}"
-    #     note_id = note_row.note_id
-
-    #     button_row = [
-    #         InlineKeyboardButton(
-    #             text=title,
-    #             callback_data=note_id,
-    #         )
-    #     ]
-
-    #     all_buttons.append(button_row)
 
     for i, note_row in enumerate(
         iterable=notes,
@@ -195,6 +166,7 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await msg.reply_html(
         text=text,
         reply_markup=InlineKeyboardMarkup(all_buttons),
+        do_quote=True,
     )
 
 
@@ -238,7 +210,7 @@ async def button_for_search_notes(
     #     results = session.exec(statement)
     #     note_row = results.first()
 
-    note_row = some_functions.note_obj_from_note_id(
+    note_row = db_functions.note_obj_from_note_id(
         engine=engine,
         note_id=note_id,
     )
@@ -338,9 +310,6 @@ async def button_for_next_page(
         RanaLogger.warning("When button is pressed this should have the msg obj")
         return
 
-    # This data is attached with the button user has just pressed
-    print("A User Has send", query.data)
-
     if query.data is None:
         RanaLogger.warning("The query should be a button attached with next button")
         return None
@@ -365,7 +334,7 @@ async def button_for_next_page(
     #     results = session.exec(statement)
     #     notes = results.all()
 
-    notes = some_functions.get_user_notes(
+    notes = db_functions.get_user_notes(
         engine=engine,
         offset_value=OFFSET_VALUE,
         limit_value=NOTES_PER_PAGE,
@@ -377,25 +346,18 @@ async def button_for_next_page(
 
         return None
 
+    total_notes = db_functions.count_user_notes(engine=engine, user_id=user.id)
+
+    total_pages = (total_notes + NOTES_PER_PAGE - 1) // NOTES_PER_PAGE
+
     text = (
-        f"Hello <b>{user.mention_html()}</b>, You have total {len(notes)} Notes. "
-        f"You can see the notes below after pressing on the buttons."
+        f"👤 Hello <b>{user.mention_html()}</b>,\n\n"
+        f"📄 Page <b>{current_page}</b> of <b>{total_pages}</b>\n"
+        f"🗒️ Displaying <b>{len(notes)}</b> notes out of <b>{total_notes}</b> total.\n\n"
+        f"Select a note below to view its details."
     )
 
     all_buttons: list[list[InlineKeyboardButton]] = []
-
-    # for note_row in notes:
-    #     title = f"{note_row.note_title}"
-    #     note_id = note_row.note_id
-
-    #     button_row = [
-    #         InlineKeyboardButton(
-    #             text=title,
-    #             callback_data=note_id,
-    #         )
-    #     ]
-
-    #     all_buttons.append(button_row)
 
     for i, note_row in enumerate(
         iterable=notes,
@@ -509,7 +471,10 @@ async def button_for_no_more_notes_last_page(
         f"You have not left any more note for now. 😢"
     )
 
-    await query.answer(text)
+    await query.answer(
+        text=text,
+        show_alert=True,
+    )
 
 
 # Below part is for when the buttons includes the view note has been pressed

@@ -24,10 +24,7 @@ it will ask for note title and content, and it will save those in the database
 
 import os
 
-from sqlmodel import (
-    select,
-    Session,
-)
+from sqlmodel import Session
 
 from telegram import Update
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
@@ -43,7 +40,8 @@ from telegram.ext import (
 )
 
 from my_modules.database_code.database_make import engine
-from my_modules.database_code.models_table import UserPart, NotePart
+from my_modules.database_code.models_table import NotePart
+from my_modules.database_code import db_functions
 
 from my_modules.some_reply_keyboards import yes_no_reply_keyboard
 from my_modules.logger_related import RanaLogger
@@ -110,10 +108,12 @@ async def new_note_button_press(
         show_alert=True,
     )
 
-    with Session(engine) as session:
-        statement = select(UserPart).where(UserPart.user_id == user.id)
-        results = session.exec(statement)
-        user_row = results.first()
+    # with Session(engine) as session:
+    #     statement = select(UserPart).where(UserPart.user_id == user.id)
+    #     results = session.exec(statement)
+    #     user_row = results.first()
+
+    user_row = db_functions.user_obj_from_user_id(engine, user.id)
 
     # This row can be None when user is not register in the database,
     # in this case it will say him to /register, else proceed with check points and
@@ -181,10 +181,12 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         RanaLogger.warning(f"For this /new_note the update.message is must, why not")
         return ConversationHandler.END
 
-    with Session(engine) as session:
-        statement = select(UserPart).where(UserPart.user_id == user.id)
-        results = session.exec(statement)
-        user_row = results.first()
+    # with Session(engine) as session:
+    #     statement = select(UserPart).where(UserPart.user_id == user.id)
+    #     results = session.exec(statement)
+    #     user_row = results.first()
+
+    user_row = db_functions.user_obj_from_user_id(engine, user.id)
 
     # This row can be None when user is not register in the database,
     # in this case it will say him to /register, else proceed with check points and
@@ -223,7 +225,7 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     text = (
         f"You are making new row by sending /new_note or 'Make New Note'\n\n"
         f"Hello {user.mention_html()}, You have <b>{user_points} Tokens.</b> 🎉\n"
-        f"Creating a note will deduct <b>1 Token</b>. ⚠️\n\n"
+        f"Creating a note will deduct atleast <b>1 Token</b>. ⚠️\n\n"
         f"If you want not to make note now send, /cancel anytime\n\n"
         f"📝 <b>Step 1:</b> Please send me the <b><u>Title of Your Note</u> below.👇👇👇</b>"
     )
@@ -243,7 +245,9 @@ async def get_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return ConversationHandler.END
 
     user_msg = update.effective_message.text
-    user_msg_html = update.effective_message.text_html  # type: ignore
+    # i am saving the title without formatting so that it will not shows bad in buttons
+
+    # user_msg_html = update.effective_message.text_html
 
     if user_msg is None:
         RanaLogger.warning(f"This should be any value not None ever.")
@@ -332,14 +336,17 @@ async def note_confirmation_yes(
         RanaLogger.warning("Here a user should stay")
         return ConversationHandler.END
 
-    with Session(engine) as session:
-        statement = select(UserPart).where(UserPart.user_id == user.id)
-        results = session.exec(statement)
-        user_row = results.first()
+    # with Session(engine) as session:
+    #     statement = select(UserPart).where(UserPart.user_id == user.id)
+    #     results = session.exec(statement)
+    #     user_row = results.first()
+
+    user_row = db_functions.user_obj_from_user_id(engine, user.id)
 
     if user_row is None:
         RanaLogger.warning(
-            f"This should not happens as in entry point it check if user has register or not, it mans usr is not register."
+            f"This should not happens as in entry point it check if "
+            f"user has register or not, it mans usr is not register."
         )
         return ConversationHandler.END
 
@@ -400,7 +407,10 @@ async def note_confirmation_no(
 
     context.user_data.clear()
 
-    text = f"Hello {user.name}, Your Note has not been saved. Pls Make new note in /new_note."
+    text = (
+        f"Hello {user.name}, Your Note has not been saved. If YOu "
+        f"want to make new note, then pls Make new note in /new_note."
+    )
 
     if update.effective_message is None:
         RanaLogger.warning(f"This must have a message")
@@ -636,7 +646,7 @@ async def bad_note_confirmation(
 
     text = (
         f"Please Just send me 'Yes' or 'No', or /cancel. "
-        f"Please try again with the buttons 👇🏽"
+        f"Another Way Please try again with the buttons 👇🏽"
     )
     await update.effective_message.reply_html(text)
     return CONFIRMATION

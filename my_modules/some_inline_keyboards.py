@@ -135,8 +135,8 @@ keyboard_user_info = [
 keyboard_account_already_register = [
     [
         InlineKeyboardButton(
-            text="📝 Make New Note",
-            callback_data="make_new_note",
+            text="Add Some Token",
+            callback_data="add_some_token",
         ),
         InlineKeyboardButton(
             text="✏️ Edit My Profile",

@@ -59,6 +59,7 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         text=text,
         parse_mode=ParseMode.HTML,
         reply_markup=InlineKeyboardMarkup(MyInlineKeyboard.START_MENU.value),
+        
     )
     # For now there is the button not works, for now the buttons
     # will show a alart that it not implimented yet, rather use this command.

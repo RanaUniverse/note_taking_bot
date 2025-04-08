@@ -22,7 +22,7 @@ from sqlmodel import Session, select
 
 # from my_modules.database_code.database_make import engine
 
-from my_modules.database_code.models_table import NotePart
+from my_modules.database_code.models_table import NotePart, UserPart
 
 
 def count_user_notes_old(
@@ -102,3 +102,20 @@ def note_obj_from_note_id(
         note_row = results.first()
 
     return note_row
+
+
+def user_obj_from_user_id(
+    engine: Engine,
+    user_id: int,
+) -> UserPart | None:
+    """
+    here i will pass the user_id and it will send me the user obj or none if not
+    This user_id value will come from telegram user id unique id
+    """
+
+    with Session(engine) as session:
+        statement = select(UserPart).where(UserPart.user_id == user_id)
+        results = session.exec(statement)
+        user_row = results.first()
+
+    return user_row

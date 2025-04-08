@@ -22,7 +22,7 @@ import random
 
 
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 
 from telegram import InlineKeyboardMarkup
@@ -40,6 +40,7 @@ from telegram.ext import (
 
 from telegram.constants import ParseMode
 
+from my_modules.database_code import db_functions
 from my_modules.database_code.database_make import engine
 from my_modules.database_code.models_table import UserPart
 
@@ -108,9 +109,10 @@ async def user_register_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
         text = (
             f"🎉 Hello, <b>{user.mention_html()}</b>! 🎉\n\n"
-            f"✅ You have successfully registered with <b>{user_row.points} Tokens</b> 🪙.\n\n"
+            f"✅ You have successfully registered with <b>{user_row.points} "
+            f"Tokens as Welcome Bonus</b> 🪙.\n\n"
             f"📋 To Manually Add More Information You can:\n"
-            f"   🔹 Use the Buttons below ⬇️\n"
+            f"    🔹 Use the Buttons below ⬇️\n"
             f"   🔹 Or type the appropriate Commands ⌨️\n\n"
             f"🚀 Let's get started!"
         )
@@ -129,14 +131,16 @@ async def user_register_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         RanaLogger.warning(e)
 
         # It means some column value has same, it maybe the userid column, i dont sure for this till now, maybe i need to refactor this code later.
-        with Session(engine) as session:
-            statement = select(UserPart).where(UserPart.user_id == user.id)
-            results = session.exec(statement)
-            user_row = results.first()
+
+
+        user_row = db_functions.user_obj_from_user_id(engine, user.id)
+
+
 
         if user_row is None:
             RanaLogger.error(
                 f"As the user row is none, so userid is not need to same, this need to check explicitely in future."
+                f"This is a problem i dont know how to solve this."
             )
             return ConversationHandler.END
 
@@ -159,11 +163,11 @@ async def user_register_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         return ConversationHandler.END  # NEED TO CHANGE
 
     except Exception as e:
-        RanaLogger.warning(f"I didn't thought about this error type, this looks new.")
+        RanaLogger.warning(f"I didn't thought about this error type, this looks new.{e}")
 
         text = f"Somethings Unexpected Happens, Pls Contact admin, /help or /admin"
         await context.bot.send_message(user.id, text)
-        return ConversationHandler.END  # NEED TO CHANGE
+        return ConversationHandler.END  
 
 
 async def add_email_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -352,7 +356,6 @@ async def not_need_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
 account_register_conv_handler = ConversationHandler(
     entry_points=[
-
         # This has now only command handler like beheaviour
         CommandHandler(
             command=[

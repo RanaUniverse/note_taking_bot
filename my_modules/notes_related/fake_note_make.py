@@ -47,7 +47,7 @@ except ValueError:
 fake = Faker()
 
 
-MAX_FAKE_NOTE = 10000
+MAX_FAKE_NOTE = 100000
 
 
 async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
