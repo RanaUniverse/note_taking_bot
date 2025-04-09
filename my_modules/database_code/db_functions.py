@@ -2,11 +2,11 @@
 Here i will write code which is same as
 
 def count_user_notes(user_id: str) -> int
-    # do logic to return a number of notes
+    ## do logic to return a number of notes
 
 
 def get_user_notes(user_id: str, offset: int = 0, limit: int = 10) -> list[NotePart]:
-    # do logic to get user notes
+    ## do logic to get user notes
 
 And the main logic is i will call this function and it will work in my main places.
 

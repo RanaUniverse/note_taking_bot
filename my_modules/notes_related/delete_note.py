@@ -3,6 +3,7 @@ this module will contains the code for delete a note
 i not think fully should i will delete the notes or i will keep those and mark as delete
 
 """
+
 import html
 
 from telegram import Update
@@ -102,7 +103,7 @@ async def delete_note_one_args(
     )
 
     if note_row is None:
-        safe_note_id = html.escape(note_id)  # ✅ Properly escape any < > or & etc.
+        safe_note_id = html.escape(note_id)  
         text = (
             f"🚫 The Note ID you provided (<code>{safe_note_id}</code>) seems to be invalid.\n\n"
             f"Please double-check the ID.\n"
@@ -147,7 +148,9 @@ async def delete_note_one_args(
 
     else:
         print(f"I wish This should not happens.")
-        RanaLogger.warning(f"I wish This should not happens.")
+        RanaLogger.warning(
+            f"I wish This should not happens because delete fun has been run for notes."
+        )
         text = (
             "⚠️ <b>Deletion Failed</b>\n\n"
             "Something went wrong while trying to delete your note.\n"
