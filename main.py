@@ -228,14 +228,40 @@ def main() -> None:
     # this will help to search all notes of a user
     application.add_handler(
         CommandHandler(
-            command=[
-                "all_notes",
-                "my_notes",
-                "n",
-            ],
+            command=["all_notes", "my_notes", "n", "view_notes"],
             callback=search_notes.all_notes_cmd,
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
             block=False,
+        )
+    )
+
+    from my_modules.notes_related import delete_note
+
+    application.add_handler(
+        CommandHandler(
+            command=[
+                "delete_note",
+                "delete",
+                "del",
+            ],
+            callback=delete_note.delete_note_one_args,
+            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
+            block=False,
+            has_args=1,
+        )
+    )
+
+    application.add_handler(
+        CommandHandler(
+            command=[
+                "delete_note",
+                "delete",
+                "del",
+            ],
+            callback=delete_note.delete_note_cmd,
+            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
+            block=False,
+            has_args=None,
         )
     )
 

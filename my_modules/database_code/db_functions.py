@@ -23,6 +23,7 @@ from sqlmodel import Session, select
 # from my_modules.database_code.database_make import engine
 
 from my_modules.database_code.models_table import NotePart, UserPart
+from my_modules.logger_related import RanaLogger
 
 
 def count_user_notes_old(
@@ -119,3 +120,41 @@ def user_obj_from_user_id(
         user_row = results.first()
 
     return user_row
+
+
+def delete_note_obj(
+    engine: Engine,
+    note_id: str,
+    user_id: int | None,
+) -> bool:
+    """
+    Here i will pass the note id and user id, it will check if the note's owner is the
+    user id, if yes, then it will delete the note and return the True
+    after successful deleteion of the note obj
+    """
+
+    try:
+        with Session(engine) as session:
+            stat = (
+                select(NotePart)
+                .where(NotePart.note_id == note_id)
+                .where(NotePart.user_id == user_id)
+            )
+            results = session.exec(stat)
+            note_row = results.first()
+
+            if not note_row:
+                print("Note Row is not present this, should not happens")
+                return False
+
+            else:
+                session.delete(note_row)
+                session.commit()
+                return True
+
+    except Exception as e:
+        RanaLogger.warning(
+            f"Somehing unexpectd maybe a error in database, " f"{e}".upper()
+        )
+
+        return False
