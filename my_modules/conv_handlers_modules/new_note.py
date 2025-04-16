@@ -660,7 +660,7 @@ async def cancel_fallbacks(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     """
     user = update.effective_user
     if user is None:
-        RanaLogger.warning(f"User should exists")
+        RanaLogger.warning(f"User should exists when /cancel got in conversation")
         return ConversationHandler.END
 
     if update.effective_message is None:

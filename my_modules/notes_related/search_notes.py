@@ -81,7 +81,7 @@ OFFSET_VALUE = 0
 
 async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    /my_notes /all_notes /n
+    /my_notes /all_notes /n /view_notes
     First i will try to search the total number of notes row only count
     2nd i will try to get full some row's data completely so that i can work with this
     """
@@ -92,6 +92,113 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     msg = update.effective_message
     if msg is None:
         return
+
+    all_note_count = db_functions.count_user_notes(
+        engine=engine,
+        user_id=user.id,
+    )
+
+    notes = db_functions.get_user_notes(
+        engine=engine,
+        offset_value=OFFSET_VALUE,
+        limit_value=NOTES_PER_PAGE,
+        user_id=user.id,
+    )
+
+    if all_note_count == 0:
+        text = (
+            f"Hello <b>{user.mention_html()}</b>, You have not made any note yet. "
+            f"Please make a note by sending /new_note ."
+            f"If You want a fake note pls send /fake_note or followed by a number."
+        )
+
+        await msg.reply_html(text)
+        return None
+
+    # This below part is for when a user has some notes row
+    text = (
+        f"👋 Hello <b>{user.mention_html()}</b>,\n\n"
+        f"📊 You have a total of <b>{all_note_count}</b> notes.\n\n"
+        f"📝 You can view your notes by pressing the buttons below."
+    )
+
+    all_buttons: list[list[InlineKeyboardButton]] = []
+
+    for i, note_row in enumerate(
+        iterable=notes,
+        start=1,
+    ):
+        title = f"{i}. {note_row.note_title}"
+        note_id = f"{note_row.note_id}"
+
+        button_row = [
+            InlineKeyboardButton(
+                text=title,
+                callback_data=note_id,
+            )
+        ]
+        all_buttons.append(button_row)
+
+    # Here i faced a problem long long time because when below was checking and i was
+    # using .limit(NOtesPerPage) it below will not execute ever, so else part will
+    # execute always so i need to change some logic,
+
+    if all_note_count > NOTES_PER_PAGE:
+        # As this is the starting of the note lists send, so it means it will be start
+        # from current page as 1, and nextpage value will be used in the button pressed
+
+        current_page = 1
+        next_page = current_page + 1
+
+        next_button = [
+            InlineKeyboardButton(
+                text=f"More Notes (Page No. {next_page}) →",
+                callback_data=f"notes_page_{next_page}",  # Send next page number in query.data
+            )
+        ]
+        all_buttons.append(next_button)
+
+    else:
+        end_button = [
+            InlineKeyboardButton(
+                text="📄 No More Notes",
+                callback_data=f"no_more_notes_{all_note_count}",
+            )
+        ]
+        all_buttons.append(end_button)
+        # when this upper button will be pressed it will just let the
+        # user known that the not more note left in a pop up message
+
+    await msg.reply_html(
+        text=text,
+        reply_markup=InlineKeyboardMarkup(all_buttons),
+        do_quote=True,
+    )
+
+
+async def handle_my_all_notes_callback(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    Handles the 'Find All Notes To Edit' button press.
+    'my_all_notes'
+    """
+
+    query = update.callback_query
+
+    if query is None:
+        RanaLogger.warning(f"Query should be present of press button of 'all_my_notes'")
+        return None
+
+    user = update.effective_user
+    msg = update.effective_message
+
+    if msg is None or user is None:
+        RanaLogger.warning(f"user msg should be present on the button pressed")
+        return
+    await query.answer(text="See Below all ur notes")
+    text = f"You want to get all ur notes"
+    await msg.reply_html(text)
 
     all_note_count = db_functions.count_user_notes(
         engine=engine,
@@ -257,19 +364,21 @@ async def button_for_search_notes(
     keyboard_view_note = [
         [
             InlineKeyboardButton(
-                "✏️ Edit Note ❌❌❌", callback_data=f"edit_note_{note_row.note_id}"
+                text="✏️ Edit Note 🟩",
+                callback_data=f"edit_note_{note_row.note_id}",
             ),
             InlineKeyboardButton(
-                "🗑️ Delete Note 🟩", callback_data=f"delete_note_{note_row.note_id}"
+                text="🗑️ Delete Note 🟩",
+                callback_data=f"delete_note_{note_row.note_id}",
             ),
         ],
         [
             InlineKeyboardButton(
-                "🔄 Transfer Ownership ❌❌❌",
+                text="🔄 Transfer Ownership ❌❌❌",
                 callback_data=f"transfer_note_{note_row.note_id}",
             ),
             InlineKeyboardButton(
-                "📋 Duplicate Note ❌❌❌",
+                text="📋 Duplicate Note ❌❌❌",
                 callback_data=f"duplicate_note_{note_row.note_id}",
             ),
         ],
@@ -491,6 +600,7 @@ async def button_for_no_more_notes_last_page(
 async def handle_edit_note_button(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
+
     query = update.callback_query
 
     if query is None or query.data is None:
@@ -498,9 +608,25 @@ async def handle_edit_note_button(
         return
 
     await query.answer(
-        text="✏️ Edit Note feature will be available soon. Stay tuned! 🚧",
+        text="✏️Not come yet, but you can send the below command now to edit.! 🚧",
         show_alert=True,
     )
+    msg = update.effective_message
+    if msg is None:
+        RanaLogger.warning(
+            f"When the edit button is pressed on note seen, the msg should be here"
+        )
+        return None
+
+    note_id = query.data.replace("edit_note_", "")
+
+    text = (
+        f"📝 To edit this note, please send the following command:\n\n"
+        f"<code>/edit_note {note_id}</code>\n\n"
+        f"Once you send this, I’ll guide you through editing the note. ✨"
+    )
+
+    await msg.reply_html(text)
 
 
 async def handle_delete_note_button(
@@ -657,9 +783,21 @@ async def confirm_note_del_button(
         )
 
         # await query.edit_message_text(text=text, parse_mode=ParseMode.HTML)
+
         await msg_waiting.edit_text(text, parse_mode=ParseMode.HTML)
 
-        await query.edit_message_text(f"Note has been deleted")
+        button = [
+            [
+                InlineKeyboardButton(
+                    text="Note Already Deleted 😭",
+                    callback_data="note_deleted_already",
+                )
+            ]
+        ]
+
+        await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(button))
+        # old_text = query.message
+        # await query.edit_message_text()
         return
 
     else:
@@ -710,5 +848,26 @@ async def handle_duplicate_note_button(
 
     await query.answer(
         text="📋 Duplicate Note feature will be added in future update. 🚧",
+        show_alert=True,
+    )
+
+
+async def note_deleted_already_button(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    When user press the buttton it will just say it got deleted
+    """
+    query = update.callback_query
+
+    if query is None or query.data is None:
+        RanaLogger.warning(
+            "already note deleted button pressed but no callback data found."
+        )
+        return
+
+    text = f"Note Already Deleted 😁😁😁"
+    await query.answer(
+        text=text,
         show_alert=True,
     )

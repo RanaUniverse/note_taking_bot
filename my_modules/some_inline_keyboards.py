@@ -41,7 +41,7 @@ keyboard_options_aplhabet = [
 keyboard_start_menu = [
     [
         InlineKeyboardButton("📝 New Note ✅", callback_data="new_note"),
-        InlineKeyboardButton("📂 View All Notes ❌", callback_data="view_notes"),
+        InlineKeyboardButton("📂 View All Notes ❌", callback_data="my_all_notes"),
     ],
     [
         InlineKeyboardButton("✏️ Edit Note ❌", callback_data="edit_note"),

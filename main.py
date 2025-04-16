@@ -91,6 +91,9 @@ def main() -> None:
     # This will start making a note, when user send "/new_note"
     application.add_handler(new_note.new_note_conv_handler)
 
+    from my_modules.notes_related import edit_note
+    application.add_handler(edit_note.edit_note_conv)
+
     application.add_handler(account_register_conv_handler)
 
     application.add_handler(
@@ -99,6 +102,17 @@ def main() -> None:
             rana_checking,
         )
     )
+
+    # from my_modules.notes_related import edit_note
+
+    # application.add_handler(
+    #     CommandHandler(
+    #         "edit_note",
+    #         edit_note.edit_note_cmd,
+    #         filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
+    #         block=False,
+    #     )
+    # )
 
     application.add_handler(
         CommandHandler(
@@ -235,6 +249,13 @@ def main() -> None:
         )
     )
 
+    application.add_handler(
+        CallbackQueryHandler(
+            search_notes.handle_my_all_notes_callback,
+            pattern="my_all_notes",
+        )
+    )
+
     from my_modules.notes_related import delete_note
 
     application.add_handler(
@@ -284,6 +305,21 @@ def main() -> None:
         CallbackQueryHandler(
             callback=search_notes.confirm_note_del_button,
             pattern="^note_del_confirm_.*",
+        )
+    )
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=search_notes.note_deleted_already_button,
+            pattern="note_deleted_already",
+        )
+    )
+    from my_modules.notes_related import export_note
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=export_note.export_note_button,
+            pattern="^export_note_.*$",
         )
     )
 
