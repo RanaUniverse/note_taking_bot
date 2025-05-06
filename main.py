@@ -53,7 +53,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 
-async def echo_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def echo_text_old(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """for testing how message will come to user"""
 
     user = update.effective_user
@@ -63,7 +63,35 @@ async def echo_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     text = msg.text_html
     print(text)
-    await msg.reply_html(f"{text}")
+    await msg.reply_html(f"echo is working" f"{text}")
+
+
+from pathlib import Path
+
+
+async def echo_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """for testing how message will come to user"""
+
+    user = update.effective_user
+    msg = update.effective_message
+    if user is None or msg is None:
+        return
+
+    text = f"{msg.text}"
+    print(text)
+    await msg.reply_html(f"echo is working" f"{text}")
+
+    filename = "user_message.txt"
+    file_dir = Path.cwd() / "000_user_msg"
+
+    file_path = file_dir / filename
+
+    file_dir.mkdir(parents=True, exist_ok=True)
+
+    file_path.write_text(text)
+
+    file_send = await context.bot.send_document(user.id, file_path)
+    
 
 
 def main() -> None:
@@ -92,6 +120,7 @@ def main() -> None:
     application.add_handler(new_note.new_note_conv_handler)
 
     from my_modules.notes_related import edit_note
+
     application.add_handler(edit_note.edit_note_conv)
 
     application.add_handler(account_register_conv_handler)
