@@ -66,7 +66,10 @@ async def echo_text_old(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await msg.reply_html(f"echo is working" f"{text}")
 
 
+import asyncio
 from pathlib import Path
+from telegram import ReplyParameters
+from telegram.constants import ParseMode
 
 
 async def echo_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -78,7 +81,6 @@ async def echo_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
 
     text = f"{msg.text}"
-    print(text)
     await msg.reply_html(f"echo is working" f"{text}")
 
     filename = "user_message.txt"
@@ -90,8 +92,26 @@ async def echo_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     file_path.write_text(text)
 
-    file_send = await context.bot.send_document(user.id, file_path)
-    
+    file_send = await context.bot.send_document(
+        chat_id=user.id,
+        document=file_path,
+        caption="📄 <b>Document Sent</b>",
+        parse_mode=ParseMode.HTML,
+        reply_parameters=ReplyParameters(update.message.id),
+    )
+
+    if file_send.document is None:
+        print("This docs should be present")
+        return None
+
+    new_caption = (
+        "📄 <b>Document Details</b> 🍌\n"
+        f"File Name: {file_send.document.file_name}\n"
+        f"File ID: <code>{file_send.document.file_id}</code>\n"
+    )
+
+    await asyncio.sleep(1)
+    await file_send.edit_caption(caption=new_caption, parse_mode=ParseMode.HTML)
 
 
 def main() -> None:
@@ -440,8 +460,9 @@ def main() -> None:
 
     application.add_handler(
         MessageHandler(
-            filters.TEXT & ~filters.COMMAND,
-            echo_text,
+            filters=filters.TEXT & ~filters.COMMAND,
+            callback=echo_text,
+            block=False,
         )
     )
 
