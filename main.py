@@ -82,7 +82,8 @@ async def echo_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     text = f"{msg.text}"
 
-    filename = "user_message.txt"
+    # filename = "user_message.txt"
+    filename = f"user_id_{user.id}_time_{int(msg.date.timestamp())}.txt"
 
     file_dir = Path.cwd() / "000_user_msg"
 
@@ -109,10 +110,15 @@ async def echo_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_caption = (
         "📄 <b>Document Details</b> 🍌\n"
         f"File Name: {file_send.document.file_name}\n"
-        f'File ID: "<code>{file_send.document.file_id}</code>"\n'
+        f"File ID: <code>{file_send.document.file_id}</code>\n"
     )
 
     await asyncio.sleep(1)
+
+    # i want it will first delete the file and then only send the updated caption
+    # so that it will also sure nothign wrong happens here
+    file_path.unlink(missing_ok=True)
+
     await file_send.edit_caption(caption=new_caption, parse_mode=ParseMode.HTML)
 
 
