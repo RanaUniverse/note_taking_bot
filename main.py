@@ -27,7 +27,7 @@ from my_modules.conv_handlers_modules.account_register import (
 )
 
 from my_modules.message_handlers_modules.z_text_related_module import email_find
-
+from my_modules.message_handlers_modules.text_msg_module import text_msg_to_txt_file
 from my_modules.database_code.database_make import create_db_and_engine
 
 from my_modules.cmd_handler_modules.zzz_extra_things import rana_checking
@@ -64,62 +64,6 @@ async def echo_text_old(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     text = msg.text_html
     print(text)
     await msg.reply_html(f"echo is working" f"{text}")
-
-
-import asyncio
-from pathlib import Path
-from telegram import ReplyParameters
-from telegram.constants import ParseMode
-
-
-async def echo_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """For now i will keep this for checking and make the txt file"""
-
-    user = update.effective_user
-    msg = update.effective_message
-    if user is None or msg is None:
-        return
-
-    text = f"{msg.text}"
-
-    # filename = "user_message.txt"
-    filename = f"user_id_{user.id}_time_{int(msg.date.timestamp())}.txt"
-
-    file_dir = Path.cwd() / "000_user_msg"
-
-    file_path = file_dir / filename
-
-    file_dir.mkdir(parents=True, exist_ok=True)
-
-    file_path.write_text(text)
-
-    old_caption = "📄 <b>Document Sent By The Echo Function</b>"
-
-    file_send = await context.bot.send_document(
-        chat_id=user.id,
-        document=file_path,
-        caption=old_caption,
-        parse_mode=ParseMode.HTML,
-        reply_parameters=ReplyParameters(update.message.id),
-    )
-
-    if file_send.document is None:
-        print("This docs should be present this is just for checking")
-        return None
-
-    new_caption = (
-        "📄 <b>Document Details</b> 🍌\n"
-        f"File Name: {file_send.document.file_name}\n"
-        f"File ID: <code>{file_send.document.file_id}</code>\n"
-    )
-
-    await asyncio.sleep(1)
-
-    # i want it will first delete the file and then only send the updated caption
-    # so that it will also sure nothign wrong happens here
-    file_path.unlink(missing_ok=True)
-
-    await file_send.edit_caption(caption=new_caption, parse_mode=ParseMode.HTML)
 
 
 def main() -> None:
@@ -469,7 +413,7 @@ def main() -> None:
     application.add_handler(
         MessageHandler(
             filters=filters.TEXT & ~filters.COMMAND,
-            callback=echo_text,
+            callback=text_msg_to_txt_file,
             block=False,
         )
     )
