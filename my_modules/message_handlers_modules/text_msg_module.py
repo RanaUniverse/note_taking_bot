@@ -3,7 +3,6 @@ This python code is for just checking, though this not need, maybe i will use ec
 """
 
 import asyncio
-import datetime
 
 from pathlib import Path
 
@@ -51,10 +50,7 @@ async def text_msg_to_txt_file(
     if user is None or msg is None:
         return
 
-    utc_time = msg.date.replace(tzinfo=None)
-    current_ind_time = utc_time + datetime.timedelta(hours=5, minutes=30)
-
-    text = f"{msg.text}" + make_footer_text(user=user, now_time=current_ind_time)
+    text = f"{msg.text}" + make_footer_text(user=user, msg=msg)
 
     # filename = "user_message.txt"
     filename = f"user_id_{user.id}_time_{int(msg.date.timestamp())}.txt"

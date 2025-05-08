@@ -5,10 +5,13 @@ where i can replace those things, this is just for now here
 
 import datetime
 
-from telegram import User
+from telegram import Message, User
 
 
-def make_footer_text(user: User, now_time: datetime.datetime) -> str:
+def make_footer_text(
+    user: User,
+    msg: Message | None = None,
+) -> str:
     """
     i though to make a footer where it will give me
     user some informaiton and the time
@@ -23,15 +26,31 @@ def make_footer_text(user: User, now_time: datetime.datetime) -> str:
         f"UserID: {user.id}\n"
         f"Username: {username}\n"
     )
-    time_str = (
-        f"\n\n\n\n\n"
-        f"----------"
-        f"\n"
-        f"Response Time: \n{now_time}"
-        f"\n\n\n\n\n"
-        f"----------"
-        f"\n"
-    )
+    if msg is None:
+        time_str = (
+            f"\n\n\n\n\n"
+            f"----------"
+            f"\n"
+            f"Response Time: \n"
+            f"No Time Information ❌❌❌"
+            f"\n\n\n\n\n"
+            f"----------"
+            f"\n"
+        )
+
+    else:
+        utc_time = msg.date.replace(tzinfo=None)
+
+        current_ind_time = utc_time + datetime.timedelta(hours=5, minutes=30)
+        time_str = (
+            f"\n\n\n\n\n"
+            f"----------"
+            f"\n"
+            f"Response Time: \n{current_ind_time}"
+            f"\n\n\n\n\n"
+            f"----------"
+            f"\n"
+        )
     output_txt = breaking_str + user_info + time_str
 
     return output_txt
