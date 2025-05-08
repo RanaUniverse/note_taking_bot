@@ -5,13 +5,14 @@
 
 """
 
+import asyncio
 import os
 
 from telegram import Update
 from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
 
-from telegram.constants import ParseMode
+from telegram.constants import ChatAction, ParseMode
 
 from telegram.ext import ContextTypes
 
@@ -32,7 +33,9 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
 
     if update.message is None or update.message.from_user is None:
-        print("I used this to prevent the type hint of pyright. in start cmd")
+        RanaLogger.warning(
+            f"when /start come in private the message and from user must present"
+        )
         return
 
     user = update.message.from_user
@@ -59,7 +62,6 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         text=text,
         parse_mode=ParseMode.HTML,
         reply_markup=InlineKeyboardMarkup(MyInlineKeyboard.START_MENU.value),
-        
     )
     # For now there is the button not works, for now the buttons
     # will show a alart that it not implimented yet, rather use this command.
@@ -73,15 +75,15 @@ async def start_cmd_group(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     chat = update.effective_chat
 
     if chat is None:
-        print("This should not execute as start in groups.")
-        return
+        RanaLogger.warning("/start in group it should has the chat obj")
+        return None
 
     text = (
         "📢 <b>Notice:</b>\n\n"
         "⚠️ This bot currently <b>cannot take notes in groups</b>.\n"
-        "🛠️ This feature is <b>is not implimenteds yet not available</b>, "
+        "🛠️ This feature is <b>is not implimenteds yet not available ❌</b>, "
         f"but it will be added in a future update.\n"
-        "🔔 Stay tuned for updates!"
+        "🔔 Stay tuned for updates!\n"
         "Please Press This button To Accss This Bot..."
     )
 
@@ -119,18 +121,21 @@ async def start_cmd_from_group_to_private(
         return None
 
     if update.message is None or update.message.from_user is None:
-        print("I used this to prevent the type hint of pyright. in start cmd")
-        return
+        RanaLogger.warning(
+            f"on the button on group as deeplink in private it msg and usr present"
+        )
+        return None
 
     user = update.message.from_user
 
     if context.args[0] == "group_start":
-        print("something happens")
+        RanaLogger.info(f"{user.full_name} now came to private chat from any group.")
         text = (
             "You have started this bot from a group chat, "
             f"Currently please just use this bot in private and "
             f"later use this bot until we will update this in a official update.\n"
-            f"Please see the below message."
+            f"Or maybe you have send a deeplink /start command here. \n"
+            f"Please see the below message. 👇👇👇"
         )
 
         await context.bot.send_message(
@@ -138,8 +143,21 @@ async def start_cmd_from_group_to_private(
             text=text,
             parse_mode=ParseMode.HTML,
         )
+        await context.bot.send_chat_action(user.id, ChatAction.TYPING)
+        await asyncio.sleep(3)
 
+        # Now it will send the actual /start form the private like same
         await start_cmd(update=update, context=context)
 
     else:
-        print("another button")
+        RanaLogger.info(f"{user.full_name} send a new type of /start deeplink")
+        text = (
+            f"YOu wanted to use the deeplink, but for now this features "
+            f"has not been made yet, wait until this will come, now "
+            f"Please send /start"
+        )
+        await context.bot.send_message(
+            chat_id=user.id,
+            text=text,
+            parse_mode=ParseMode.HTML,
+        )
