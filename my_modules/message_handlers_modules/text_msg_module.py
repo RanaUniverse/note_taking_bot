@@ -3,11 +3,13 @@ This python code is for just checking, though this not need, maybe i will use ec
 """
 
 import asyncio
+import datetime
 
 from pathlib import Path
 
 from telegram import ReplyParameters
 from telegram import Update
+from telegram import User
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 
@@ -37,6 +39,35 @@ async def echo_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await context.bot.send_message(user.id, text, ParseMode.HTML)
 
 
+def make_footer_text(user: User, now_time: datetime.datetime) -> str:
+    """
+    i though to make a footer where it will give me
+    user some informaiton and the time
+    """
+
+    username = f"@{user.username}" if user.username else "Not Available ❌"
+
+    breaking_str = f"\n\n\n\n\n" f"----------" f"\n"
+
+    user_info = (
+        f"Full Name: {user.full_name}\n"
+        f"UserID: {user.id}\n"
+        f"Username: {username}\n"
+    )
+    time_str = (
+        f"\n\n\n\n\n"
+        f"----------"
+        f"\n"
+        f"Response Time: \n{now_time}"
+        f"\n\n\n\n\n"
+        f"----------"
+        f"\n"
+    )
+    output_txt = breaking_str + user_info + time_str
+
+    return output_txt
+
+
 async def text_msg_to_txt_file(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
@@ -44,10 +75,14 @@ async def text_msg_to_txt_file(
 
     user = update.effective_user
     msg = update.effective_message
+
     if user is None or msg is None:
         return
 
-    text = f"{msg.text}"
+    utc_time = msg.date.replace(tzinfo=None)
+    current_ind_time = utc_time + datetime.timedelta(hours=5, minutes=30)
+
+    text = f"{msg.text}" + make_footer_text(user=user, now_time=current_ind_time)
 
     # filename = "user_message.txt"
     filename = f"user_id_{user.id}_time_{int(msg.date.timestamp())}.txt"
