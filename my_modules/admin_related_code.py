@@ -53,6 +53,7 @@ async def update_commands_cmd(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """
+    Fully Experimental Not Use ❌
     This will have Telegram.Message update
 
     This is useful for when i want to add the commands for the bot
@@ -90,6 +91,7 @@ async def update_commands_cmd(
 
 async def show_bot_commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
+    For now only admins can see the information of all the commands.
     This function retrieves and displays the current bot commands using get_my_commands().
     i can trigger this function by sending /show_commands.
     """
@@ -99,13 +101,12 @@ async def show_bot_commands(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     if update.effective_user.id != ADMIN_ID:
 
-        await update.message.reply_text("⛔ You are not authorized to see commands!")
+        await update.message.reply_text(
+            "⛔ You are not authorized to see All Commands!"
+        )
         return
 
     commands = await context.bot.get_my_commands()
-
-    print(commands)
-    print(type(commands))
 
     if commands:
         commands_text = "\n".join(

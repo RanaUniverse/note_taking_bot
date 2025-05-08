@@ -12,7 +12,7 @@ for now i will make it as demo so that use can by himself add notes.
 """
 
 import asyncio
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from telegram import Update
 from telegram.constants import ParseMode, ChatAction
@@ -20,7 +20,7 @@ from telegram.ext import ContextTypes
 
 
 from my_modules.database_code.database_make import engine
-from my_modules.database_code.models_table import UserPart
+from my_modules.database_code.db_functions import user_obj_from_user_id
 from my_modules.logger_related_old import logger
 
 MAX_POINT = 500
@@ -48,7 +48,7 @@ async def add_points_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         text = (
             f"You haven't pass any argument after this command."
             f"You need to send how many points you want to add.\n"
-            f"Example: Suppose You want to get 10 points, then send this below to bot."
+            f"Example: Suppose You want to get 10 points, then send this below to bot.\n"
             f"<blockquote><code>/add_points 10</code></blockquote>"
         )
 
@@ -103,7 +103,7 @@ async def add_points_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         await context.bot.send_chat_action(user.id, ChatAction.TYPING)
 
-        ## here i will check if the points value is 0 or less than this, means if negative
+        # here i will check if the points value is 0 or less than this, means if negative
         # it will exit this fun by sayuing to provide a positive goo value
 
         if points_to_add <= 0:
@@ -117,7 +117,7 @@ async def add_points_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 text=text,
                 parse_mode=ParseMode.HTML,
             )
-            return
+            return None
 
         if points_to_add > MAX_POINT:
             text = (
@@ -125,7 +125,7 @@ async def add_points_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 f"🔹 The maximum allowed per request is <b>{MAX_POINT}</b> points.\n"
                 f"Please enter a smaller value.\n"
                 f"Example:\n<blockquote><code>/add_points 20</code></blockquote>\n"
-                f"If you want to add many points pls contact admin."
+                f"If you want to add many points pls contact admin (/admin)."
             )
             await context.bot.send_message(
                 chat_id=user.id,
@@ -137,13 +137,12 @@ async def add_points_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         # i made at last as i want to open the database and check only when the condition
         # all got satisfied.
 
-        with Session(engine) as session:
-            statement = select(UserPart).where(UserPart.user_id == user.id)
-            results = session.exec(statement)
-            user_row = results.first()
+        user_row = user_obj_from_user_id(engine, user.id)
 
         if user_row is None:
-            logger.warning(f"{user.full_name} is not register.")
+            logger.warning(
+                f"{user.full_name} is not register but trying to add points."
+            )
             text = (
                 f"Sorry, {user.full_name} 😢\n"
                 "You are not register in the database first go to Bot and send"
@@ -162,6 +161,7 @@ async def add_points_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             session.add(user_row)
             session.commit()
             session.refresh(user_row)
+
         logger.info(f"{user.full_name} has added {points_to_add} point.")
         await asyncio.sleep(1)
 
