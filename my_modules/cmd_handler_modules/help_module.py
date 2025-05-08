@@ -33,12 +33,14 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
 
     text = (
-        f"Hello you are requesting for a help in the private chat with bot. "
-        f"You can just start chat with the admin privately, the button for "
-        f"admin contact will added soon.\n"
-        
+        "🤖 <b>Bot Help Guide</b>\n\n"
+        "Hello! 👋\n\n"
+        "I'm here to assist you. Here's what you can do:\n\n"
+        "• <b>/start</b> – Initiate a conversation with the bot.\n"
+        "• <b>/help</b> – Display this help message.\n"
+        "• <b>/contact</b> – Reach out to the administrator for further assistance.\n\n"
+        "Feel free to explore and let me know if you need any help!"
     )
-
     await update.effective_message.reply_html(text)
 
 
