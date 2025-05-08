@@ -9,7 +9,6 @@ import os
 from faker import Faker
 
 from sqlmodel import (
-    select,
     Session,
 )
 
@@ -19,7 +18,8 @@ from telegram.ext import ContextTypes
 
 
 from my_modules.database_code.database_make import engine
-from my_modules.database_code.models_table import UserPart, NotePart
+from my_modules.database_code.db_functions import user_obj_from_user_id
+from my_modules.database_code.models_table import NotePart
 
 from my_modules.logger_related import RanaLogger
 
@@ -52,49 +52,57 @@ MAX_FAKE_NOTE = 100000
 
 async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    /new_fake_note or /fake_note /generate_fake_note.
+    /fake_note or /f
     And this function will executes when user will send it and it will save this
-    it will have some idea
+    for now it will make a random one note and save it.
     """
 
     user = update.effective_user
+    msg = update.effective_message
     if user is None:
-        RanaLogger.warning("User not found.")
-        return
+        RanaLogger.warning("User not found when user send /fake_note.")
+        return None
 
-    if update.effective_message is None:
-        RanaLogger.warning("No message object found.")
-        return
+    if msg is None:
+        RanaLogger.warning("No message object found when user send /fake_note.")
+        return None
 
-    with Session(engine) as session:
-        statement = select(UserPart).where(UserPart.user_id == user.id)
-        results = session.exec(statement)
-        user_row = results.first()
+    # with Session(engine) as session:
+    #     statement = select(UserPart).where(UserPart.user_id == user.id)
+    #     results = session.exec(statement)
+    #     user_row = results.first()
+
+    user_row = user_obj_from_user_id(engine, user.id)
 
     if user_row is None:
-        text = (
+        text_no_user = (
             f"Hello <b>{user.mention_html()}</b>, You Are Not Registered Yet 😢\n"
             f"Please send /register_me and then come back to use this bot.\n"
             f"Else Contact Customer Support /help."
         )
-        await update.effective_message.reply_html(
-            text=text,
+        await msg.reply_html(
+            text=text_no_user,
         )
         return None
+
+    # below line will executes when user_row is present
 
     user_points = user_row.points
 
     if user_points <= 0:
-        text = (
+        text_no_point = (
             f"You Have Finished All Your Points, Now You Cannot "
             f"make new note until you add new points, /add_points followed by int.\n\n"
-            f"Example if you want 20 Token, <blockquote><code>/add_points 20</code></blockquote>"
+            f"Example if you want 20 Token, "
+            f"<blockquote><code>/add_points 20</code></blockquote>"
         )
 
-        await update.effective_message.reply_html(
-            text=text,
+        await msg.reply_html(
+            text=text_no_point,
         )
         return None
+
+    # below line comes meaans user has valid positive int value of token
 
     fake_title = fake.sentence(20)[:MAX_TITLE_LEN]
     fake_content = fake.paragraph(50)[:MAX_CONTENT_LEN]
@@ -115,16 +123,25 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         session.refresh(note_row)
         session.refresh(user_row)
 
-    text = (
-        f"Your Note Has Been saved Successfully.\n"
-        f"Your Note Id is: <code>{note_row.note_id}</code>."
+    # text_made_note = (
+    #     f"Your Note Has Been saved Successfully.\n"
+    #     f"Your Note Id is: <code>{note_row.note_id}</code>."
+    # )
+
+    text_made_note = (
+        f"🎉 Your Note Has Been saved Successfully.\n\n"
+        f"🧪 1 Fake Note created.\n"
+        f"➖ Points spent: <b>One(1)</b>\n"
+        f"Your Note Id is: <code>{note_row.note_id}</code>.\n"
+        f"💰 Remaining Points: <b>{user_row.points}</b>\n\n"
+        f"📂 View them with /all_notes or /my_notes\n"
+        f"➕ Need more points? Try /add_points"
     )
 
-    await update.effective_message.reply_html(
-        text,
+    await msg.reply_html(
+        text=text_made_note,
         do_quote=True,
     )
-    return None
 
 
 async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -138,15 +155,18 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     """
 
     if context.args is None:
-        print("This is unexpected as the args value =1 will pass in add handler")
+        RanaLogger.warning(
+            f"When /fake_note int like this come the args should has some value"
+        )
         return None
 
+    msg = update.effective_message
     user = update.effective_user
+
     if user is None:
         RanaLogger.warning("user need to exists when he send /fake_note")
         return None
 
-    msg = update.effective_message
     if msg is None:
         RanaLogger.warning("msg is present when user send /fake_ntoe")
         return None
@@ -171,7 +191,11 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return None
 
     except Exception as e:
-        RanaLogger.warning(f"I dont know how it can work {e}")
+        RanaLogger.warning(
+            f"I dont know how it can work, when user send /fake_note some value {e}"
+        )
+        text = f"Somethings wrong here, please contact /help"
+        await msg.reply_html(text)
         return None
 
     await context.bot.send_chat_action(user.id, ChatAction.TYPING)
@@ -202,11 +226,12 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         )
         return None
 
-    with Session(engine) as session:
-        statement = select(UserPart).where(UserPart.user_id == user.id)
-        results = session.exec(statement)
-        user_row = results.first()
+    # with Session(engine) as session:
+    #     statement = select(UserPart).where(UserPart.user_id == user.id)
+    #     results = session.exec(statement)
+    #     user_row = results.first()
 
+    user_row = user_obj_from_user_id(engine, user.id)
     if user_row is None:
         text = (
             f"Hello <b>{user.mention_html()}</b>, You Are Not Registered Yet 😢\n"
@@ -236,16 +261,15 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
         for _ in range(how_many_note):
 
-            note = NotePart(
+            note_obj = NotePart(
                 note_title=fake.sentence(20)[:MAX_TITLE_LEN],
                 note_content=fake.paragraph(50)[:MAX_CONTENT_LEN],
                 is_available=True,
                 user_id=user_row.user_id,
             )
-            notes_to_add.append(note)
-            user_row.points -= 1
+            notes_to_add.append(note_obj)
 
-        # print(notes_to_add)
+        user_row.points -= how_many_note
 
         session.add_all(notes_to_add)
         session.add(user_row)

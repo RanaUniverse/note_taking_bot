@@ -215,8 +215,6 @@ def main() -> None:
             command=[
                 "f",
                 "fake_note",
-                "generate_fake_note",
-                "new_fake_note",
             ],
             callback=fake_note_make.fake_notes_many,
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
@@ -231,8 +229,6 @@ def main() -> None:
             command=[
                 "f",
                 "fake_note",
-                "generate_fake_note",
-                "new_fake_note",
             ],
             callback=fake_note_make.fake_note_cmd,
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
