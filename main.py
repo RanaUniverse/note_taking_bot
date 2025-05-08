@@ -239,7 +239,12 @@ def main() -> None:
     # this will help to search all notes of a user
     application.add_handler(
         CommandHandler(
-            command=["all_notes", "my_notes", "n", "view_notes"],
+            command=[
+                "all_notes",
+                "my_notes",
+                "n",
+                "view_notes",
+            ],
             callback=search_notes.all_notes_cmd,
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
             block=False,

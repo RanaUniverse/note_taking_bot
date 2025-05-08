@@ -9,9 +9,10 @@ from pathlib import Path
 
 from telegram import ReplyParameters
 from telegram import Update
-from telegram import User
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
+
+from my_modules.rana_needed_things import make_footer_text
 
 
 async def echo_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -37,35 +38,6 @@ async def echo_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
     await context.bot.send_message(user.id, text, ParseMode.HTML)
-
-
-def make_footer_text(user: User, now_time: datetime.datetime) -> str:
-    """
-    i though to make a footer where it will give me
-    user some informaiton and the time
-    """
-
-    username = f"@{user.username}" if user.username else "Not Available ❌"
-
-    breaking_str = f"\n\n\n\n\n" f"----------" f"\n"
-
-    user_info = (
-        f"Full Name: {user.full_name}\n"
-        f"UserID: {user.id}\n"
-        f"Username: {username}\n"
-    )
-    time_str = (
-        f"\n\n\n\n\n"
-        f"----------"
-        f"\n"
-        f"Response Time: \n{now_time}"
-        f"\n\n\n\n\n"
-        f"----------"
-        f"\n"
-    )
-    output_txt = breaking_str + user_info + time_str
-
-    return output_txt
 
 
 async def text_msg_to_txt_file(
