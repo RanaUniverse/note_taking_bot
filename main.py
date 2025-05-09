@@ -261,10 +261,8 @@ def main() -> None:
         CommandHandler(
             command=[
                 "delete_note",
-                "delete",
-                "del",
             ],
-            callback=delete_note.delete_note_one_args,
+            callback=delete_note.delete_note_one_arg,
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
             block=False,
             has_args=1,
@@ -275,10 +273,20 @@ def main() -> None:
         CommandHandler(
             command=[
                 "delete_note",
-                "delete",
-                "del",
             ],
             callback=delete_note.delete_note_cmd,
+            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
+            block=False,
+            has_args=0,
+        )
+    )
+    
+    application.add_handler(
+        CommandHandler(
+            command=[
+                "delete_note",
+            ],
+            callback=delete_note.delete_note_many_args,
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
             block=False,
             has_args=None,

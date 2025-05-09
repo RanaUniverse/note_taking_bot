@@ -143,7 +143,7 @@ def delete_note_obj(
             results = session.exec(stat)
             note_row = results.first()
 
-            if not note_row:
+            if note_row is None:
                 print("Note Row is not present this, should not happens")
                 return False
 
@@ -154,7 +154,7 @@ def delete_note_obj(
 
     except Exception as e:
         RanaLogger.warning(
-            f"Somehing unexpectd maybe a error in database, " f"{e}".upper()
+            f"Somehing unexpectd maybe a error in database when deleting the note, " f"{e}".upper()
         )
 
         return False
