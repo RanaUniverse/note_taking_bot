@@ -71,7 +71,7 @@ def get_user_notes(
     offset_value: int,
     limit_value: int,
     user_id: int,
-) -> list[NotePart] | Sequence[NotePart]:
+) -> Sequence[NotePart]:
     """
     here i will pass the how many row i want to get and from which
     """

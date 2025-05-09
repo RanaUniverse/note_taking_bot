@@ -51,11 +51,6 @@ Below is a code example:
 
 """
 
-# from sqlmodel import (
-#     select,
-#     Session,
-# )
-
 import asyncio
 
 import html
@@ -71,7 +66,6 @@ from my_modules.logger_related import RanaLogger
 
 from my_modules.database_code.database_make import engine
 
-# from my_modules.database_code.models_table import NotePart
 from my_modules.database_code import db_functions
 
 
@@ -79,53 +73,52 @@ NOTES_PER_PAGE: int = 5
 OFFSET_VALUE = 0
 
 
-async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def my_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    /my_notes /all_notes /n /view_notes
+    /my_notes in private chat
     First i will try to search the total number of notes row only count
     2nd i will try to get full some row's data completely so that i can work with this
     """
-    user = update.effective_user
-    if not user:
-        return
-
     msg = update.effective_message
-    if msg is None:
-        return
+    user = update.effective_user
+
+    if msg is None or user is None:
+        RanaLogger.warning(f"When /my_notes come the msg and user should be present")
+        return None
 
     all_note_count = db_functions.count_user_notes(
         engine=engine,
         user_id=user.id,
     )
 
-    notes = db_functions.get_user_notes(
+    if all_note_count == 0:
+        text_no_note = (
+            f"Hello <b>{user.mention_html()}</b>, You have not made any note yet. "
+            f"Please make a note by sending /new_note ."
+            f"If You want a fake note pls send /fake_note or followed by a number."
+        )
+
+        await msg.reply_html(text_no_note)
+        return None
+
+    some_notes = db_functions.get_user_notes(
         engine=engine,
         offset_value=OFFSET_VALUE,
         limit_value=NOTES_PER_PAGE,
         user_id=user.id,
     )
 
-    if all_note_count == 0:
-        text = (
-            f"Hello <b>{user.mention_html()}</b>, You have not made any note yet. "
-            f"Please make a note by sending /new_note ."
-            f"If You want a fake note pls send /fake_note or followed by a number."
-        )
-
-        await msg.reply_html(text)
-        return None
-
     # This below part is for when a user has some notes row
     text = (
-        f"👋 Hello <b>{user.mention_html()}</b>,\n\n"
-        f"📊 You have a total of <b>{all_note_count}</b> notes.\n\n"
-        f"📝 You can view your notes by pressing the buttons below."
+        f"👋 <b>Hello, {user.mention_html()}</b>!\n\n"
+        f"📊 <b>Your Total Notes Count:</b> {all_note_count}\n\n"
+        f"📝 Use the buttons below to View & Edit Your Notes.👇🏼👇🏼👇🏼"
     )
 
     all_buttons: list[list[InlineKeyboardButton]] = []
 
     for i, note_row in enumerate(
-        iterable=notes,
+        iterable=some_notes,
         start=1,
     ):
         title = f"{i}. {note_row.note_title}"
@@ -139,9 +132,8 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         ]
         all_buttons.append(button_row)
 
-    # Here i faced a problem long long time because when below was checking and i was
-    # using .limit(NOtesPerPage) it below will not execute ever, so else part will
-    # execute always so i need to change some logic,
+    # The Below logic is when the button numbers are greater than notes per page
+    # Then it will have end button else next page button
 
     if all_note_count > NOTES_PER_PAGE:
         # As this is the starting of the note lists send, so it means it will be start
@@ -150,10 +142,11 @@ async def all_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         current_page = 1
         next_page = current_page + 1
 
+        # Send next page number in query.data
         next_button = [
             InlineKeyboardButton(
-                text=f"More Notes (Page No. {next_page}) →",
-                callback_data=f"notes_page_{next_page}",  # Send next page number in query.data
+                text=f"More Notes (Go To Page No. {next_page}) →",
+                callback_data=f"notes_page_{next_page}",
             )
         ]
         all_buttons.append(next_button)

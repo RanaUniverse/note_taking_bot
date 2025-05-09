@@ -240,12 +240,9 @@ def main() -> None:
     application.add_handler(
         CommandHandler(
             command=[
-                "all_notes",
                 "my_notes",
-                "n",
-                "view_notes",
             ],
-            callback=search_notes.all_notes_cmd,
+            callback=search_notes.my_notes_cmd,
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
             block=False,
         )
