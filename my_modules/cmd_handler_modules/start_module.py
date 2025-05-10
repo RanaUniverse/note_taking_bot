@@ -41,10 +41,11 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
 
     text = (
-        f"👋 Hello, {user.mention_html()}! Welcome to <b><u>The Note-Taking Bot</u></b> 📝🤖\n\n"
+        f"👋 Hello, {user.mention_html()}! "
+        f"Welcome to <b><u>The Note-Taking Bot</u></b> 📝🤖\n\n"
         f"Use the buttons below to manage your notes, or use commands if needed! 🔒🗂️\n\n"
         f"<b>🔹 Available Commands:</b>\n"
-        f"📝 /new_note - Create a new note\n"
+        f"📝 /new_note - Create a new note(use button)\n"
         f"📂 /view_notes - View all your notes\n"
         f"✏️ /edit_note - Edit an existing note\n"
         f"🔍 /search_note - Search notes by title\n"

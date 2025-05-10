@@ -89,6 +89,8 @@ def main() -> None:
     from my_modules.conv_handlers_modules import new_note
 
     # This will start making a note, when user send "/new_note"
+    # or the button "new_note_making"
+
     application.add_handler(new_note.new_note_conv_handler)
 
     from my_modules.notes_related import edit_note
@@ -280,7 +282,7 @@ def main() -> None:
             has_args=0,
         )
     )
-    
+
     application.add_handler(
         CommandHandler(
             command=[

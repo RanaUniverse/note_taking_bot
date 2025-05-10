@@ -38,22 +38,54 @@ keyboard_options_aplhabet = [
 # For Now dont change the button and its callback query data
 # ✅ ❌ first which are made and second which i need to made yet
 
+from telegram import InlineKeyboardButton
+
 keyboard_start_menu = [
     [
-        InlineKeyboardButton("📝 New Note ✅", callback_data="new_note"),
-        InlineKeyboardButton("📂 View All Notes ❌", callback_data="my_all_notes"),
+        InlineKeyboardButton(
+            text="➕ New Note",
+            callback_data="new_note_making",
+        ),
+        InlineKeyboardButton(
+            text="📄 View All Notes",
+            callback_data="my_notes_view",
+        ),
     ],
     [
-        InlineKeyboardButton("✏️ Edit Note ❌", callback_data="edit_note"),
-        InlineKeyboardButton("🔍 Search Note ❌", callback_data="search_note"),
+        InlineKeyboardButton(
+            text="✏️ Edit Note",
+            callback_data="edit_note_prompt",
+        ),
+        InlineKeyboardButton(
+            text="🔍 Search Note",
+            callback_data="search_note_prompt",
+        ),
     ],
     [
-        InlineKeyboardButton("❌ Delete Note ❌", callback_data="delete_note"),
-        InlineKeyboardButton("📤 Export Notes ❌", callback_data="export_notes"),
+        InlineKeyboardButton(
+            text="🗑️ Delete Note",
+            callback_data="delete_note_prompt",
+        ),
+        InlineKeyboardButton(
+            text="📤 Export Notes",
+            callback_data="export_notes",
+        ),
     ],
     [
-        InlineKeyboardButton("⚙️ Profile Update ❌", callback_data="update_profile"),
-        InlineKeyboardButton("❓ Help Section ❌", callback_data="help_section"),
+        InlineKeyboardButton(
+            text="⚙️ Settings",
+            callback_data="open_settings",
+        ),
+        InlineKeyboardButton(
+            text="❓ Help / FAQ",
+            callback_data="show_help",
+        ),
+    ],
+    [
+        InlineKeyboardButton(
+            text="💬 Feedback",
+            callback_data="send_feedback",
+        ),
     ],
 ]
 
