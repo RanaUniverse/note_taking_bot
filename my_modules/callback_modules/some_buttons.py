@@ -24,7 +24,7 @@ async def update_profile_button(
 
     text = (
         f"You Need To Register here to use this bot, To register please send, \n"
-        f"/register"
+        f"/register_me"
     )
 
     if query.data == "update_profile":

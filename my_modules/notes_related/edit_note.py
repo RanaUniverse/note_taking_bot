@@ -1,4 +1,7 @@
 """
+Here is a lot of error warning but pylance warning
+from my_modules.some_constants import BotSettingsValue
+
 Here i will keep the logic and code which will help me
 to edit a note's title content and something
 First i will do this in a command /edit_note
@@ -6,7 +9,6 @@ First i will do this in a command /edit_note
 """
 
 import html
-import os
 
 
 from telegram import Update
@@ -29,27 +31,15 @@ from my_modules.database_code.database_make import engine
 
 from my_modules.logger_related import RanaLogger
 
+from my_modules.some_constants import BotSettingsValue
+
+
 SELECT_OPTION, TITLE, CONTENT, CONFIRMATION = range(4)
 
 
-MAX_TITLE_STR = os.environ.get("MAX_TITLE", None)
 
-if not MAX_TITLE_STR:
-    raise ValueError("❌ MAX_TITLE not found in .env file!")
-try:
-    MAX_TITLE_LEN = int(MAX_TITLE_STR)  # Convert to int
-except ValueError:
-    raise ValueError("❌ MAX_TITLE must be a valid integer!")
-
-
-MAX_CONTENT_STR = os.environ.get("MAX_CONTENT", None)
-
-if not MAX_CONTENT_STR:
-    raise ValueError("❌ MAX_CONTENT not found in .env file!")
-try:
-    MAX_CONTENT_LEN = int(MAX_CONTENT_STR)  # Convert to int
-except ValueError:
-    raise ValueError("❌ MAX_CONTENT must be a valid integer!")
+MAX_TITLE_LEN = BotSettingsValue.MAX_TITLE_LEN.value
+MAX_CONTENT_LEN = BotSettingsValue.MAX_CONTENT_LEN.value
 
 
 async def edit_note_cmd_no_args(

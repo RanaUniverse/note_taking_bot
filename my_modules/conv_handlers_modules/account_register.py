@@ -1,23 +1,18 @@
 """
+For now it will just register user without any question.
+
 This module has the conversation part for asking user about his information
 and save his data in the UserPart table.
-Mostly: /new_account or /register_me
 
-
-This module is for making new handler for conversation
-Will Delete, You are going to register yourself in this
-successfully, you can add new notes
+Mostly: /register_me 
+For now this is only work as command not as a conversation.
 
 Here will the code for users can activate their account
 information and then their account will be activated.
 
-
-And the bot will ask about some infomations one by one until user satisfy with this.
-
 """
 
 import datetime
-import os
 import random
 
 
@@ -27,8 +22,10 @@ from sqlmodel import Session
 
 from telegram import InlineKeyboardMarkup
 from telegram import Update
-from telegram.ext import ContextTypes
 
+from telegram.constants import ParseMode
+
+from telegram.ext import ContextTypes
 from telegram.ext import filters
 
 from telegram.ext import (
@@ -38,34 +35,21 @@ from telegram.ext import (
     MessageHandler,
 )
 
-from telegram.constants import ParseMode
 
 from my_modules.database_code import db_functions
 from my_modules.database_code.database_make import engine
 from my_modules.database_code.models_table import UserPart
 
 from my_modules.logger_related import logger, RanaLogger
+
+from my_modules.some_constants import BotSettingsValue
 from my_modules.some_constants import MessageEffectEmojies
 
 from my_modules.some_inline_keyboards import MyInlineKeyboard
 
 
-DEFAULT_REG_TOKEN_STR = os.environ.get("DEFAULT_REG_TOKEN", None)
+DEFAULT_REG_TOKEN = BotSettingsValue.DEFAULT_REGISTER_TOKEN.value
 
-if not DEFAULT_REG_TOKEN_STR:
-    raise ValueError("❌ DEFAULT_REG_TOKEN not found in .env file!")
-
-try:
-    DEFAULT_REG_TOKEN = int(DEFAULT_REG_TOKEN_STR)  # Convert to int
-
-except ValueError:
-    raise ValueError("❌ DEFAULT_REG_TOKEN must be a valid integer!")
-
-
-IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
-
-
-EMAIL, PHONE, REFERRAL, CONFIRMATION, UNKNOWN_ERROR = range(5)
 
 GOOD_EFFECTS = [
     MessageEffectEmojies.LIKE.value,
@@ -73,15 +57,23 @@ GOOD_EFFECTS = [
     MessageEffectEmojies.TADA.value,
 ]
 
+# Below is for the conversation asking for account register, for now no need
+
+EMAIL, PHONE, REFERRAL, CONFIRMATION, UNKNOWN_ERROR = range(5)
 
 # Now what i though this command is not need to be in the conversatin, rather the
 # button attached with this return Message need to be in the entry_points and
 # then use the conversationn with this.
 
+IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+IST_TIMEZONE = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+
 
 async def user_register_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
-    If User will press /register or /register_me it will execute which
+    For now this will be only command not conversation...
+
+    If User will press /register_me_manually it will execute which
     need to ask users some question and save some of his information.
 
     """
@@ -132,10 +124,7 @@ async def user_register_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
         # It means some column value has same, it maybe the userid column, i dont sure for this till now, maybe i need to refactor this code later.
 
-
         user_row = db_functions.user_obj_from_user_id(engine, user.id)
-
-
 
         if user_row is None:
             RanaLogger.error(
@@ -163,11 +152,13 @@ async def user_register_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         return ConversationHandler.END  # NEED TO CHANGE
 
     except Exception as e:
-        RanaLogger.warning(f"I didn't thought about this error type, this looks new.{e}")
+        RanaLogger.warning(
+            f"I didn't thought about this error type, this looks new.{e}"
+        )
 
         text = f"Somethings Unexpected Happens, Pls Contact admin, /help or /admin"
         await context.bot.send_message(user.id, text)
-        return ConversationHandler.END  
+        return ConversationHandler.END
 
 
 async def add_email_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -359,9 +350,7 @@ account_register_conv_handler = ConversationHandler(
         # This has now only command handler like beheaviour
         CommandHandler(
             command=[
-                "register",
-                "register_me",
-                "r",
+                "register_me_manually",
             ],
             callback=user_register_cmd,
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
@@ -411,3 +400,111 @@ account_register_conv_handler = ConversationHandler(
     fallbacks=[CommandHandler("cancel", cancel)],
     allow_reentry=True,
 )
+
+
+async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    /register_me :- For now it will just save.
+    I want this will just register the user directly, without asking anythings extra
+    as this is for now will just register now...
+    """
+
+    user = update.effective_user
+    msg = update.effective_message
+
+    if user is None or msg is None:
+        RanaLogger.warning(
+            f"When user will send /register_me it should have "
+            f"exists the user and msg object"
+        )
+        return None
+
+    user_obj = UserPart(
+        user_id=user.id,
+        username=user.username,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        points=BotSettingsValue.DEFAULT_REGISTER_TOKEN.value,
+        account_creation_time=msg.date.astimezone(IST),
+    )
+
+    try:
+        with Session(engine) as session:
+            session.add(user_obj)
+            session.commit()
+            session.refresh(user_obj)
+
+        text_success = (
+            f"🎉 Hello, <b>{user.mention_html()}</b>! 🎉\n\n"
+            f"✅ You have successfully registered with <b>{user_obj.points} "
+            f"Tokens as Welcome Bonus</b> 🪙.\n\n"
+            f"📋 To Manually Add More Information You can:\n"
+            f"   🔹 Use the Buttons below ⬇️\n"
+            f"   🔹 Or type the appropriate Commands ⌨️\n\n"
+            f"🚀 Let's get started!"
+            f"\n\n"
+            f"For Now The Buttons is not working as this is not "
+            f"developed yet will come later."
+        )
+        await msg.reply_html(
+            text=text_success,
+            reply_markup=InlineKeyboardMarkup(
+                MyInlineKeyboard.ACCOUNT_NEW_REGISTER.value
+            ),
+            message_effect_id=random.choice(GOOD_EFFECTS),
+        )
+
+    except IntegrityError as e:
+        RanaLogger.warning(
+            f"{user.full_name} want to register him but it say integrity error, "
+            f"it means he is maybe a user register already. "
+            f"below is the information:\n"
+            f"{e}"
+        )
+        user_row = db_functions.user_obj_from_user_id(engine=engine, user_id=user.id)
+
+        if user_row is None:
+            RanaLogger.warning(
+                f"i got itegrity error of /register_me but i got integrity error "
+                f"but i got the user_row as none, so it maybbe a real problem as usrrow if none, it means the integrity error should not be shows."
+            )
+            return None
+
+        # This means the user is present in the database
+
+        time_formatting = f"%Y-%m-%d"
+        old_register_time = user_row.account_creation_time.strftime(time_formatting)
+
+        text_user_exists = (
+            f"⚠️ Hello <b>{user.mention_html()}, you are already registered!</b>⚠️"
+            f"\n\n"
+            "✅ No need to register again. Simply use this bot and explore its features! 🚀"
+            f"\n\n"
+            f"Your Information: \n"
+            f"Already Account Creation Time: {old_register_time}"
+            f"You have total {user_row.points} tokens."
+        )
+        await msg.reply_html(
+            text=text_user_exists,
+            reply_markup=InlineKeyboardMarkup(
+                MyInlineKeyboard.ACCOUNT_ALREADY_REGISTER.value
+            ),
+        )
+
+    except Exception as e:
+        RanaLogger.warning(
+            f"When user send /register_me but got not entry in the new record "
+            f"or maybe this not come into the integrity error, so "
+            f"it maybe some database file related problem "
+            f"i cannot think what is this. "
+            f"Please see the below informaion:\n"
+            f"{e}"
+        )
+        text_error = (
+            f"Its seems some problem in the side of database, "
+            f"Please contact a adming or /help"
+        )
+        await msg.reply_html(
+            text=text_error,
+            message_effect_id=MessageEffectEmojies.DISLIKE.value,
+        )

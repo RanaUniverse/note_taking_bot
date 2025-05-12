@@ -1,5 +1,6 @@
 import logging
-import os
+
+from my_modules.some_constants import BotSettingsValue
 
 
 # 🌟 1️⃣ Global logging for backend this need by the PTB
@@ -20,10 +21,7 @@ logger = logging.getLogger(__name__)
 # which includes use the my log file name from the .env file
 
 
-LOG_FILE_NAME = os.environ.get("LOG_FILE_NAME", None)
-
-if not LOG_FILE_NAME:
-    raise ValueError("You should have log file name in .env file: LOG_FILE_NAME")
+LOG_FILE_NAME = BotSettingsValue.LOG_FILE_NAME.value
 
 
 # 🌟 2️⃣ Custom `RanaLogger` for file logging i will think to use.

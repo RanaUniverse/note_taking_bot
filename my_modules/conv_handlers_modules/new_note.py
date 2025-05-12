@@ -22,8 +22,6 @@ it will ask for note title and content, and it will save those in the database
 
 """
 
-import os
-
 from sqlmodel import Session
 
 from telegram import Update
@@ -43,31 +41,17 @@ from my_modules.database_code.database_make import engine
 from my_modules.database_code.models_table import NotePart
 from my_modules.database_code import db_functions
 
-from my_modules.some_reply_keyboards import yes_no_reply_keyboard
 from my_modules.logger_related import RanaLogger
+
+from my_modules.some_reply_keyboards import yes_no_reply_keyboard
+from my_modules.some_constants import BotSettingsValue
 
 
 # From Below My Code Logic will start Soon.
 
 
-MAX_TITLE_STR = os.environ.get("MAX_TITLE", None)
-
-if not MAX_TITLE_STR:
-    raise ValueError("❌ MAX_TITLE not found in .env file!")
-try:
-    MAX_TITLE_LEN = int(MAX_TITLE_STR)  # Convert to int
-except ValueError:
-    raise ValueError("❌ MAX_TITLE must be a valid integer!")
-
-
-MAX_CONTENT_STR = os.environ.get("MAX_CONTENT", None)
-
-if not MAX_CONTENT_STR:
-    raise ValueError("❌ MAX_CONTENT not found in .env file!")
-try:
-    MAX_CONTENT_LEN = int(MAX_CONTENT_STR)  # Convert to int
-except ValueError:
-    raise ValueError("❌ MAX_CONTENT must be a valid integer!")
+MAX_TITLE_LEN = BotSettingsValue.MAX_TITLE_LEN.value
+MAX_CONTENT_LEN = BotSettingsValue.MAX_CONTENT_LEN.value
 
 
 TITLE, CONTENT, CONFIRMATION = range(3)

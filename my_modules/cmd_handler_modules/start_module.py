@@ -6,7 +6,6 @@
 """
 
 import asyncio
-import os
 
 from telegram import Update
 from telegram import InlineKeyboardButton
@@ -20,11 +19,9 @@ from telegram.ext import ContextTypes
 from my_modules.some_inline_keyboards import MyInlineKeyboard
 from my_modules.logger_related import RanaLogger
 
+from my_modules.some_constants import PrivateValue
 
-BOT_USERNAME = os.environ.get("BOT_USERNAME", None)
-
-if not BOT_USERNAME:
-    raise ValueError("❌ BOT_USERNAME not found in .env file!")
+BOT_USERNAME = PrivateValue.BOT_USERNAME
 
 
 async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

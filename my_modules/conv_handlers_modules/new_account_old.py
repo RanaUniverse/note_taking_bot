@@ -248,7 +248,7 @@ async def close_this_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         f"Hello <b>{user.full_name}</b>, "
         f"This time you are leaving this converstaion, "
         f"You can start this converstaion again with "
-        f"/new, /new_account, /register "
+        f"/new, /new_account, /register_me "
         f"anytime you want to create a new accout here."
     )
     await context.bot.send_message(user.id, text, ParseMode.HTML)

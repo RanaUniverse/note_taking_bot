@@ -2,11 +2,13 @@
 i just need to run this
 """
 
-import os
-
 from dotenv import load_dotenv
 
 from telegram import Update
+from telegram.constants import MessageEntityType
+
+from telegram.ext import ContextTypes
+
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -14,8 +16,8 @@ from telegram.ext import (
     filters,
 )
 
-from telegram.constants import MessageEntityType
 from telegram.ext import CallbackQueryHandler
+
 
 # Below is for checking my string logic
 
@@ -25,6 +27,9 @@ from my_modules.cmd_handler_modules.help_module import help_cmd, help_cmd_group
 from my_modules.conv_handlers_modules.account_register import (
     account_register_conv_handler,
 )
+from my_modules.conv_handlers_modules.account_register import register_me_cmd
+
+# This should be a conversation but for now this is for no more things
 
 from my_modules.message_handlers_modules.z_text_related_module import email_find
 from my_modules.message_handlers_modules.text_msg_module import text_msg_to_txt_file
@@ -43,14 +48,7 @@ from my_modules.notes_related import fake_note_make
 
 from my_modules.admin_related_code import update_commands_cmd, show_bot_commands
 
-GROUP_LINK = os.environ.get("GROUP_LINK", None)
-
-if GROUP_LINK is None:
-    raise ValueError("❌ GROUP_LINK is not present in .env file!")
-
-
-from telegram import Update
-from telegram.ext import ContextTypes
+from my_modules.some_constants import PrivateValue
 
 
 async def echo_text_old(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -71,20 +69,14 @@ def main() -> None:
     # Create the Application and pass it your bot's token.
     load_dotenv()
 
-    BOT_TOKEN = os.environ.get("BOT_TOKEN")
-
-    if BOT_TOKEN is None:
-        print(
-            ".no .env file or env file has not any bot token. Please make sure the token is there and re run this program."
-        )
-        return
+    BOT_TOKEN = PrivateValue.BOT_TOKEN.value
 
     application = Application.builder().token(BOT_TOKEN).build()
-
 
     # This will start making a note, when user send "/new_note"
     # or the button "new_note_making"
     from my_modules.conv_handlers_modules import new_note
+
     application.add_handler(new_note.new_note_conv_handler)
 
     from my_modules.notes_related import edit_note
@@ -200,6 +192,14 @@ def main() -> None:
             callback=help_cmd_group,
             filters=filters.ChatType.GROUPS,
             block=False,
+        )
+    )
+
+    application.add_handler(
+        CommandHandler(
+            command="register_me",
+            callback=register_me_cmd,
+            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
         )
     )
 

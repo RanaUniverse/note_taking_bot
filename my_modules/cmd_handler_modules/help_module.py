@@ -2,19 +2,15 @@
 i will write help cmd code here
 """
 
-import os
-
 from telegram import Update
 
 from telegram.ext import ContextTypes
 
 from my_modules.logger_related import RanaLogger
+from my_modules.some_constants import BotSettingsValue
 
 
-GROUP_LINK = os.environ.get("GROUP_LINK", None)
-
-if GROUP_LINK is None:
-    raise ValueError("❌ GROUP_LINK is not present in .env file!")
+GROUP_LINK = BotSettingsValue.GROUP_LINK.value
 
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

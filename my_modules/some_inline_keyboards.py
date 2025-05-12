@@ -203,6 +203,5 @@ class MyInlineKeyboard(Enum):
     START_MENU = keyboard_start_menu
     OPTIONS = keyboard_options
     ALPHABET = keyboard_options_aplhabet
-    ACCOUNT_REGISTER = keyboard_account_new_register
     ACCOUNT_NEW_REGISTER = keyboard_account_new_register
     ACCOUNT_ALREADY_REGISTER = keyboard_account_already_register

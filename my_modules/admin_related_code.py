@@ -3,22 +3,15 @@ Here i will keep some commands which i can use in
 set_my_commands()
 """
 
-import os
 from telegram import Update
 from telegram import BotCommand
 from telegram.ext import ContextTypes
 
+from my_modules.some_constants import BotSettingsValue
 
-ADMIN_ID_STR = os.environ.get("ADMIN_ID", None)
 
-if not ADMIN_ID_STR:
-    raise ValueError("❌ ADMIN_ID not found in .env file!")
-
-try:
-    ADMIN_ID = int(ADMIN_ID_STR)  # Convert to int
-
-except ValueError:
-    raise ValueError("❌ ADMIN_ID must be a valid integer!")
+ADMIN_ID_1 = BotSettingsValue.ADMIN_ID_1.value
+ADMIN_ID = ADMIN_ID_1
 
 
 cmds_list: list[BotCommand] = [

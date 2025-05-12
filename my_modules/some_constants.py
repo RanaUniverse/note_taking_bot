@@ -4,9 +4,19 @@ import easily of this links.
 Suppose some google's products related link in one category
 social medias links in one category.
 
+I will use this from where i will import others constants which will come
+from the config or env files.
+
 """
 
 from enum import Enum
+
+import os
+import sys
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class GoogleProductsUrl(Enum):
@@ -48,6 +58,44 @@ class MessageEffectEmojies(Enum):
     POO = "5046589136895476101"
 
 
-import datetime
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
 
-IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+if BOT_TOKEN is None:
+    print(
+        ".no .env file or env file has not any bot token. "
+        "Please make sure the token is there and re run this program."
+    )
+    sys.exit(1)
+    # i did exit so that in below in bot token it will always a str not none
+
+
+BOT_USERNAME = os.environ.get("BOT_USERNAME", None)
+
+if not BOT_USERNAME:
+    raise ValueError("❌ BOT_USERNAME not found in .env file!")
+
+
+class PrivateValue(Enum):
+    BOT_TOKEN = BOT_TOKEN
+    BOT_USERNAME = BOT_USERNAME
+
+
+class BotSettingsValue(Enum):
+    """
+    Here some values like settings will be there.
+    """
+
+    DEFAULT_REGISTER_TOKEN = 3000
+    MAX_TITLE_LEN = 100
+    MAX_CONTENT_LEN = 4000
+
+    ADMIN_ID_1 = 1895194333
+
+    GROUP_LINK = "RanaUniverse"
+    LOG_FILE_NAME = "RanaUniverse_Log_File.log"
+
+
+if __name__ == "__main__":
+
+    my_name = "Rana Universe"
+    print(my_name)
