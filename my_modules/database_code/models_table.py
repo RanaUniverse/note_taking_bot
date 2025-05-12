@@ -28,7 +28,7 @@ class UserPart(SQLModel, table=True):
     last_name: str | None = Field(default=None)
     note_count: int = Field(default=0)
     points: int = Field(default=0)
-    account_creation_time: datetime.datetime | None = Field(
+    account_creation_time: datetime.datetime = Field(
         default_factory=lambda: datetime.datetime.now(IST_TIMEZONE),
     )
     referral_code: str | None = Field(default=None)
@@ -50,7 +50,7 @@ class NotePart(SQLModel, table=True):
     note_content: str | None = Field(default=None)
     user_id: int | None = Field(default=None, foreign_key="user_data.user_id")
     # i kept None, for some checking when user delete his note, i used to find easily
-    created_time: datetime.datetime | None = Field(
+    created_time: datetime.datetime = Field(
         default_factory=lambda: datetime.datetime.now(IST_TIMEZONE),
     )
     edited_time: datetime.datetime | None = Field(default=None)
