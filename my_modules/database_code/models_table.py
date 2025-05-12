@@ -29,7 +29,7 @@ class UserPart(SQLModel, table=True):
     note_count: int = Field(default=0)
     points: int = Field(default=0)
     account_creation_time: datetime.datetime | None = Field(
-        default_factory=lambda: datetime.datetime.now(IST),
+        default_factory=lambda: datetime.datetime.now(IST_TIMEZONE),
     )
     referral_code: str | None = Field(default=None)
     email_id: str | None = Field(default=None)
