@@ -81,16 +81,10 @@ def main() -> None:
 
     application = Application.builder().token(BOT_TOKEN).build()
 
-    # application.add_handler(conv_example_1)
-    # application.add_handler(conv_new_account)
-
-    # This is first user register conversation this need
-
-    from my_modules.conv_handlers_modules import new_note
 
     # This will start making a note, when user send "/new_note"
     # or the button "new_note_making"
-
+    from my_modules.conv_handlers_modules import new_note
     application.add_handler(new_note.new_note_conv_handler)
 
     from my_modules.notes_related import edit_note

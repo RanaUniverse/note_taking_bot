@@ -686,6 +686,7 @@ async def cancel_fallbacks(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 new_note_conv_handler = ConversationHandler(
     entry_points=[
+        # when this will come it will start making the conversation.
         CommandHandler(
             command="new_note",
             callback=new_note_cmd,
@@ -698,9 +699,10 @@ new_note_conv_handler = ConversationHandler(
             callback=new_note_cmd,
             block=False,
         ),
+        # because also pressing the button which data to make new note conversation
         CallbackQueryHandler(
             callback=new_note_button_press,
-            pattern="new_note",
+            pattern="new_note_making",
             block=False,
         ),
     ],
