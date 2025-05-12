@@ -14,8 +14,8 @@ from sqlmodel import (
     Relationship,
 )
 
-IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
-GMT = datetime.timezone(datetime.timedelta(hours=0, minutes=0))
+GMT_TIMEZONE = datetime.timezone(datetime.timedelta(hours=0, minutes=0))
+IST_TIMEZONE = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 
 
 class UserPart(SQLModel, table=True):
@@ -51,7 +51,7 @@ class NotePart(SQLModel, table=True):
     user_id: int | None = Field(default=None, foreign_key="user_data.user_id")
     # i kept None, for some checking when user delete his note, i used to find easily
     created_time: datetime.datetime | None = Field(
-        default_factory=lambda: datetime.datetime.now(IST),
+        default_factory=lambda: datetime.datetime.now(IST_TIMEZONE),
     )
     edited_time: datetime.datetime | None = Field(default=None)
     is_available: bool = Field(default=True)
