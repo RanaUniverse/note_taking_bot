@@ -4,7 +4,7 @@ For now it will just register user without any question.
 This module has the conversation part for asking user about his information
 and save his data in the UserPart table.
 
-Mostly: /register_me 
+Mostly: /register_me
 For now this is only work as command not as a conversation.
 
 Here will the code for users can activate their account
@@ -47,9 +47,9 @@ from my_modules.some_constants import MessageEffectEmojies
 
 from my_modules.some_inline_keyboards import MyInlineKeyboard
 
+IST_TIMEZONE = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 
 DEFAULT_REG_TOKEN = BotSettingsValue.DEFAULT_REGISTER_TOKEN.value
-
 
 GOOD_EFFECTS = [
     MessageEffectEmojies.LIKE.value,
@@ -60,13 +60,6 @@ GOOD_EFFECTS = [
 # Below is for the conversation asking for account register, for now no need
 
 EMAIL, PHONE, REFERRAL, CONFIRMATION, UNKNOWN_ERROR = range(5)
-
-# Now what i though this command is not need to be in the conversatin, rather the
-# button attached with this return Message need to be in the entry_points and
-# then use the conversationn with this.
-
-IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
-IST_TIMEZONE = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 
 
 async def user_register_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -89,7 +82,7 @@ async def user_register_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         username=user.username,
         first_name=user.first_name,
         last_name=user.last_name,
-        account_creation_time=update.message.date.astimezone(IST),
+        account_creation_time=update.message.date.astimezone(IST_TIMEZONE),
         points=DEFAULT_REG_TOKEN,
     )
 
@@ -100,6 +93,7 @@ async def user_register_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             session.refresh(user_row)
 
         text = (
+            f"For Now this works same as /register_me \n"
             f"🎉 Hello, <b>{user.mention_html()}</b>! 🎉\n\n"
             f"✅ You have successfully registered with <b>{user_row.points} "
             f"Tokens as Welcome Bonus</b> 🪙.\n\n"
@@ -425,7 +419,7 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         first_name=user.first_name,
         last_name=user.last_name,
         points=BotSettingsValue.DEFAULT_REGISTER_TOKEN.value,
-        account_creation_time=msg.date.astimezone(IST),
+        account_creation_time=msg.date.astimezone(IST_TIMEZONE),
     )
 
     try:
@@ -454,12 +448,10 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             message_effect_id=random.choice(GOOD_EFFECTS),
         )
 
-    except IntegrityError as e:
+    except IntegrityError as _:
         RanaLogger.warning(
             f"{user.full_name} want to register him but it say integrity error, "
             f"it means he is maybe a user register already. "
-            f"below is the information:\n"
-            f"{e}"
         )
         user_row = db_functions.user_obj_from_user_id(engine=engine, user_id=user.id)
 
@@ -482,6 +474,7 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             f"\n\n"
             f"Your Information: \n"
             f"Already Account Creation Time: {old_register_time}"
+            f"\n"
             f"You have total {user_row.points} tokens."
         )
         await msg.reply_html(
