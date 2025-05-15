@@ -89,6 +89,8 @@ class BotSettingsValue(Enum):
     MAX_TITLE_LEN = 100
     MAX_CONTENT_LEN = 4000
 
+    MAX_ADD_POINT = 1001
+    ADD_POINT_WAIT_TIME = 3
     ADMIN_ID_1 = 1895194333
 
     GROUP_LINK = "RanaUniverse"
