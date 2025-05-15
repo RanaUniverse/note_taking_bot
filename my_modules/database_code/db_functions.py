@@ -154,7 +154,29 @@ def delete_note_obj(
 
     except Exception as e:
         RanaLogger.warning(
-            f"Somehing unexpectd maybe a error in database when deleting the note, " f"{e}".upper()
+            f"Somehing unexpectd maybe a error in database when deleting the note, "
+            f"{e}".upper()
         )
 
         return False
+
+
+def add_point_to_user_obj(
+    engine: Engine,
+    user_row: UserPart,
+    how_many_points: int,
+) -> UserPart:
+    """
+    Before passing the user_obj i need to sure that the row is present
+    or it will be shows problem
+    Here i will pass the user obj which take a existing user obj
+    and after adding the points return back the new updated user obj
+        *** Even if i will not use the return value i can use the old obj value which will got updted automatically
+    """
+    with Session(engine) as session:
+        user_row.points += how_many_points
+        session.add(user_row)
+        session.commit()
+        session.refresh(user_row)
+
+        return user_row
