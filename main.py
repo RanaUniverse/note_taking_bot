@@ -2,8 +2,6 @@
 i just need to run this
 """
 
-from dotenv import load_dotenv
-
 from telegram import Update
 from telegram.constants import MessageEntityType
 
@@ -36,7 +34,7 @@ from my_modules.message_handlers_modules.text_msg_module import text_msg_to_txt_
 from my_modules.database_code.database_make import create_db_and_engine
 
 from my_modules.cmd_handler_modules.zzz_extra_things import rana_checking
-from my_modules.cmd_handler_modules.add_points import add_points_cmd
+from my_modules.cmd_handler_modules import add_points
 
 
 from my_modules.callback_modules.start_cmd_buttons import button_for_start
@@ -49,6 +47,10 @@ from my_modules.notes_related import fake_note_make
 from my_modules.admin_related_code import update_commands_cmd, show_bot_commands
 
 from my_modules.some_constants import PrivateValue
+
+
+from my_modules.conv_handlers_modules import new_note
+from my_modules.notes_related import edit_note
 
 
 async def echo_text_old(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -67,23 +69,30 @@ async def echo_text_old(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 def main() -> None:
     """Start the bot."""
     # Create the Application and pass it your bot's token.
-    load_dotenv()
 
     BOT_TOKEN = PrivateValue.BOT_TOKEN.value
 
     application = Application.builder().token(BOT_TOKEN).build()
 
-    # This will start making a note, when user send "/new_note"
-    # or the button "new_note_making"
-    from my_modules.conv_handlers_modules import new_note
-
+    # making a new note by /new_note or a button will
+    # start the conversattion which will ask for title and contenet
+    # and confirmation this conv is below
     application.add_handler(new_note.new_note_conv_handler)
 
-    from my_modules.notes_related import edit_note
-
+    # Below part is for when user want to edit his old note below
+    # conversation will start by /edit_note
     application.add_handler(edit_note.edit_note_conv)
 
+    # The conversation will start on /register_me_manually which is not made yet,
+    # rather simple /register_me just work for now.
     application.add_handler(account_register_conv_handler)
+    application.add_handler(
+        CommandHandler(
+            command="register_me",
+            callback=register_me_cmd,
+            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
+        )
+    )
 
     application.add_handler(
         CommandHandler(
@@ -92,27 +101,36 @@ def main() -> None:
         )
     )
 
-    # from my_modules.notes_related import edit_note
-
-    # application.add_handler(
-    #     CommandHandler(
-    #         "edit_note",
-    #         edit_note.edit_note_cmd,
-    #         filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
-    #         block=False,
-    #     )
-    # )
-
     application.add_handler(
         CommandHandler(
-            command=["add_points", "add_point"],
-            callback=add_points_cmd,
+            command=["add_points"],
+            callback=add_points.add_points_cmd_no_arg,
             block=False,
+            has_args=0,
         )
     )
 
-    # This below is for when user send any edited command, i
-    # keep it as firs so that i don't need to worry about edited messag in any place
+    application.add_handler(
+        CommandHandler(
+            command=["add_points"],
+            callback=add_points.add_points_cmd_one_arg,
+            block=False,
+            has_args=1,
+        )
+    )
+
+    application.add_handler(
+        CommandHandler(
+            command=["add_points"],
+            callback=add_points.add_points_cmd_many_args,
+            block=False,
+            has_args=None,
+        )
+    )
+
+    # i want for any edited command it will say user to freshly send the /command and
+    # then bot will response back to user, that why this edited_commannd come in
+    # front of all others command adding
     from my_modules.cmd_handler_modules.all_edited_command import handle_edited_command
 
     application.add_handler(
@@ -192,14 +210,6 @@ def main() -> None:
             callback=help_cmd_group,
             filters=filters.ChatType.GROUPS,
             block=False,
-        )
-    )
-
-    application.add_handler(
-        CommandHandler(
-            command="register_me",
-            callback=register_me_cmd,
-            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
         )
     )
 
