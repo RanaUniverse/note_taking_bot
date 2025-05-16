@@ -9,8 +9,8 @@ from the config or env files.
 
 """
 
+import datetime
 from enum import Enum
-
 import os
 import sys
 
@@ -95,6 +95,9 @@ class BotSettingsValue(Enum):
 
     GROUP_LINK = "RanaUniverse"
     LOG_FILE_NAME = "RanaUniverse_Log_File.log"
+
+
+IST_TIMEZONE = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 
 
 if __name__ == "__main__":

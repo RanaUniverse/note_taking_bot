@@ -15,7 +15,8 @@ GROUP_LINK = BotSettingsValue.GROUP_LINK.value
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    When user send help command in private chat,
+    When user send help command in private chat
+    This will executes and say a normal things later i will extends this.
     """
 
     user = update.effective_user
@@ -42,7 +43,8 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def help_cmd_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    When user sends /help in a group chat, inform them that the bot is not available for group use.
+    When user sends /help in a group chat, inform them that the bot is not available
+    for group use i need to specefy that it need to use privately and send a demo group link.
     """
 
     user = update.effective_user

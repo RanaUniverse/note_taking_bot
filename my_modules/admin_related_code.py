@@ -1,6 +1,7 @@
 """
 Here i will keep some commands which i can use in
 set_my_commands()
+Now is in Development
 """
 
 from telegram import Update

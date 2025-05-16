@@ -17,11 +17,13 @@ from telegram.ext import ContextTypes
 
 
 from my_modules.some_inline_keyboards import MyInlineKeyboard
+
 from my_modules.logger_related import RanaLogger
 
 from my_modules.some_constants import PrivateValue
 
-BOT_USERNAME = PrivateValue.BOT_USERNAME
+
+BOT_USERNAME = PrivateValue.BOT_USERNAME.value
 
 
 async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -31,7 +33,7 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     if update.message is None or update.message.from_user is None:
         RanaLogger.warning(
-            f"when /start come in private the message and from user must present"
+            f"when /start come in private the message and from user must present."
         )
         return
 
@@ -109,6 +111,7 @@ async def start_cmd_from_group_to_private(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """
+    This is a Normal Deep Link Which say user to go to private chat...
     This will execute when /start has a deep link which comes
     from the group /start button to private chat this is very
     just for a differentiate how to use this

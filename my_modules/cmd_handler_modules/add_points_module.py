@@ -27,8 +27,7 @@ from my_modules.database_code.db_functions import (
     user_obj_from_user_id,
     add_point_to_user_obj,
 )
-from my_modules.logger_related_old import logger
-from my_modules.logger_related import RanaLogger
+from my_modules.logger_related import logger, RanaLogger
 from my_modules.some_constants import BotSettingsValue
 
 MAX_POINT = BotSettingsValue.MAX_ADD_POINT.value
@@ -40,6 +39,8 @@ async def add_points_cmd_old(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """
+    Currently This will not work as i dont need to use this logic
+    i separate this in below differetn functions.
     When user will send /add_points
 
     if user dont send any value after the command it will ask him to send right

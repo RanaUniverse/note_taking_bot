@@ -1,122 +1,143 @@
 """
-this code will help to register a new user to the database
-so that they can use this bot from next time.
+This here i will keep some user register related commands
+    1. /register_me
 
-I will use SqlModel here...
-
+Some User related command will be here, for now register me
+is single command not a converstaion so this is ok for now
 """
 
+import random
+
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from telegram import Update
 from telegram import InlineKeyboardMarkup
-
 from telegram.ext import ContextTypes
-from telegram.constants import ParseMode
 
 
+from my_modules.logger_related import RanaLogger
+
+from my_modules.database_code import db_functions
 from my_modules.database_code.database_make import engine
 from my_modules.database_code.models_table import UserPart
+
+from my_modules.some_constants import IST_TIMEZONE
+from my_modules.some_constants import BotSettingsValue
+from my_modules.some_constants import MessageEffectEmojies
 
 from my_modules.some_inline_keyboards import MyInlineKeyboard
 
 
-from my_modules.some_constants import IST
+GOOD_EFFECTS = [
+    MessageEffectEmojies.LIKE.value,
+    MessageEffectEmojies.HEART.value,
+    MessageEffectEmojies.TADA.value,
+]
 
 
-from my_modules.logger_related_old import logger
-
-
-async def new_acc_register(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    only = "register"
-    command=["register_me", "new_account", "register"],
-
-    When user want to make his account he need to press this and bot will
-    check his old details and then it will enter him in the datbase
+    /register_me :- For now it will just save.
+    I want this will just register the user directly, without asking anythings extra
+    as this is for now will just register now...
     """
 
-    if update.message is None or update.message.from_user is None:
-        print("I used this to prevent the type hint of pyright. in new_acc")
-        return
+    user = update.effective_user
+    msg = update.effective_message
 
-    user = update.message.from_user
-    user_mention = f'<a href="tg://user?id={user.id}">{user.full_name}</a>'
+    if user is None or msg is None:
+        RanaLogger.warning(
+            f"When user will send /register_me it should have "
+            f"exists the user and msg object"
+        )
+        return None
 
-    # Below part code will try to save the user details in the user table. with try except also
-    # i will make the user row instance and then in try except i will
-    user_row = UserPart(
+    user_obj = UserPart(
         user_id=user.id,
         username=user.username,
         first_name=user.first_name,
         last_name=user.last_name,
-        account_creation_time=update.message.date.astimezone(IST),
+        points=BotSettingsValue.DEFAULT_REGISTER_TOKEN.value,
+        account_creation_time=msg.date.astimezone(IST_TIMEZONE),
     )
 
     try:
         with Session(engine) as session:
-            session.add(user_row)
+            session.add(user_obj)
             session.commit()
-            session.refresh(user_row)
+            session.refresh(user_obj)
 
-        first_name = user_row.first_name or ""
-        last_name = user_row.last_name or ""
-        full_name = first_name + last_name
-        user_id = user_row.user_id
-        username = f"@{user_row.username}" if user_row.username else "Not Available"
-        note_count = user_row.note_count if user_row.note_count else "0"
-        email_id = user_row.email_id if user_row.email_id else "❌❌❌"
-        phone_no = user_row.phone_no if user_row.phone_no else "❌❌❌"
-
-        text = (
-            f"Hello {user_mention}, You Have successfully registered now on our side.\n"
-            f"Your Current Information is:\n\n"
-            f"<b>Name</b>:- {full_name}\n"
-            f"<b>Username</b>:- {username}\n"
-            f"<b>UserId</b>:- <code>{user_id}</code>\n"
-            f"<b>Note Count</b>:- {note_count}\n"
-            f"<b>Email Id</b>:- {email_id}\n"
-            f"<b>Phone Number</b>:- {phone_no}\n"
-            f"Please Press The Buttons Below to add some more information.👇👇👇"
+        text_success = (
+            f"🎉 Hello, <b>{user.mention_html()}</b>! 🎉\n\n"
+            f"✅ You have successfully registered with <b>{user_obj.points} "
+            f"Tokens as Welcome Bonus</b> 🪙.\n\n"
+            f"📋 To Manually Add More Information You can:\n"
+            f"   🔹 Use the Buttons below ⬇️\n"
+            f"   🔹 Or type the appropriate Commands ⌨️\n\n"
+            f"🚀 Let's get started!"
+            f"\n\n"
+            f"For Now The Buttons is not working as this is not "
+            f"developed yet will come later."
         )
-        await context.bot.send_message(
-            chat_id=user.id,
-            text=text,
-            parse_mode=ParseMode.HTML,
-            reply_markup=InlineKeyboardMarkup(MyInlineKeyboard.ACCOUNT_REGISTER.value),
+        await msg.reply_html(
+            text=text_success,
+            reply_markup=InlineKeyboardMarkup(
+                MyInlineKeyboard.ACCOUNT_NEW_REGISTER.value
+            ),
+            message_effect_id=random.choice(GOOD_EFFECTS),
         )
 
-    except IntegrityError as e:
-        logger.info(e)
-        # It will check if the user is in the database or not, if in database
-        # then it will say him his details, otherwise, say to contact customer care
-        with Session(engine) as session:
-            statement = select(UserPart).where(UserPart.user_id == user.id)
-            results = session.exec(statement)
-            user_row = results.first()
+    except IntegrityError as _:
+        RanaLogger.warning(
+            f"{user.full_name} want to register him but it say integrity error, "
+            f"it means he is maybe a user register already. "
+        )
+        user_row = db_functions.user_obj_from_user_id(engine=engine, user_id=user.id)
 
         if user_row is None:
-            logger.warning(f"This should not happens")
-            return
+            RanaLogger.warning(
+                f"i got itegrity error of /register_me but i got integrity error "
+                f"but i got the user_row as none, so it maybbe a real problem as usrrow if none, it means the integrity error should not be shows."
+            )
+            return None
 
-        text = (
-            f"Hello {user_mention}, You are already register in our side, you dont "
-            f"need to register here again, you can simply use this bot."
+        # This means the user is present in the database
+
+        time_formatting = f"%Y-%m-%d"
+        old_register_time = user_row.account_creation_time.strftime(time_formatting)
+
+        text_user_exists = (
+            f"⚠️ Hello <b>{user.mention_html()}, you are already registered!</b>⚠️"
             f"\n\n"
-            f"{user_row}"
+            "✅ No need to register again. Simply use this bot and explore its features! 🚀"
+            f"\n\n"
+            f"Your Information: \n"
+            f"Already Account Creation Time: {old_register_time}"
+            f"\n"
+            f"You have total {user_row.points} tokens."
         )
-        await context.bot.send_message(
-            chat_id=user.id,
-            text=text,
-            parse_mode=ParseMode.HTML,
+        await msg.reply_html(
+            text=text_user_exists,
+            reply_markup=InlineKeyboardMarkup(
+                MyInlineKeyboard.ACCOUNT_ALREADY_REGISTER.value
+            ),
         )
 
     except Exception as e:
-        logger.info(e)
-        print("Something wrong happens")
-        text = f"Hello Somethings Unexpected happesn"
-        await context.bot.send_message(user.id, text)
-
-        # it will try to say him to contact admin, as still now i dont get any concept
-        # why this can happens.
+        RanaLogger.warning(
+            f"When user send /register_me but got not entry in the new record "
+            f"or maybe this not come into the integrity error, so "
+            f"it maybe some database file related problem "
+            f"i cannot think what is this. "
+            f"Please see the below informaion:\n"
+            f"{e}"
+        )
+        text_error = (
+            f"Its seems some problem in the side of database, "
+            f"Please contact a adming or /help"
+        )
+        await msg.reply_html(
+            text=text_error,
+            message_effect_id=MessageEffectEmojies.DISLIKE.value,
+        )

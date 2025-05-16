@@ -1,6 +1,9 @@
 """
+This is for when any edited command come from private chat it will executes
+For now all will be same reply for all the things.
+
 This module has the logic of how to handle edited command so that
-it will not make any error and make it more good
+it will not make any error and make it more good.
 """
 
 from telegram import Update

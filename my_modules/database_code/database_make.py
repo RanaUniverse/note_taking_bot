@@ -22,7 +22,8 @@ engine = create_engine(url=sqlite_url)
 
 def create_db_and_engine():
     """
-    When i will call this function it will make the database file
+    When i will call this function it will make the database file,
+    i need to call this in the main.py beginning
     """
     sqlite_file_name.parent.mkdir(exist_ok=True)
     SQLModel.metadata.create_all(engine)

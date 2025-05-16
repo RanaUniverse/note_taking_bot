@@ -668,7 +668,7 @@ async def cancel_fallbacks(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     return ConversationHandler.END
 
 
-new_note_conv_handler = ConversationHandler(
+new_note_conv = ConversationHandler(
     entry_points=[
         # when this will come it will start making the conversation.
         CommandHandler(
