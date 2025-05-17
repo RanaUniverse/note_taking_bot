@@ -15,14 +15,53 @@ class MyInlineButtons(Enum):
     """
 
     NEW_NOTE = ("➕ New Note", "new_note_making", "Create a new note")
-    VIEW_NOTES = ("📄 View All Notes", "my_notes_view", "View all notes")
     EDIT_NOTE = ("✏️ Edit Note", "edit_note_prompt", "Edit an existing note")
+    VIEW_NOTES = ("📄 View All Notes", "my_notes_view", "View all notes")
     SEARCH_NOTE = ("🔍 Search Note", "search_note_prompt", "Search for a note")
     DELETE_NOTE = ("🗑️ Delete Note", "delete_note_prompt", "Delete a note")
     EXPORT_NOTES = ("📤 Export Notes", "export_notes", "Export all notes")
     SETTINGS = ("⚙️ Settings", "open_settings", "Open settings")
     HELP = ("❓ Help / FAQ", "show_help", "Show help information")
     FEEDBACK = ("💬 Feedback", "send_feedback", "Send feedback")
+
+    ADD_EMAIL = ("📧 Add Email ID", "add_email", "Add your email address")
+    ADD_PHONE = ("📱 Add Phone No", "add_phone", "Add your phone number")
+    ADD_REFERRAL = ("🎟 Add Referral Code", "add_referral", "Enter a referral code")
+
+    # Account management buttons
+    ACTIVATE_ACCOUNT = (
+        "✅ Activate My Account",
+        "activate_account",
+        "Activate your account",
+    )
+    EDIT_ACCOUNT = ("⚙️ Edit My Account", "edit_account", "Edit your account settings")
+    DELETE_ACCOUNT = (
+        "❌ Delete Account",
+        "delete_account",
+        "Delete your account permanently",
+    )
+    CHANGE_PASSWORD = (
+        "🔒 Change Password",
+        "change_password",
+        "Update your account password",
+    )
+    VIEW_ACCOUNT_DETAILS = (
+        "📊 View Account Details",
+        "view_account",
+        "See your account information",
+    )
+    ACCOUNT_HISTORY = (
+        "📜 View Account History",
+        "account_history",
+        "See your activity history",
+    )
+    LOGOUT = ("🚪 Logout", "logout", "Logout from your account")
+
+    UPGRADE_PRO = (
+        "💎 Upgrade to Pro Plan",
+        "upgrade_pro",
+        "Upgrade your account to the Pro Plan",
+    )
 
     def __init__(
         self,
