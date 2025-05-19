@@ -16,7 +16,7 @@ from telegram.constants import ChatAction, ParseMode
 from telegram.ext import ContextTypes
 
 
-from my_modules.inline_keyboards import start_button
+from my_modules.inline_keyboards import start_cmd_button
 
 from my_modules.logger_related import RanaLogger
 
@@ -61,7 +61,7 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         chat_id=user.id,
         text=text,
         parse_mode=ParseMode.HTML,
-        reply_markup=InlineKeyboardMarkup(start_button),
+        reply_markup=InlineKeyboardMarkup(start_cmd_button),
     )
     # For now there is the button not works, for now the buttons
     # will show a alart that it not implimented yet, rather use this command.
