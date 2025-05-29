@@ -61,22 +61,20 @@ async def new_note_button_press(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> int:
     """
-    This fun is a large of copy of the /new_note fun in this converstaion's entry point
+    When the button whose callbacak data is to make new note
+    will be trigger this function
 
-    When the button pressed for making new note start this will execute this is
-    same as /new_note conversation handler starting
-
-        InlineKeyboardButton("📝 New Note ✅", callback_data="new_note"),
+        InlineKeyboardButton("📝 New Note ✅", callback_data="new_note_making"),
     This upper is one of the button which is pressed for this.
-
     """
 
     user = update.effective_user
+    msg = update.effective_message
+
     if user is None:
         RanaLogger.warning("User should has some value in the next button press")
         return ConversationHandler.END
 
-    msg = update.effective_message
     if msg is None:
         RanaLogger.warning("When button is pressed this should have the msg obj")
         return ConversationHandler.END
@@ -84,7 +82,7 @@ async def new_note_button_press(
     query = update.callback_query
 
     if query is None or query.data is None:
-        RanaLogger.warning("Duplicate Note button pressed but no callback data found.")
+        RanaLogger.warning("Note button pressed but no callback data found.")
         return ConversationHandler.END
 
     await query.answer(
@@ -92,16 +90,7 @@ async def new_note_button_press(
         show_alert=True,
     )
 
-    # with Session(engine) as session:
-    #     statement = select(UserPart).where(UserPart.user_id == user.id)
-    #     results = session.exec(statement)
-    #     user_row = results.first()
-
     user_row = db_functions.user_obj_from_user_id(engine, user.id)
-
-    # This row can be None when user is not register in the database,
-    # in this case it will say him to /register, else proceed with check points and
-    # allow him to ask for title and then content, at last it will reduce the point and save
 
     if user_row is None:
         text = (
@@ -114,7 +103,7 @@ async def new_note_button_press(
         )
         return ConversationHandler.END
 
-    # This line comes means user row is available.
+    # This line comes to execute means user row is available.
 
     user_points = user_row.points
 
@@ -156,12 +145,13 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     """
 
     user = update.effective_user
+    msg = update.effective_message
 
     if user is None:
         RanaLogger.warning("for /new_note the user should be present.")
         return ConversationHandler.END
 
-    if update.effective_message is None:
+    if msg is None:
         RanaLogger.warning(f"For this /new_note the update.message is must, why not")
         return ConversationHandler.END
 
@@ -173,7 +163,8 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     user_row = db_functions.user_obj_from_user_id(engine, user.id)
 
     # This row can be None when user is not register in the database,
-    # in this case it will say him to /register, else proceed with check points and
+    # in this case it will say him to /register,
+    # If user row exists > proceed with check points and
     # allow him to ask for title and then content, at last it will reduce the point and save
 
     if user_row is None:
@@ -182,12 +173,12 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             f"Please send /register_me and then come back to use this bot.\n"
             f"Else Contact Customer Support /help."
         )
-        await update.effective_message.reply_html(
+        await msg.reply_html(
             text=text,
         )
         return ConversationHandler.END
 
-    # This line comes means user row is available.
+    # This line comes to executes means user row is available.
 
     user_points = user_row.points
 
@@ -198,7 +189,7 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             f"Example if you want 20 Token, <blockquote><code>/add_points 20</code></blockquote>"
         )
 
-        await update.effective_message.reply_html(
+        await msg.reply_html(
             text=text,
         )
         return ConversationHandler.END
@@ -207,49 +198,57 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     # new note lets return him to a states for later input from user
 
     text = (
-        f"You are making new row by sending /new_note or 'Make New Note'\n\n"
+        f"You are making new note by sending /new_note or 'Make New Note'\n\n"
         f"Hello {user.mention_html()}, You have <b>{user_points} Tokens.</b> 🎉\n"
         f"Creating a note will deduct atleast <b>1 Token</b>. ⚠️\n\n"
-        f"If you want not to make note now send, /cancel anytime\n\n"
+        f"If you want Exit Now send, /cancel anytime\n\n"
         f"📝 <b>Step 1:</b> Please send me the <b><u>Title of Your Note</u> below.👇👇👇</b>"
     )
 
-    await update.effective_message.reply_html(text=text)
+    await msg.reply_html(text=text)
 
     return TITLE
 
 
 async def get_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
-    This will only executes for now bot get a text only response
-    only direct message not edited one.
+    This will only executes for now,
+    bot get a text only response only direct message not edited one.
     """
-    if update.effective_message is None:
+    msg = update.effective_message
+
+    if msg is None:
         RanaLogger.warning(f"Note title is text got so this should not happens")
         return ConversationHandler.END
 
-    user_msg = update.effective_message.text
+    user_msg = msg.text
+
     # i am saving the title without formatting so that it will not shows bad in buttons
 
-    # user_msg_html = update.effective_message.text_html
+    # user_msg_html = msg.text_html
 
     if user_msg is None:
-        RanaLogger.warning(f"This should be any value not None ever.")
+        RanaLogger.warning(
+            f"This should be any value of text of msg obj in getting the title."
+        )
         return ConversationHandler.END
 
     if len(user_msg) > MAX_TITLE_LEN:
         text = f"Please send short title in {MAX_TITLE_LEN} character total."
-        await update.effective_message.reply_html(text)
+        await msg.reply_html(text)
         return ConversationHandler.END
 
     else:
 
         if context.user_data is None:
-            RanaLogger.warning(f"User Data Must be a empty list atleast not none")
+            RanaLogger.warning(
+                f"User Data Must be a empty list atleast not none, when getting the title"
+            )
             return ConversationHandler.END
 
         # For now i add this so that it will not save formatting in the title
         # context.user_data["note_title"] = user_msg_html
+
         context.user_data["note_title"] = user_msg
 
         text = (
@@ -258,7 +257,7 @@ async def get_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             f"💡 Tip: You can send a long message, and I'll save it as your note content."
         )
 
-        await update.effective_message.reply_html(text=text, do_quote=True)
+        await msg.reply_html(text=text, do_quote=True)
 
         return CONTENT
 
@@ -268,12 +267,14 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     This will execute only when the bot receives a valid text message response
     (not an edited message or any non-text input).
     """
-    if update.effective_message is None:
+    msg = update.effective_message
+
+    if msg is None:
         RanaLogger.warning("Note content should be text, this should not happen.")
         return ConversationHandler.END
 
-    user_msg = update.effective_message.text
-    user_msg_html = update.effective_message.text_html
+    user_msg = msg.text
+    user_msg_html = msg.text_html
 
     if user_msg is None:
         RanaLogger.warning("Content message should not be None.")
@@ -281,23 +282,23 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     if len(user_msg) > MAX_CONTENT_LEN:
         text = f"⚠️ Your note content is too long! Please keep it within {MAX_CONTENT_LEN} characters."
-        await update.effective_message.reply_html(text)
+        await msg.reply_html(text)
 
     if context.user_data is None:
         RanaLogger.warning(
-            "User data must not be None, should be at least an empty dictionary."
+            "User data must not be None, should be at least an empty dictionary at time of content getting."
         )
         return ConversationHandler.END
 
     context.user_data["note_content"] = user_msg_html
 
     text = (
-        f"✅ <b>Great!</b> Your note content has been saved. 🎯\n"
+        f"✅ <b>Great!</b> Your note content has been saved. 🎯\n\n"
         f"⚡ <b>Step 3:</b> Do you want to save this note permanently? Select <b>Yes</b> or <b>No</b>.\n\n"
         f"💡 Tip: You can cancel anytime with /cancel."
     )
 
-    await update.effective_message.reply_html(
+    await msg.reply_html(
         text=text,
         reply_markup=ReplyKeyboardMarkup(
             keyboard=yes_no_reply_keyboard,
@@ -313,24 +314,27 @@ async def note_confirmation_yes(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> int:
     """
-    I separate this as when user will press /yes on confirmation it will executes
+    I separate this as when user will press /yes on confirmation it will executes.
     """
     user = update.effective_user
+    msg = update.effective_message
+
     if user is None:
-        RanaLogger.warning("Here a user should stay")
+        RanaLogger.warning(
+            "Here a user should stay when sending yes confirmation on note saving."
+        )
         return ConversationHandler.END
 
-    # with Session(engine) as session:
-    #     statement = select(UserPart).where(UserPart.user_id == user.id)
-    #     results = session.exec(statement)
-    #     user_row = results.first()
+    if msg is None:
+        RanaLogger.warning(f"This must have a message")
+        return ConversationHandler.END
 
     user_row = db_functions.user_obj_from_user_id(engine, user.id)
 
     if user_row is None:
         RanaLogger.warning(
             f"This should not happens as in entry point it check if "
-            f"user has register or not, it mans usr is not register."
+            f"user has register or not, it mans user is not register in time of note saving."
         )
         return ConversationHandler.END
 
@@ -354,16 +358,14 @@ async def note_confirmation_yes(
         session.refresh(note_row)
         session.refresh(user_row)
 
-    text = (
-        f"Your Note Has Been saved Successfully.\n"
-        f"Your Note Id is: <code>{note_row.note_id}</code>."
-    )
+        # i need to keep the text in the with block as otherwise i will get lazy operation problem
+        text = (
+            f"Your Note Has Been saved Successfully.\n"
+            f"Your Note Id is: <code>{note_row.note_id}</code>.\n"
+            f"New Balance is: {note_row.user.points}"
+        )
 
-    if update.effective_message is None:
-        RanaLogger.warning(f"This must have a message")
-        return ConversationHandler.END
-
-    await update.effective_message.reply_html(
+    await msg.reply_html(
         text,
         do_quote=True,
         reply_markup=ReplyKeyboardRemove(),
@@ -380,9 +382,13 @@ async def note_confirmation_no(
     """
 
     user = update.effective_user
-
+    msg = update.effective_message
     if user is None:
         RanaLogger.warning("Here a user should stay")
+        return ConversationHandler.END
+
+    if msg is None:
+        RanaLogger.warning(f"This must have a message")
         return ConversationHandler.END
 
     if context.user_data is None:
@@ -392,15 +398,11 @@ async def note_confirmation_no(
     context.user_data.clear()
 
     text = (
-        f"Hello {user.name}, Your Note has not been saved. If YOu "
+        f"Hello {user.name}, Your Note has not been saved. If You "
         f"want to make new note, then pls Make new note in /new_note."
     )
 
-    if update.effective_message is None:
-        RanaLogger.warning(f"This must have a message")
-        return ConversationHandler.END
-
-    await update.effective_message.reply_html(
+    await msg.reply_html(
         text,
         do_quote=True,
         reply_markup=ReplyKeyboardRemove(),
@@ -410,20 +412,22 @@ async def note_confirmation_no(
 
 async def bad_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
-    This will execute when user need title but user send different udpate
+    This will execute when user need title but user send different 
+    type of response.
     """
 
     user = update.effective_user
+    msg = update.effective_message
 
-    if update.effective_message is None or user is None:
+    if msg is None or user is None:
         RanaLogger.warning("it should has something why title is showing")
         return ConversationHandler.END
 
     # THis has maybe some logic issue as i only check when command is at beginning.
     if (
-        update.effective_message.entities
-        and update.effective_message.entities[0].type == "bot_command"
-        and update.effective_message.entities[0].offset == 0
+        msg.entities
+        and msg.entities[0].type == "bot_command"
+        and msg.entities[0].offset == 0
     ):
         text = (
             "🛠️ This is a command input! Oh sorry please send "
@@ -431,73 +435,73 @@ async def bad_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
 
     # Checking the type of message and responding accordingly
-    elif update.effective_message.photo:
+    elif msg.photo:
         text = (
             f"📸 <b>Oops! That's a photo!</b>\n\n"
             f"I need a <b>text message</b> to set as the note's title.\n"
             f"Please send only text here. 📝"
         )
-    elif update.effective_message.animation:
+    elif msg.animation:
         text = (
             f"🎞️ <b>Oops! That's an animation (GIF)!</b>\n\n"
             f"I need a simple <b>text message</b> to use as the note title.\n"
             f"Please type and send your title. 📝"
         )
-    elif update.effective_message.document:
+    elif msg.document:
         text = (
             f"📄 <b>Oops! That's a document!</b>\n\n"
             f"A file can't be used as a note title.\n"
             f"Please type the note title and send it as a message. 📝"
         )
-    elif update.effective_message.game:
+    elif msg.game:
         text = (
             f"🎮 <b>Oops! That's a game!</b>\n\n"
             f"I can't use a game as a note title.\n"
             f"Please send only text. 📝"
         )
-    elif update.effective_message.sticker:
+    elif msg.sticker:
         text = (
             f"🎭 <b>Oops! That's a sticker!</b>\n\n"
             f"I need a text message for the note title, not a sticker.\n"
             f"Please type and send your note title. 📝"
         )
-    elif update.effective_message.story:
+    elif msg.story:
         text = (
             f"📖 <b>Oops! That's a story!</b>\n\n"
             f"A story can't be used as a note title.\n"
             f"Please send only text. 📝"
         )
-    elif update.effective_message.video:
+    elif msg.video:
         text = (
             f"🎥 <b>Oops! That's a video!</b>\n\n"
             f"A video can't be used as a note title.\n"
             f"Please send only text to set your note title. 📝"
         )
-    elif update.effective_message.voice:
+    elif msg.voice:
         text = (
             f"🎙️ <b>Oops! That's a voice message!</b>\n\n"
             f"I can't use voice messages for a note title.\n"
             f"Please send only text. 📝"
         )
-    elif update.effective_message.video_note:
+    elif msg.video_note:
         text = (
             f"📹 <b>Oops! That's a video note!</b>\n\n"
             f"I need a text message, not a video note.\n"
             f"Please type and send the title. 📝"
         )
-    elif update.effective_message.audio:
+    elif msg.audio:
         text = (
             f"🎵 <b>Oops! That's an audio file!</b>\n\n"
             f"I need a text input, not an audio file.\n"
             f"Please type the note title and send it as a message. 📝"
         )
-    elif update.effective_message.poll:
+    elif msg.poll:
         text = (
             f"📊 <b>Oops! That's a poll!</b>\n\n"
             f"I can't use a poll as a note title.\n"
             f"Please send only text. 📝"
         )
-    elif update.effective_message.dice:
+    elif msg.dice:
         text = (
             f"🎲 <b>Oops! That's a dice roll!</b>\n\n"
             f"A dice roll can't be used as a note title.\n"
@@ -510,7 +514,7 @@ async def bad_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             f"Please type and send the title again. 📝"
         )
 
-    await update.effective_message.reply_html(text=text)
+    await msg.reply_html(text=text)
 
     return TITLE
 
@@ -521,87 +525,88 @@ async def bad_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     but sends an unsupported message type.
     """
     user = update.effective_user
+    msg = update.effective_message
 
-    if update.effective_message is None or user is None:
+    if msg is None or user is None:
         RanaLogger.warning("Expected message content, but something is missing!")
         return ConversationHandler.END
 
     # Check if it's a bot command at the beginning
     if (
-        update.effective_message.entities
-        and update.effective_message.entities[0].type == "bot_command"
-        and update.effective_message.entities[0].offset == 0
+        msg.entities
+        and msg.entities[0].type == "bot_command"
+        and msg.entities[0].offset == 0
     ):
         text = (
             "🛠️ This is a command input! Oh sorry, please send "
             f"/cancel to stop this note-making..."
         )
-    elif update.effective_message.photo:
+    elif msg.photo:
         text = (
             f"📸 <b>Oops! That's a photo!</b>\n\n"
             f"Currently The Photo cannot be saved as note, stay for update."
         )
-    elif update.effective_message.animation:
+    elif msg.animation:
         text = (
             f"🎞️ <b>Oops! That's an animation (GIF)!</b>\n\n"
             f"I need a text message for the note content.\n"
             f"Please type and send your note content. 📝"
         )
-    elif update.effective_message.document:
+    elif msg.document:
         text = (
             f"📄 <b>Oops! That's a document!</b>\n\n"
             f"A file can't be used as note content.\n"
             f"Please type and send the content as a text message. 📝"
         )
-    elif update.effective_message.game:
+    elif msg.game:
         text = (
             f"🎮 <b>Oops! That's a game!</b>\n\n"
             f"I can't use a game as note content.\n"
             f"Please send only text. 📝"
         )
-    elif update.effective_message.sticker:
+    elif msg.sticker:
         text = (
             f"🎭 <b>Oops! That's a sticker!</b>\n\n"
             f"Stickers can't be used as note content.\n"
             f"Please send text instead. 📝"
         )
-    elif update.effective_message.story:
+    elif msg.story:
         text = (
             f"📖 <b>Oops! That's a story!</b>\n\n"
             f"A story can't be used as note content.\n"
             f"Please send only text. 📝"
         )
-    elif update.effective_message.video:
+    elif msg.video:
         text = (
             f"🎥 <b>Oops! That's a video!</b>\n\n"
             f"Videos aren't supported as note content.\n"
             f"Please send text instead. 📝"
         )
-    elif update.effective_message.voice:
+    elif msg.voice:
         text = (
             f"🎙️ <b>Oops! That's a voice message!</b>\n\n"
             f"Voice messages can't be used as note content.\n"
             f"Please type and send your note content as text. 📝"
         )
-    elif update.effective_message.video_note:
+    elif msg.video_note:
         text = (
             f"📹 <b>Oops! That's a video note!</b>\n\n"
             f"A video note can't be used as note content.\n"
             f"Please type and send your note content. 📝"
         )
-    elif update.effective_message.audio:
+    elif msg.audio:
         text = (
             f"🎵 <b>Oops! That's an audio file!</b>\n\n"
             f"I need a text input for the note content.\n"
             f"Please type and send it as a message. 📝"
         )
-    elif update.effective_message.poll:
+    elif msg.poll:
         text = (
             f"📊 <b>Oops! That's a poll!</b>\n\n"
             f"A poll can't be used as note content.\n"
             f"Please send only text. 📝"
         )
-    elif update.effective_message.dice:
+    elif msg.dice:
         text = (
             f"🎲 <b>Oops! That's a dice roll!</b>\n\n"
             f"A dice roll can't be used as note content.\n"
@@ -614,7 +619,7 @@ async def bad_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             f"Please type and send the content again. 📝"
         )
 
-    await update.effective_message.reply_html(text=text)
+    await msg.reply_html(text=text)
     return CONTENT
 
 
@@ -643,12 +648,10 @@ async def cancel_fallbacks(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     /cancel & "Cancel My Note Making"
     """
     user = update.effective_user
-    if user is None:
-        RanaLogger.warning(f"User should exists when /cancel got in conversation")
-        return ConversationHandler.END
+    msg = update.effective_message
 
-    if update.effective_message is None:
-        RanaLogger.warning("on /cancel this should have a Message.")
+    if user is None or msg is None:
+        RanaLogger.warning(f"User should exists when /cancel got in conversation")
         return ConversationHandler.END
 
     if context.user_data is None:
@@ -664,7 +667,7 @@ async def cancel_fallbacks(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         f"If you want to start again, send /new_note."
     )
 
-    await update.effective_message.reply_html(text=text)
+    await msg.reply_html(text=text)
     return ConversationHandler.END
 
 
