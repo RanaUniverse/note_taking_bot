@@ -6,9 +6,10 @@ which i can import and use later
 from enum import Enum
 
 from telegram import InlineKeyboardButton
+from my_modules.inline_keyboards_enum_values import AccountButtons
 
 
-keyboard_options = [
+demo_keyboard_options = [
     [
         InlineKeyboardButton(text="Option 1", callback_data="1"),
         InlineKeyboardButton(text="Option 2", callback_data="2"),
@@ -20,7 +21,7 @@ keyboard_options = [
     ],
 ]
 
-keyboard_options_aplhabet = [
+demo_keyboard_options_aplhabet = [
     [
         InlineKeyboardButton(text="Button A", callback_data="A1"),
         InlineKeyboardButton(text="Button B", callback_data="B2"),
@@ -92,32 +93,56 @@ keyboard_start_menu = [
 keyboard_account_new_register = [
     [
         InlineKeyboardButton(
-            text="📧Add Email ID",
-            callback_data="add_email",
+            text=AccountButtons.ADD_EMAIL.button_text,
+            callback_data=AccountButtons.ADD_EMAIL.callback_data,
         ),
         InlineKeyboardButton(
-            text="📱Add Phone No",
-            callback_data="add_phone",
-        ),
-    ],
-    [
-        InlineKeyboardButton(
-            text="🎟Add Referral Code",
-            callback_data="add_referral",
-        ),
-        InlineKeyboardButton(
-            text="My Account Details",
-            callback_data="account_details",
+            text=AccountButtons.ADD_PHONE.button_text,
+            callback_data=AccountButtons.ADD_PHONE.callback_data,
         ),
     ],
     [
         InlineKeyboardButton(
-            text="❌Terminate Now",
-            callback_data="register_terminate",
+            text=AccountButtons.DELETE_ACCOUNT.button_text,
+            callback_data=AccountButtons.DELETE_ACCOUNT.callback_data,
         ),
         InlineKeyboardButton(
-            text="✅Confirm & Save",
-            callback_data="register_save_now",
+            text=AccountButtons.UPGRADE_PRO.button_text,
+            callback_data=AccountButtons.UPGRADE_PRO.callback_data,
+        ),
+    ],
+]
+
+
+keyboard_account_already_register = [
+    [
+        InlineKeyboardButton(
+            text=AccountButtons.ADD_EMAIL.button_text,
+            callback_data=AccountButtons.ADD_EMAIL.callback_data,
+        ),
+        InlineKeyboardButton(
+            text=AccountButtons.ADD_PHONE.button_text,
+            callback_data=AccountButtons.ADD_PHONE.callback_data,
+        ),
+    ],
+    [
+        InlineKeyboardButton(
+            text=AccountButtons.ADD_TOKEN.button_text,
+            callback_data=AccountButtons.ADD_TOKEN.callback_data,
+        ),
+        InlineKeyboardButton(
+            text=AccountButtons.EDIT_ACCOUNT.button_text,
+            callback_data=AccountButtons.EDIT_ACCOUNT.callback_data,
+        ),
+    ],
+    [
+        InlineKeyboardButton(
+            text=AccountButtons.DELETE_ACCOUNT.button_text,
+            callback_data=AccountButtons.DELETE_ACCOUNT.callback_data,
+        ),
+        InlineKeyboardButton(
+            text=AccountButtons.UPGRADE_PRO.button_text,
+            callback_data=AccountButtons.UPGRADE_PRO.callback_data,
         ),
     ],
 ]
@@ -163,44 +188,10 @@ keyboard_user_info = [
 ]
 
 
-keyboard_account_already_register = [
-    [
-        InlineKeyboardButton(
-            text="Add Some Token",
-            callback_data="add_some_token",
-        ),
-        InlineKeyboardButton(
-            text="✏️ Edit My Profile",
-            callback_data="edit_profile",
-        ),
-    ],
-    [
-        InlineKeyboardButton(
-            text="🗑️ Delete My Account",
-            callback_data="delete_account",
-        ),
-        InlineKeyboardButton(
-            text="💎 Upgrade to Pro Plan",
-            callback_data="upgrade_pro",
-        ),
-    ],
-    [
-        InlineKeyboardButton(
-            text="📂 View My Data",
-            callback_data="view_my_data",
-        ),
-        InlineKeyboardButton(
-            text="🔄 Sync & Backup",
-            callback_data="sync_backup",
-        ),
-    ],
-]
-
-
 class MyInlineKeyboard(Enum):
 
     START_MENU = keyboard_start_menu
-    OPTIONS = keyboard_options
-    ALPHABET = keyboard_options_aplhabet
+    OPTIONS = demo_keyboard_options
+    ALPHABET = demo_keyboard_options_aplhabet
     ACCOUNT_NEW_REGISTER = keyboard_account_new_register
     ACCOUNT_ALREADY_REGISTER = keyboard_account_already_register

@@ -53,6 +53,9 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         )
         return None
 
+    # What my Logic: When user will send this, it will try to add his obj in user row, if it throw a unique error or like something then it will go to say to make new row.
+    # Here i thought to use cache like logic so that all time my machine will not open db for check if the user is register or not
+
     user_obj = UserPart(
         user_id=user.id,
         username=user.username,
