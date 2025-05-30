@@ -241,7 +241,9 @@ async def add_points_cmd_many_args(
         return None
 
     if context.args is None:
-        print("on /add_points with args athe context.args should present")
+        RanaLogger.warning(
+            "on /add_points with args athe context.args should present in /add_point with many args"
+        )
         return None
 
     if len(context.args) > 1:
@@ -262,6 +264,7 @@ async def add_points_cmd_many_args(
         return None
 
 
+# This is the special main things to add points to user
 async def add_points_cmd_one_arg(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
@@ -307,8 +310,10 @@ async def add_points_cmd_one_arg(
 
         text_int_not = (
             f"👋 Hello {user.mention_html()}, you sent 👇🏻\n\n"
-            f"<code>{html.escape(arg_value)}</code> — but this is not a valid number of points.\n\n"
-            f"To add {random_point_value} points, please send this command:\n"
+            f"<code>{html.escape(arg_value)}</code> — "
+            f"but this is not a valid number of points.\n\n"
+            f"As a example "
+            f"to add {random_point_value} points, please send this command:\n"
             f"<code>/add_points {random_point_value}</code> ✅"
         )
 
@@ -337,7 +342,7 @@ async def add_points_cmd_one_arg(
         await msg.reply_html(text)
         return None
 
-    # # Now first i will find the user obj existance
+    # Now first i will find the user obj existance
     # if user not exists it will say user to first register
     # if user exists then it will add the points in the obj and say the information
 
@@ -359,7 +364,9 @@ async def add_points_cmd_one_arg(
 
     # text = f"Your New Point is: "f"{user_row.points}"
     # await msg.reply_html(text)
-    # Though upper is working but i am confused on upper code working
+
+    # Though upper is working but i am confused on upper code working,
+    # why the old user row is working
 
     text = (
         f"👋 Hello {user.mention_html()},\n"
