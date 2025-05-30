@@ -113,10 +113,7 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         text_user_exists = (
             f"⚠️ Hello <b>{user.mention_html()}, you are already registered!</b>⚠️"
             f"\n\n"
-            "✅ No need to register again. Simply use this bot and explore its features! 🚀"
-            f"\n\n"
-            f"Your Information: \n"
-            f"Already Account Creation Time: {old_register_time}"
+            f"Your Account Registered Time: {old_register_time}"
             f"\n"
             f"You have total {user_row.points} tokens."
         )
