@@ -91,6 +91,11 @@ class BotSettingsValue(Enum):
 
     MAX_ADD_POINT = 1001
     ADD_POINT_WAIT_TIME = 3
+    MAX_FAKE_NOTE = 1001
+
+    FOLDER_NOTE_TEM_NAME = "000_user_msg"
+
+
     ADMIN_ID_1 = 1895194333
 
     GROUP_LINK = "RanaUniverse"

@@ -4,12 +4,12 @@ This will make a fake note and insert in the database
 """
 
 import asyncio
+from pathlib import Path
+
 
 from faker import Faker
 
-from sqlmodel import (
-    Session,
-)
+from sqlmodel import Session
 
 from telegram import Update
 from telegram.constants import ChatAction, ParseMode
@@ -22,27 +22,29 @@ from my_modules.database_code.models_table import NotePart
 
 from my_modules.logger_related import RanaLogger
 
+from my_modules.rana_needed_things import make_footer_text
+
 from my_modules.some_constants import BotSettingsValue
 
 
 MAX_TITLE_LEN = BotSettingsValue.MAX_TITLE_LEN.value
 MAX_CONTENT_LEN = BotSettingsValue.MAX_CONTENT_LEN.value
+MAX_FAKE_NOTE_COUNT = BotSettingsValue.MAX_FAKE_NOTE.value
+TEMPORARY_FOLDER_NAME = BotSettingsValue.FOLDER_NOTE_TEM_NAME.value
 
 fake = Faker()
 
 
-MAX_FAKE_NOTE = 100000
-
-
 async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    /fake_note or /f
+    /fake_note
     And this function will executes when user will send it and it will save this
     for now it will make a random one note and save it.
     """
 
     user = update.effective_user
     msg = update.effective_message
+
     if user is None:
         RanaLogger.warning("User not found when user send /fake_note.")
         return None
@@ -50,11 +52,6 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if msg is None:
         RanaLogger.warning("No message object found when user send /fake_note.")
         return None
-
-    # with Session(engine) as session:
-    #     statement = select(UserPart).where(UserPart.user_id == user.id)
-    #     results = session.exec(statement)
-    #     user_row = results.first()
 
     user_row = user_obj_from_user_id(engine, user.id)
 
@@ -113,13 +110,11 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         f"➖ Points spent: <b>One(1)</b>\n"
         f"🆔 This Note Id is: <code>{note_row.note_id}</code>.\n"
         f"💰 Remaining Points: <b>{user_row.points}</b>\n\n"
+        f"If you want to make many fake note pls send: <code> /fake_note Number </code>\n\n"
         f"📂 View them with /all_notes or /my_notes\n"
     )
 
-    from pathlib import Path
-    from my_modules.rana_needed_things import make_footer_text
-
-    note_content = (
+    note_description = (
         f"📝 Title:\n"
         f"{note_row.note_title}"
         f"\n\n\n"
@@ -129,9 +124,9 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         f"Note ID: {note_row.note_id}"
     )
 
-    full_text = note_content + make_footer_text(user, msg)
+    full_text = note_description + make_footer_text(user, msg)
     filename = f"user_id_{user.id}_time_{int(msg.date.timestamp())}.txt"
-    file_dir = Path.cwd() / "000_user_msg"
+    file_dir = Path.cwd() / TEMPORARY_FOLDER_NAME
     file_path = file_dir / filename
     file_dir.mkdir(parents=True, exist_ok=True)
     file_path.write_text(full_text)
@@ -156,21 +151,17 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     """
 
+    msg = update.effective_message
+    user = update.effective_user
+
+    if msg is None or user is None:
+        RanaLogger.warning("When /fake_note args come the user and msg must has exists")
+        return None
+
     if context.args is None:
         RanaLogger.warning(
             f"When /fake_note int like this come the args should has some value"
         )
-        return None
-
-    msg = update.effective_message
-    user = update.effective_user
-
-    if user is None:
-        RanaLogger.warning("user need to exists when he send /fake_note")
-        return None
-
-    if msg is None:
-        RanaLogger.warning("msg is present when user send /fake_ntoe")
         return None
 
     # Below first i will check if user send correct format or not if not it will return
@@ -214,11 +205,11 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         )
         return None
 
-    if how_many_note > MAX_FAKE_NOTE:
+    if how_many_note > MAX_FAKE_NOTE_COUNT:
 
         text += (
             f"🚫 Please don't send too many notes at once. "
-            f"<b>Maximum allowed is {MAX_FAKE_NOTE}.</b>\n\n"
+            f"<b>Maximum allowed is {MAX_FAKE_NOTE_COUNT}.</b>\n\n"
             "📌 Example: <code>/fake_note 10</code>"
         )
 
@@ -228,10 +219,6 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         )
         return None
 
-    # with Session(engine) as session:
-    #     statement = select(UserPart).where(UserPart.user_id == user.id)
-    #     results = session.exec(statement)
-    #     user_row = results.first()
 
     user_row = user_obj_from_user_id(engine, user.id)
     if user_row is None:
