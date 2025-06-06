@@ -25,7 +25,7 @@ it will ask for note title and content, and it will save those in the database
 from sqlmodel import Session
 
 from telegram import Update
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardMarkup
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 from telegram.ext import ContextTypes, filters
@@ -44,6 +44,7 @@ from my_modules.database_code import db_functions
 
 from my_modules.logger_related import RanaLogger
 
+from my_modules.some_inline_keyboards import new_note_make_successfull_buttons
 from my_modules.some_reply_keyboards import yes_no_reply_keyboard
 from my_modules.some_constants import BotSettingsValue
 
@@ -366,28 +367,7 @@ async def note_confirmation_yes(
             f"New Balance is: {note_row.user.points}"
         )
 
-    buttons_successfull_note = [
-        [
-            InlineKeyboardButton(
-                text="View Note",
-                callback_data=f"view_{note_row.note_id}",
-            ),
-            InlineKeyboardButton(
-                text="Export This",
-                callback_data=f"export_{note_row.note_id}",
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="Delete Note",
-                callback_data=f"delete_{note_row.note_id}",
-            ),
-            InlineKeyboardButton(
-                text="Share Note",
-                callback_data=f"share_{note_row.note_id}",
-            ),
-        ],
-    ]
+    buttons_successfull_note = new_note_make_successfull_buttons(note_row.note_id)
 
     await msg.reply_html(
         text,
