@@ -97,6 +97,7 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     with Session(engine) as session:
 
         user_row.points -= 1
+        user_row.note_count += 1
         note_row.user = user_row
 
         session.add(note_row)
@@ -219,7 +220,6 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         )
         return None
 
-
     user_row = user_obj_from_user_id(engine, user.id)
     if user_row is None:
         text = (
@@ -259,6 +259,7 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             notes_to_add.append(note_obj)
 
         user_row.points -= how_many_note
+        user_row.note_count += how_many_note
 
         session.add_all(notes_to_add)
         session.add(user_row)

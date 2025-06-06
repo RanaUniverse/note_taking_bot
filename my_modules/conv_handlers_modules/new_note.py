@@ -353,6 +353,7 @@ async def note_confirmation_yes(
     with Session(engine) as session:
 
         user_row.points -= 1
+        user_row.note_count +=1
         note_row.user = user_row
 
         session.add(note_row)
