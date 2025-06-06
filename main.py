@@ -23,7 +23,10 @@ from telegram.ext import (
 from my_modules.admin_related_code import update_commands_cmd, show_bot_commands
 
 from my_modules.callback_modules.start_cmd_buttons import button_for_start
-from my_modules.callback_modules.some_buttons import update_profile_button
+from my_modules.callback_modules.some_buttons import (
+    update_profile_button,
+    new_note_button_handler,
+)
 
 from my_modules.cmd_handler_modules import add_points_module
 from my_modules.cmd_handler_modules import help_module
@@ -257,6 +260,13 @@ def main() -> None:
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
             block=False,
             has_args=None,
+        )
+    )
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=new_note_button_handler,
+            pattern=r"^(view|export|delete|share)_",
         )
     )
 
