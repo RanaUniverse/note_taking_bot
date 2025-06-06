@@ -25,6 +25,7 @@ it will ask for note title and content, and it will save those in the database
 from sqlmodel import Session
 
 from telegram import Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 from telegram.ext import ContextTypes, filters
@@ -365,10 +366,33 @@ async def note_confirmation_yes(
             f"New Balance is: {note_row.user.points}"
         )
 
+    buttons_successfull_note = [
+        [
+            InlineKeyboardButton(
+                text="View Note",
+                callback_data=f"view_{note_row.note_id}",
+            ),
+            InlineKeyboardButton(
+                text="Export This",
+                callback_data=f"export_{note_row.note_id}",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="Delete Note",
+                callback_data=f"delete_{note_row.note_id}",
+            ),
+            InlineKeyboardButton(
+                text="Share Note",
+                callback_data=f"share_{note_row.note_id}",
+            ),
+        ],
+    ]
+
     await msg.reply_html(
         text,
         do_quote=True,
-        reply_markup=ReplyKeyboardRemove(),
+        reply_markup=InlineKeyboardMarkup(buttons_successfull_note),
     )
     return ConversationHandler.END
 
@@ -412,7 +436,7 @@ async def note_confirmation_no(
 
 async def bad_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
-    This will execute when user need title but user send different 
+    This will execute when user need title but user send different
     type of response.
     """
 
