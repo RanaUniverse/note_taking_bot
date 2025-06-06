@@ -105,18 +105,27 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             )
             return None
 
-        # This means the user is present in the database
+        # This means the user is present in the database,
+        # and i will fetch data from the user row below.
 
-        time_formatting = f"%Y-%m-%d"
-        old_register_time = user_row.account_creation_time.strftime(time_formatting)
+        time_formatting = f"Date:%Y-%m-%d, Time:%H-%M-%S"
+
+        old_register_time = user_row.account_creation_time
+        now = msg.date.astimezone(IST_TIMEZONE).replace(tzinfo=None)
+        delta = now - old_register_time
 
         text_user_exists = (
-            f"⚠️ Hello <b>{user.mention_html()}, you are already registered!</b>⚠️"
-            f"\n\n"
-            f"Your Account Registered Time: {old_register_time}"
-            f"\n"
-            f"You have total {user_row.points} tokens."
+            f"⚠️ Hello <b>{user.mention_html()}, you're already registered!</b>\n\n"
+            f"<b>🗓️ Account created:</b> {old_register_time.strftime(time_formatting)}"
+            f" ({delta} ago)\n"
+            f"<b>📝 Notes created:</b> {user_row.note_count}\n"
+            f"<b>💰 Token balance:</b> {user_row.points}\n"
+            f"<b>🔗 Referral Code:</b> "
+            f"{user_row.referral_code if user_row.referral_code else 'No Refer'}\n"
+            f"<b>📧 Email ID:</b> "
+            f"{user_row.email_id if user_row.email_id else 'No Email'}\n"
         )
+
         await msg.reply_html(
             text=text_user_exists,
             reply_markup=InlineKeyboardMarkup(
