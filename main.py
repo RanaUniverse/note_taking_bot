@@ -234,6 +234,13 @@ def main() -> None:
     )
 
     application.add_handler(
+        CallbackQueryHandler(
+            callback=search_notes.button_for_search_notes,
+            pattern=r"^view_note_.*$",
+        )
+    )
+
+    application.add_handler(
         CommandHandler(
             command="delete_note",
             callback=delete_note.delete_note_one_arg,
@@ -362,13 +369,6 @@ def main() -> None:
         CallbackQueryHandler(
             callback=search_notes.button_for_no_more_notes,
             pattern=r"^no_more_notes_\d+$",
-        )
-    )
-
-    application.add_handler(
-        CallbackQueryHandler(
-            callback=search_notes.button_for_search_notes,
-            pattern=None,
         )
     )
 

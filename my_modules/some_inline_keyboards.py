@@ -188,9 +188,6 @@ keyboard_user_info = [
 ]
 
 
-# from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-
-
 def new_note_make_successfull_buttons(note_id: str) -> list[list[InlineKeyboardButton]]:
     """When new note has been saved this buttons will shows there"""
     buttons = [
@@ -201,6 +198,43 @@ def new_note_make_successfull_buttons(note_id: str) -> list[list[InlineKeyboardB
         [
             InlineKeyboardButton("Delete Note", callback_data=f"delete_{note_id}"),
             InlineKeyboardButton("Share Note", callback_data=f"share_{note_id}"),
+        ],
+    ]
+    return buttons
+
+
+def generate_view_note_buttons(note_id: str) -> list[list[InlineKeyboardButton]]:
+    """
+    These buttons are attached inside the note view, which will be attached
+    with the note view time, when user press the note title to see
+    its note informaiton these buttons will be there.
+    """
+    buttons = [
+        [
+            InlineKeyboardButton(
+                text="✏️ Edit Note 🟩",
+                callback_data=f"edit_note_{note_id}",
+            ),
+            InlineKeyboardButton(
+                text="🗑️ Delete Note 🟩",
+                callback_data=f"delete_note_{note_id}",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="🔄 Transfer Ownership ❌❌❌",
+                callback_data=f"transfer_note_{note_id}",
+            ),
+            InlineKeyboardButton(
+                text="📋 Duplicate Note ❌❌❌",
+                callback_data=f"duplicate_note_{note_id}",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="📄 Export Note As TXT",
+                callback_data=f"export_note_txt_{note_id}",
+            )
         ],
     ]
     return buttons

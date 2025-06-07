@@ -72,6 +72,7 @@ from my_modules.database_code.models_table import NotePart
 from my_modules.database_code import db_functions
 
 from my_modules.some_constants import BotSettingsValue
+from my_modules.some_inline_keyboards import generate_view_note_buttons
 
 
 NOTES_PER_PAGE: int = BotSettingsValue.NOTES_PER_PAGE.value
@@ -254,34 +255,37 @@ async def button_for_search_notes(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """
-    When The Button is pressed on the note's title it will execute and send the
-    note back to user. it will check note_id value.
-    This will when user want to get his notes which he press on the search notes
+    The Note't Title Buttons which also assign the note_id,
+    When those button is pressed this fun is executs.
+        `pattern=r"^view_note_.*$",`
+
     """
 
-    query = update.callback_query
+    msg = update.effective_message
+    user = update.effective_user
+    if msg is None or user is None:
+        RanaLogger.warning("When Note Title Button is pressed msg obj & user also")
+        return None
 
+    query = update.callback_query
     if query is None:
         RanaLogger.warning(
             f"When user press button on search note, it should have the data."
         )
         return
-
     await query.answer("Please check Your Note Below.")
 
-    msg = update.effective_message
+    # When the data is pressed the note_id in callback data will come
+    # so it means i need to extract the note id,
 
-    if msg is None:
-        RanaLogger.warning("When button is pressed this should have the msg obj")
+    callback_data = query.data
+    if callback_data is None:
+        RanaLogger.warning(
+            "Note Title, button include the callback data, if not means something bad happens in title callback data."
+        )
         return None
 
-    # This data is attached with the button user has just pressed
-
-    note_id = query.data
-
-    if note_id is None:
-        RanaLogger.warning("Some Problem happens in note_id in query")
-        return None
+    note_id = callback_data.removeprefix("view_note_")
 
     # This upper value should be the note_id which i need to serach on the database
 
@@ -299,14 +303,24 @@ async def button_for_search_notes(
         text = (
             f"🚫 <b>Note Not Accessible</b>\n\n"
             f"😢 This note is no longer available.\n"
-            f"It might have been <b>deleted</b> or there was an <b>unexpected issue</b>.\n\n"
+            f"It might have been <b>deleted</b> or "
+            f"there was an <b>unexpected issue</b>.\n\n"
             f"📌 Try checking your other notes using /all_notes."
         )
         await msg.reply_html(text)
         return None
 
     # Below part will execute when note id match the value.
-    # Format the timestamps for clearification saw.
+
+    # i will check the owner for a security step, though i dont see any need
+
+    if note_row.user_id != user.id:
+        RanaLogger.warning(
+            "When Note's Title button is pressed the note owner should pressed as for now"
+        )
+        await msg.reply_html("Maybe You are not the owner, please message admin /help")
+        return None
+
     created_time = (
         note_row.created_time.strftime("%Y-%m-%d %H:%M:%S")
         if note_row.created_time
@@ -319,46 +333,28 @@ async def button_for_search_notes(
     )
 
     text = (
-        f"📝 <b>Note Details:</b>\n\n"
-        f"📌 <b>Title:</b> \n{note_row.note_title}\n\n"
-        f"📖 <b>Content:</b>\n{note_row.note_content}\n\n"
         f"🕒 <b>Created On:</b> {created_time}\n\n"
         f"🛠 <b>Last Edited:</b> {edited_time}\n\n"
         f"🆔 <b>Note ID:</b> <code>{note_row.note_id}</code>\n\n"
+        f"{'👇' * 10}\n"
+        f"📝 <b>Note Details:</b>\n\n"
+        f"📌 <b>Title:</b> \n{note_row.note_title}\n\n"
+        f"📖 <b>Content:</b>\n{note_row.note_content}\n\n"
         f"Below BUttons is in Development will not work maybe"
     )
 
-    keyboard_view_note = [
-        [
-            InlineKeyboardButton(
-                text="✏️ Edit Note 🟩",
-                callback_data=f"edit_note_{note_row.note_id}",
-            ),
-            InlineKeyboardButton(
-                text="🗑️ Delete Note 🟩",
-                callback_data=f"delete_note_{note_row.note_id}",
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="🔄 Transfer Ownership ❌❌❌",
-                callback_data=f"transfer_note_{note_row.note_id}",
-            ),
-            InlineKeyboardButton(
-                text="📋 Duplicate Note ❌❌❌",
-                callback_data=f"duplicate_note_{note_row.note_id}",
-            ),
-        ],
-    ]
+    keyboard_view_note = generate_view_note_buttons(note_id=note_row.note_id)
+
+    # 🔍 Check if text exceeds Telegram's 4000-character limit
+    if len(text) > 4000:
+        text = text[: 4000 - 100]
+        text += "\n\n⚠️ This message exceeds the limit and was truncated."
 
     await msg.reply_html(
         text=text,
         do_quote=True,
         reply_markup=InlineKeyboardMarkup(keyboard_view_note),
     )
-
-    # This upper functions is a potential issue, when the last text exceed the
-    # 4096 character limit it will raise a error, in future i need to add broke this text
 
 
 async def button_for_next_page(
