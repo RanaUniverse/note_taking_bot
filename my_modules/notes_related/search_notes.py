@@ -168,7 +168,6 @@ async def my_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     """
     msg = update.effective_message
     user = update.effective_user
-
     if msg is None or user is None:
         RanaLogger.warning(f"When /my_notes come the msg and user should be present")
         return None
@@ -190,7 +189,6 @@ async def my_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     )
 
     text_with_button = all_notes_button_text(how_many_note=all_note_count, user=user)
-
     notes_buttons = make_all_note_buttons(
         some_notes=some_notes, how_many_note=all_note_count
     )
@@ -211,18 +209,16 @@ async def handle_my_all_notes_callback(
     This functions logics are same as /my_notes.
     """
 
-    query = update.callback_query
-
-    if query is None:
-        RanaLogger.warning(f"Query should be present of press button of 'all_my_notes'")
-        return None
-
     user = update.effective_user
     msg = update.effective_message
-
     if msg is None or user is None:
         RanaLogger.warning(f"user msg should be present on the button pressed")
         return
+
+    query = update.callback_query
+    if query is None:
+        RanaLogger.warning(f"Query should be present of press button of 'all_my_notes'")
+        return None
 
     await query.answer(text="You Can See All Your Notes Below ⬇️⬇️⬇️")
 
@@ -243,7 +239,6 @@ async def handle_my_all_notes_callback(
     )
 
     text_with_button = all_notes_button_text(how_many_note=all_note_count, user=user)
-
     notes_buttons = make_all_note_buttons(
         some_notes=some_notes, how_many_note=all_note_count
     )
