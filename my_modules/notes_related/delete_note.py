@@ -42,7 +42,7 @@ async def delete_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if not context.args:
         keyboard = [
             [
-                InlineKeyboardButton("View All Notes", callback_data="view_notes"),
+                InlineKeyboardButton("View All Notes", callback_data="my_all_notes"),
                 InlineKeyboardButton("Help", callback_data="help"),
             ]
         ]

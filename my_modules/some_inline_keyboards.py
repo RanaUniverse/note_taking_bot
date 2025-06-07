@@ -48,7 +48,7 @@ keyboard_start_menu = [
         ),
         InlineKeyboardButton(
             text="📄 View All Notes",
-            callback_data="my_notes_view",
+            callback_data="my_all_notes",
         ),
     ],
     [

@@ -95,6 +95,8 @@ class BotSettingsValue(Enum):
 
     FOLDER_NOTE_TEM_NAME = "000_user_msg"
 
+    NOTES_PER_PAGE = 10
+    OFFSET_VALUE = 0
 
     ADMIN_ID_1 = 1895194333
 

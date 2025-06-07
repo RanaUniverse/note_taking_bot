@@ -125,6 +125,8 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         f"Note ID: {note_row.note_id}"
     )
 
+    # the file's directory i am checking in each time this fun run, so i need to adjust this
+
     full_text = note_description + make_footer_text(user, msg)
     filename = f"user_id_{user.id}_time_{int(msg.date.timestamp())}.txt"
     file_dir = Path.cwd() / TEMPORARY_FOLDER_NAME
@@ -134,7 +136,7 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     await msg.reply_document(
         document=file_path,
-        filename=f"FakeNote.txt",
+        filename=f"Fake Note {filename}",
         caption=caption_text,
         parse_mode=ParseMode.HTML,
     )

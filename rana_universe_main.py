@@ -13,7 +13,7 @@ class StartMenuButton(Enum):
     """
 
     NEW_NOTE = ("➕ New Note", "new_note_making", "Create a new note")
-    VIEW_NOTES = ("📄 View All Notes", "my_notes_view", "View all notes")
+    VIEW_NOTES = ("📄 View All Notes", "my_all_notes", "View all notes")
     EDIT_NOTE = ("✏️ Edit Note", "edit_note_prompt", "Edit an existing note")
     SEARCH_NOTE = ("🔍 Search Note", "search_note_prompt", "Search for a note")
     DELETE_NOTE = ("🗑️ Delete Note", "delete_note_prompt", "Delete a note")
