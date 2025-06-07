@@ -135,7 +135,7 @@ def make_all_note_buttons(
 
     # As this is the starting of the note lists send, so it means it will be start
     # from current page as 1, and nextpage value will be used in the button pressed
-    if how_many_note > NOTES_PER_PAGE:
+    if how_many_note > NOTES_PER_PAGE * current_page:
         current_page = current_page
         next_page = current_page + 1
 
@@ -192,7 +192,8 @@ async def my_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     text_with_button = all_notes_button_text(how_many_note=all_note_count, user=user)
     notes_buttons = make_all_note_buttons(
-        some_notes=some_notes, how_many_note=all_note_count
+        some_notes=some_notes,
+        how_many_note=all_note_count,
     )
 
     await msg.reply_html(
@@ -478,7 +479,6 @@ async def button_for_no_more_notes(
     )
 
     await query.answer(text, show_alert=True)
-
 
 
 async def handle_edit_note_button(
