@@ -113,6 +113,7 @@ def all_notes_button_text(how_many_note: int, user: User) -> str:
 def make_all_note_buttons(
     some_notes: Sequence[NotePart],
     how_many_note: int,
+    current_page: int = 1,
 ) -> list[list[InlineKeyboardButton]]:
     """
     It will make some notes button of title and then it will return this buttons
@@ -135,14 +136,14 @@ def make_all_note_buttons(
     # As this is the starting of the note lists send, so it means it will be start
     # from current page as 1, and nextpage value will be used in the button pressed
     if how_many_note > NOTES_PER_PAGE:
-        current_page = 1
+        current_page = current_page
         next_page = current_page + 1
 
         # send next_page value in query.data in a button
         next_button = [
             InlineKeyboardButton(
                 text=f"Go To Next Page: {next_page}→",
-                callback_data=f"note_page_{next_page}",
+                callback_data=f"next_page_{next_page}",
             )
         ]
         all_buttons.append(next_button)
@@ -240,8 +241,10 @@ async def handle_my_all_notes_callback(
     )
 
     text_with_button = all_notes_button_text(how_many_note=all_note_count, user=user)
+
     notes_buttons = make_all_note_buttons(
-        some_notes=some_notes, how_many_note=all_note_count
+        some_notes=some_notes,
+        how_many_note=all_note_count,
     )
 
     await msg.reply_html(
@@ -364,65 +367,56 @@ async def button_for_next_page(
     when user will press the next button to see more extra notes user want to see
     here it will search for the page number which is attached with the button
     from there it will search the page number, and it will calculate the offser and limit value
-
     """
+    user = update.effective_user
+    msg = update.effective_message
+    if user is None or msg is None:
+        RanaLogger.warning("User & msg should has some value in the next button press")
+        return None
 
     query = update.callback_query
-
     if query is None:
         RanaLogger.warning(
             f"When user press button on search note, it should have the data."
         )
-        return
+        return None
 
     await query.answer("Please check Your Notes Below 👇👇👇.")
 
-    user = update.effective_user
+    callback_data = query.data
 
-    if user is None:
-        RanaLogger.warning("User should has some value in the next button press")
-        return
-
-    msg = update.effective_message
-
-    if msg is None:
-        RanaLogger.warning("When button is pressed this should have the msg obj")
-        return
-
-    if query.data is None:
+    if callback_data is None:
         RanaLogger.warning("The query should be a button attached with next button")
         return None
 
-    if query.data.startswith("notes_page_"):
-        current_page = int(query.data.split("_")[-1])
+    if callback_data.startswith("next_page_"):
+        current_page = int(callback_data.split("_")[-1])
         # this upper formatting is when i am using the constitanty value in the button
 
+    if callback_data.startswith("next_page_"):
+        try:
+            current_page = int(callback_data.split("_")[-1])
+        except Exception as _:
+            RanaLogger.error(
+                "maybe any error from user side as callback "
+                "data is not int in next page button"
+            )
+            return None
     else:
         current_page = 1
         RanaLogger.warning("Current page should not be 1 ever as i can think")
 
     OFFSET_VALUE = (current_page - 1) * NOTES_PER_PAGE
 
-    # with Session(engine) as session:
-    #     statement = (
-    #         select(NotePart)
-    #         .where(NotePart.user_id == user.id)
-    #         .offset(OFFSET_VALUE)
-    #         .limit(NOTES_PER_PAGE)
-    #     )
-    #     results = session.exec(statement)
-    #     notes = results.all()
-
-    notes = db_functions.get_user_notes(
+    some_notes = db_functions.get_user_notes(
         engine=engine,
         offset_value=OFFSET_VALUE,
         limit_value=NOTES_PER_PAGE,
         user_id=user.id,
     )
 
-    if len(notes) == 0:
-        await msg.reply_html("📭 You have no MOre saved notes.")
-
+    if len(some_notes) == 0:
+        await msg.reply_html("📭 You have no More saved notes.")
         return None
 
     total_notes = db_functions.count_user_notes(engine=engine, user_id=user.id)
@@ -432,53 +426,15 @@ async def button_for_next_page(
     text = (
         f"👤 Hello <b>{user.mention_html()}</b>,\n\n"
         f"📄 Page <b>{current_page}</b> of <b>{total_pages}</b>\n"
-        f"🗒️ Displaying <b>{len(notes)}</b> notes out of <b>{total_notes}</b> total.\n\n"
+        f"🗒️ Displaying <b>{len(some_notes)}</b> notes out of <b>{total_notes}</b> total.\n\n"
         f"Select a note below to view its details."
     )
 
-    all_buttons: list[list[InlineKeyboardButton]] = []
-
-    for i, note_row in enumerate(
-        iterable=notes,
-        start=(current_page - 1) * NOTES_PER_PAGE + 1,
-    ):
-        title = f"{i}. {note_row.note_title}"
-        note_id = f"{note_row.note_id}"
-
-        button_row = [
-            InlineKeyboardButton(
-                text=title,
-                callback_data=note_id,
-            )
-        ]
-        all_buttons.append(button_row)
-
-    # Below logic i checked when user's last page shows less than max page
-    # note's count it will realize no more notes left and it will say user
-    # directly there without showing 'next_page' button, but the problem is
-    # it is not fully correct when user's last page reach same amount of notes button
-
-    if len(notes) < NOTES_PER_PAGE:
-
-        end_button = [
-            InlineKeyboardButton(
-                text="✅ No more notes.",
-                callback_data=f"no_more_notes_end_page",
-            )
-        ]
-        all_buttons.append(end_button)
-
-    else:
-
-        next_page = current_page + 1
-
-        next_button = [
-            InlineKeyboardButton(
-                text=f"More Notes (Page {next_page}) →",
-                callback_data=f"notes_page_{next_page}",
-            )
-        ]
-        all_buttons.append(next_button)
+    all_buttons = make_all_note_buttons(
+        some_notes=some_notes,
+        how_many_note=total_notes,
+        current_page=current_page,
+    )
 
     await msg.reply_html(
         text=text,

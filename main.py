@@ -356,7 +356,7 @@ def main() -> None:
     application.add_handler(
         CallbackQueryHandler(
             callback=search_notes.button_for_next_page,
-            pattern=r"^notes_page_\d+$",
+            pattern=r"^next_page_.*",
         )
     )
     application.add_handler(
