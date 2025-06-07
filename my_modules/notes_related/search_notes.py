@@ -446,6 +446,7 @@ async def button_for_no_more_notes(
     update: Update, cotnext: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """
+    Callback Data: `no_more_notes_`
     This time when user has no more notes and the last button will pressed by user this
     below funcions logic will be executed and this will run
 
@@ -458,7 +459,7 @@ async def button_for_no_more_notes(
         RanaLogger.warning(
             f"When user press button on search note, it should have the data."
         )
-        return
+        return None
 
     if query.data is None:
         RanaLogger.warning("The query should be a button attached with next button")
@@ -476,44 +477,8 @@ async def button_for_no_more_notes(
         f"Please Make More if you want."
     )
 
-    await query.answer(text)
+    await query.answer(text, show_alert=True)
 
-
-async def button_for_no_more_notes_last_page(
-    update: Update, cotnext: ContextTypes.DEFAULT_TYPE
-) -> None:
-    """
-    This time when user has no more notes and the last button will pressed by user this
-    below funcions logic will be executed and this will run
-
-    For now i though when user will press this it will just say this infromation
-    """
-
-    query = update.callback_query
-
-    if query is None:
-        RanaLogger.warning(
-            f"When user press button on search note, it should have the data."
-        )
-        return
-
-    if query.data is None:
-        RanaLogger.warning("The query should be a button attached with next button")
-        return None
-
-    text = (
-        f"You have reached the end of your Notes.\n"
-        f"You have not left any more note for now. 😢"
-    )
-
-    await query.answer(
-        text=text,
-        show_alert=True,
-    )
-
-
-# Below part is for when the buttons includes the view note has been pressed
-# Below parts are not developed yet.
 
 
 async def handle_edit_note_button(
