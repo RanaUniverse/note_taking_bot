@@ -144,7 +144,9 @@ def delete_note_obj(
             note_row = results.first()
 
             if note_row is None:
-                print("Note Row is not present this, should not happens")
+                print(
+                    "Note Row is not present this, should not happens, it can happens when user trying to remove a note which user_id got changed"
+                )
                 return False
 
             else:

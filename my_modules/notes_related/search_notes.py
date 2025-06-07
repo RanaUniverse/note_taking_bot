@@ -340,8 +340,8 @@ async def button_for_search_notes(
         f"🕒 <b>Created On:</b> {created_time}\n\n"
         f"🛠 <b>Last Edited:</b> {edited_time}\n\n"
         f"🆔 <b>Note ID:</b> <code>{note_row.note_id}</code>\n\n"
-        f"{'👇' * 10}\n"
         f"📝 <b>Note Details:</b>\n\n"
+        f"{'👇' * 10}\n"
         f"📌 <b>Title:</b> \n{note_row.note_title}\n\n"
         f"📖 <b>Content:</b>\n{note_row.note_content}\n\n"
         f"Below BUttons is in Development will not work maybe"
@@ -517,17 +517,10 @@ async def handle_edit_note_button(
 async def handle_delete_note_button(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
-    query = update.callback_query
-
-    if query is None or query.data is None:
-        RanaLogger.warning("Delete Note button pressed but no callback data found.")
-        return
-
-    await query.answer(
-        text="🗑️ Please Read all carefully must ⏳",
-        show_alert=True,
-    )
-
+    """
+    When delete_note_ note_id come in callback button value
+    This function will executes and this will ask user to del or not.
+    """
     user = update.effective_user
     msg = update.effective_message
 
@@ -536,7 +529,17 @@ async def handle_delete_note_button(
             "When user press delete button of note it should "
             f"have the user and msg obj available"
         )
+        return None
+
+    query = update.callback_query
+    if query is None or query.data is None:
+        RanaLogger.warning("Delete Note button pressed but no callback data found.")
         return
+
+    await query.answer(
+        text="🗑️ Please Read all carefully must ⏳",
+        show_alert=True,
+    )
 
     note_id = query.data.replace("delete_note_", "")
 
@@ -551,13 +554,13 @@ async def handle_delete_note_button(
 
     title = f"{note_row.note_title}"
 
-    created = (
+    created_time = (
         note_row.created_time.strftime("%d %b %Y, %I:%M %p")
         if note_row.created_time
         else "Unknown"
     )
 
-    edited = (
+    edited_time = (
         f"<b>✏️ Last Edited:</b> <code>{note_row.edited_time.strftime('%d %b %Y, %I:%M %p')}</code>\n"
         if note_row.edited_time
         else ""
@@ -565,8 +568,8 @@ async def handle_delete_note_button(
     text = (
         f"⚠️ <b>Are you sure you want to delete this note?</b>\n\n"
         f"<b>📝 Title:</b> <code>{html.escape(title)}</code>\n"
-        f"<b>🕒 Created:</b> <code>{created}</code>\n"
-        f"{edited}\n"
+        f"<b>🕒 Created:</b> <code>{created_time}</code>\n"
+        f"{edited_time}\n"
         f"🚫 <u>This action is permanent and cannot be undone!</u>\n"
         f"Please confirm your choice below 👇"
     )
@@ -576,7 +579,7 @@ async def handle_delete_note_button(
             InlineKeyboardButton(
                 text="✅ Yes, Delete", callback_data=f"note_del_confirm_{note_id}"
             ),
-            InlineKeyboardButton(text="❌ Cancel", callback_data="cancel_del"),
+            InlineKeyboardButton(text="❌ No Skip", callback_data="cancel_del"),
         ]
     ]
 
@@ -591,37 +594,38 @@ async def confirm_note_del_button(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """
+    `note_del_confirm_ note_id` :- This is callback data
     When user press teh delete the note button for a note
-    it will execute
+    it will execute and del the note completely.
     """
-
-    query = update.callback_query
-
-    if query is None or query.data is None:
-        RanaLogger.warning(
-            "Confirm Delete Note button pressed but no callback data found."
-        )
-        return
 
     user = update.effective_user
     msg = update.effective_message
-
     if user is None or msg is None:
         RanaLogger.warning(
             "When user press Confirm delete button of note it should "
             f"have the user and msg obj available"
         )
-        return
+        return None
+
+    query = update.callback_query
+    if query is None or query.data is None:
+        RanaLogger.warning(
+            "Confirm Delete Note button pressed but no callback data found."
+        )
+        return None
 
     note_id = query.data.replace("note_del_confirm_", "")
 
     waiting_text = (
-        f"⏳ Deleting your note... Please wait!\n\n"
+        f"⏳ Deleting your note...\n"
+        f"Please wait!\n\n"
         f"Your Request is in processing... \n\n"
         f"Note ID: <code>{note_id}</code>\n"
     )
 
     msg_waiting = await msg.reply_html(waiting_text)
+    # msg_waiting = await query.edit_message_text(waiting_text)
 
     await query.answer("Your Request is in Processing ...")
 
@@ -638,17 +642,17 @@ async def confirm_note_del_button(
     await asyncio.sleep(1)
 
     if note_row is None:
-        text = (
+        text_no_note = (
             f"{waiting_text}\n\n"
             "⚠️ <b>Note Not Found</b>\n\n"
             "It looks like this note may have already been deleted or the ID is invalid.\n\n"
-            "If you believe this is a mistake, please contact support using /help. 🛠️"
+            "If you believe this is a mistake, please contact support using "
+            f"/help with screenshots🛠️"
         )
         RanaLogger.warning(
             "Note ID from confirm button should have been valid, but note not found."
         )
-        # await msg.reply_html(text=text)
-        await msg_waiting.edit_text(text, parse_mode=ParseMode.HTML)
+        await msg_waiting.edit_text(text=text_no_note, parse_mode=ParseMode.HTML)
 
         return None
 
@@ -658,6 +662,10 @@ async def confirm_note_del_button(
         user_id=user.id,
     )
 
+    # here i need to do serach note with note id, then i need to
+    # check note owner and user id is same or not, if not then say
+    # user specefically,otherwise it can be problem
+
     if delection_confirmation:
         text = (
             f"{waiting_text}\n\n"
@@ -666,8 +674,6 @@ async def confirm_note_del_button(
             "Please remember, this action cannot be undone.\n\n"
             "If you deleted it by mistake, unfortunately, it's gone for good. 😢"
         )
-
-        # await query.edit_message_text(text=text, parse_mode=ParseMode.HTML)
 
         await msg_waiting.edit_text(text, parse_mode=ParseMode.HTML)
 
@@ -683,7 +689,7 @@ async def confirm_note_del_button(
         await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(button))
         # old_text = query.message
         # await query.edit_message_text()
-        return
+        return None
 
     else:
 
@@ -704,7 +710,7 @@ async def confirm_note_del_button(
             "It not delete means some internal problem is there."
         )
 
-        return
+        return None
 
 
 async def handle_transfer_note_button(
