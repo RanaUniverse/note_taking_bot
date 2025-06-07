@@ -54,7 +54,9 @@ Below is a code example:
 import asyncio
 
 import html
+from typing import Sequence
 
+from telegram import Message, User
 from telegram import Update
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -65,6 +67,7 @@ from telegram.ext import ContextTypes
 from my_modules.logger_related import RanaLogger
 
 from my_modules.database_code.database_make import engine
+from my_modules.database_code.models_table import NotePart
 
 from my_modules.database_code import db_functions
 
@@ -73,6 +76,87 @@ from my_modules.some_constants import BotSettingsValue
 
 NOTES_PER_PAGE: int = BotSettingsValue.NOTES_PER_PAGE.value
 OFFSET_VALUE = BotSettingsValue.OFFSET_VALUE.value
+
+
+async def reply_user_has_no_notes(msg: Message, user: User):
+    """
+    This will send a reply msg just.
+    This is for reuse code.
+    When user has 0 notes this reply send usually.
+    """
+    text_no_note = (
+        f"Hey <b>{user.mention_html()}</b>! 📭 "
+        f"You haven’t created any notes yet. "
+        f"Why not get started? "
+        f"Just send <code>/new_note</code> to make your first one.\n\n"
+        f"Feeling playful? Try <code>/fake_note</code> or "
+        f"even add a number like <code>/fake_note 3</code> for some fun examples!"
+    )
+    await msg.reply_html(text_no_note)
+
+
+def all_notes_button_text(how_many_note: int, user: User) -> str:
+    """
+    This will generate the text which is assign with the buttons of the all notes first time.
+    """
+    text = (
+        f"👋 <b>Hey {user.mention_html()}!</b>\n\n"
+        f"🗂️ <b>Total Notes:</b> <code>{how_many_note}</code>\n"
+        f"📖 Ready to explore or edit them?\n\n"
+        f"👇 Tap a note below to open it:"
+    )
+
+    return text
+
+
+def make_all_note_buttons(
+    some_notes: Sequence[NotePart],
+    how_many_note: int,
+) -> list[list[InlineKeyboardButton]]:
+    """
+    It will make some notes button of title and then it will return this buttons
+    and this buttons value will be use in the reply-keyboard in send msg.
+    This just make first part buttons
+    How many notes: how many notes he has own
+    """
+    all_buttons: list[list[InlineKeyboardButton]] = []
+
+    for i, note_row in enumerate(iterable=some_notes, start=1):
+        title = f"{i}. {note_row.note_title}"
+        note_id = f"view_note_{note_row.note_id}"
+
+        button_row = [InlineKeyboardButton(text=title, callback_data=note_id)]
+        all_buttons.append(button_row)
+
+    # The Below logic is when the button numbers are greater than notes per page
+    # Then it will have end button else next page button
+
+    # As this is the starting of the note lists send, so it means it will be start
+    # from current page as 1, and nextpage value will be used in the button pressed
+    if how_many_note > NOTES_PER_PAGE:
+        current_page = 1
+        next_page = current_page + 1
+
+        # send next_page value in query.data in a button
+        next_button = [
+            InlineKeyboardButton(
+                text=f"Go To Next Page: {next_page}→",
+                callback_data=f"note_page_{next_page}",
+            )
+        ]
+        all_buttons.append(next_button)
+    else:
+        end_button = [
+            InlineKeyboardButton(
+                text="📄 No More Notes",
+                callback_data=f"no_more_notes_{how_many_note}",
+            )
+        ]
+        all_buttons.append(end_button)
+
+    # When the end button is present it means it no note left
+
+    return all_buttons
 
 
 async def my_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -95,16 +179,7 @@ async def my_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     )
 
     if all_note_count == 0:
-        text_no_note = (
-            f"Hey <b>{user.mention_html()}</b>! 📭 "
-            f"You haven’t created any notes yet. "
-            f"Why not get started? "
-            f"Just send <code>/new_note</code> to make your first one.\n\n"
-            f"Feeling playful? Try <code>/fake_note</code> or "
-            f"even add a number like <code>/fake_note 3</code> for some fun examples!"
-        )
-
-        await msg.reply_html(text_no_note)
+        await reply_user_has_no_notes(msg=msg, user=user)
         return None
 
     some_notes = db_functions.get_user_notes(
@@ -114,65 +189,15 @@ async def my_notes_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         user_id=user.id,
     )
 
-    # This below part is for when a user has some notes row
-    # my logic is to use some_notes iterable value to numerate and print title
-    # and also use the note id in callback data
-    text = (
-        f"👋 <b>Hello, {user.mention_html()}</b>!\n\n"
-        f"📊 <b>Your Total Notes Count:</b> {all_note_count}\n\n"
-        f"📝 Use the buttons below to View & Edit Your Notes.👇🏼👇🏼👇🏼"
+    text_with_button = all_notes_button_text(how_many_note=all_note_count, user=user)
+
+    notes_buttons = make_all_note_buttons(
+        some_notes=some_notes, how_many_note=all_note_count
     )
 
-    all_buttons: list[list[InlineKeyboardButton]] = []
-
-    for i, note_row in enumerate(
-        iterable=some_notes,
-        start=1,
-    ):
-        title = f"{i}. {note_row.note_title}"
-        note_id = f"{note_row.note_id}"
-
-        button_row = [
-            InlineKeyboardButton(
-                text=title,
-                callback_data=note_id,
-            )
-        ]
-        all_buttons.append(button_row)
-
-    # The Below logic is when the button numbers are greater than notes per page
-    # Then it will have end button else next page button
-
-    if all_note_count > NOTES_PER_PAGE:
-        # As this is the starting of the note lists send, so it means it will be start
-        # from current page as 1, and nextpage value will be used in the button pressed
-
-        current_page = 1
-        next_page = current_page + 1
-
-        # Send next page number in query.data
-        next_button = [
-            InlineKeyboardButton(
-                text=f"More Notes (Go To Page No. {next_page}) →",
-                callback_data=f"notes_page_{next_page}",
-            )
-        ]
-        all_buttons.append(next_button)
-
-    else:
-        end_button = [
-            InlineKeyboardButton(
-                text="📄 No More Notes",
-                callback_data=f"no_more_notes_{all_note_count}",
-            )
-        ]
-        all_buttons.append(end_button)
-        # when this upper button will be pressed it will just let the
-        # user known that the not more note left in a pop up message
-
     await msg.reply_html(
-        text=text,
-        reply_markup=InlineKeyboardMarkup(all_buttons),
+        text=text_with_button,
+        reply_markup=InlineKeyboardMarkup(notes_buttons),
         do_quote=True,
     )
 
@@ -207,16 +232,7 @@ async def handle_my_all_notes_callback(
     )
 
     if all_note_count == 0:
-        text_no_note = (
-            f"Hey <b>{user.mention_html()}</b>! 📭 "
-            f"You haven’t created any notes yet. "
-            f"Why not get started? "
-            f"Just send <code>/new_note</code> to make your first one.\n\n"
-            f"Feeling playful? Try <code>/fake_note</code> or "
-            f"even add a number like <code>/fake_note 3</code> for some fun examples!"
-        )
-
-        await msg.reply_html(text_no_note)
+        await reply_user_has_no_notes(msg=msg, user=user)
         return None
 
     some_notes = db_functions.get_user_notes(
@@ -226,65 +242,15 @@ async def handle_my_all_notes_callback(
         user_id=user.id,
     )
 
-    # This below part is for when a user has some notes row
-    # my logic is to use some_notes iterable value to numerate and print title
-    # and also use the note id in callback data
-    text = (
-        f"👋 <b>Hello, {user.mention_html()}</b>!\n\n"
-        f"📊 <b>Your Total Notes Count:</b> {all_note_count}\n\n"
-        f"📝 Use the buttons below to View & Edit Your Notes.👇🏼👇🏼👇🏼"
+    text_with_button = all_notes_button_text(how_many_note=all_note_count, user=user)
+
+    notes_buttons = make_all_note_buttons(
+        some_notes=some_notes, how_many_note=all_note_count
     )
 
-    all_buttons: list[list[InlineKeyboardButton]] = []
-
-    for i, note_row in enumerate(
-        iterable=some_notes,
-        start=1,
-    ):
-        title = f"{i}. {note_row.note_title}"
-        note_id = f"{note_row.note_id}"
-
-        button_row = [
-            InlineKeyboardButton(
-                text=title,
-                callback_data=note_id,
-            )
-        ]
-        all_buttons.append(button_row)
-
-    # The Below logic is when the button numbers are greater than notes per page
-    # Then it will have end button else next page button
-
-    if all_note_count > NOTES_PER_PAGE:
-        # As this is the starting of the note lists send, so it means it will be start
-        # from current page as 1, and nextpage value will be used in the button pressed
-
-        current_page = 1
-        next_page = current_page + 1
-
-        # Send next page number in query.data
-        next_button = [
-            InlineKeyboardButton(
-                text=f"More Notes (Go To Page No. {next_page}) →",
-                callback_data=f"notes_page_{next_page}",
-            )
-        ]
-        all_buttons.append(next_button)
-
-    else:
-        end_button = [
-            InlineKeyboardButton(
-                text="📄 No More Notes",
-                callback_data=f"no_more_notes_{all_note_count}",
-            )
-        ]
-        all_buttons.append(end_button)
-        # when this upper button will be pressed it will just let the
-        # user known that the not more note left in a pop up message
-
     await msg.reply_html(
-        text=text,
-        reply_markup=InlineKeyboardMarkup(all_buttons),
+        text=text_with_button,
+        reply_markup=InlineKeyboardMarkup(notes_buttons),
         do_quote=True,
     )
 
