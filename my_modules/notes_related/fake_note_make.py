@@ -117,7 +117,7 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     await msg.reply_document(
         document=file_path,
-        filename=f"Fake Note",
+        filename=f"FakeNote_{file_path.name}",
         caption=caption_text,
         parse_mode=ParseMode.HTML,
     )

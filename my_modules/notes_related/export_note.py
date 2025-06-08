@@ -9,9 +9,15 @@ from pathlib import Path
 
 from telegram import Update
 from telegram import User, Message
+
+from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
+from my_modules.database_code import db_functions
+from my_modules.database_code.database_make import engine
 from my_modules.database_code.models_table import NotePart
+
+
 from my_modules.logger_related import RanaLogger
 
 from my_modules.rana_needed_things import make_footer_text
@@ -73,12 +79,62 @@ async def export_note_button(
     )
 
 
-async def export_note_txt(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def export_note_as_txt_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     When User will press the button for export his note as txt
     This will execute.
     Callback Data:- `export_note_txt_`
-
     """
 
-    ...
+    msg = update.effective_message
+    user = update.effective_user
+
+    if msg is None or user is None:
+        RanaLogger.warning("Export Txt Note Button must has the msg and user")
+        return None
+
+    query = update.callback_query
+    if query is None or query.data is None:
+        RanaLogger.warning("Export Note as txt button must has the query and its data")
+        return None
+
+    note_id = query.data.removeprefix("export_note_txt_")
+
+    note_row = db_functions.note_obj_from_note_id(
+        engine=engine,
+        note_id=note_id,
+    )
+
+    if note_row is None:
+        text = (
+            f"🚫 <b>Note Not Accessible</b>\n\n"
+            f"😢 This note is no longer available.\n"
+            f"It might have been <b>deleted</b> or "
+            f"there was an <b>unexpected issue</b>.\n\n"
+            f"📌 Try checking your other notes using /all_notes."
+        )
+        await msg.reply_html(text)
+        return None
+
+    # Below line executes means Note_row is available
+
+    if note_row.user_id != user.id:
+        RanaLogger.warning(
+            "The user who pressed the button for export note "
+            "his user id is not own the note owner, "
+            "maybe this is a issue as i cannot think properly."
+        )
+        return None
+
+    file_path = make_txt_file_from_note(note_obj=note_row, user=user, msg=msg)
+    caption_text = f"This Is Your Note as TXT File."
+
+    await query.answer(f"Note Exported Successfully")
+    await msg.reply_document(
+        document=file_path,
+        filename=f"ExportedNote_{file_path.name}",
+        caption=caption_text,
+        parse_mode=ParseMode.HTML,
+    )
+
+    file_path.unlink(missing_ok=True)
