@@ -614,8 +614,9 @@ async def confirm_note_del_button(
             "Confirm Delete Note button pressed but no callback data found."
         )
         return None
+    # await query.answer("Your Request is in Processing ...")
 
-    note_id = query.data.replace("note_del_confirm_", "")
+    note_id = query.data.removeprefix("note_del_confirm_")
 
     waiting_text = (
         f"⏳ Deleting your note...\n"
@@ -625,11 +626,8 @@ async def confirm_note_del_button(
     )
 
     msg_waiting = await msg.reply_html(waiting_text)
-    # msg_waiting = await query.edit_message_text(waiting_text)
 
-    await query.answer("Your Request is in Processing ...")
-
-    RanaLogger.warning(
+    RanaLogger.info(
         f"{user.full_name} want to delete the note id of: "
         f"{note_id} by pressing the confirm button attached with the note view"
     )
@@ -687,29 +685,23 @@ async def confirm_note_del_button(
         ]
 
         await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(button))
-        # old_text = query.message
-        # await query.edit_message_text()
         return None
 
     else:
 
         RanaLogger.warning(
-            f"I wish This should not happens because delete fun has been run for notes."
+            f"When the note id is ok and user id is matched, then it should delete the note "
+            "i dont understand maybe some inner problem is happening in db."
         )
         text = (
             f"{waiting_text}\n\n"
             "⚠️ <b>Deletion Failed</b>\n\n"
             "Something went wrong while trying to delete your note.\n"
-            "Please try again later or use <b>/help</b> to contact support. 🛠️"
+            "Please try again later or use <b>/help</b> to contact support. 🛠️ "
+            "Please Send Proper Screenshots."
         )
 
-        # await query.edit_message_text(text=text, parse_mode=ParseMode.HTML)
-        # await msg.reply_html(text)
         await msg_waiting.edit_text(text, parse_mode=ParseMode.HTML)
-        await msg_waiting.edit_text(
-            "It not delete means some internal problem is there."
-        )
-
         return None
 
 

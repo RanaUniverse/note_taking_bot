@@ -192,12 +192,24 @@ def new_note_make_successfull_buttons(note_id: str) -> list[list[InlineKeyboardB
     """When new note has been saved this buttons will shows there"""
     buttons = [
         [
-            InlineKeyboardButton("View Note", callback_data=f"view_{note_id}"),
-            InlineKeyboardButton("Export This", callback_data=f"export_{note_id}"),
+            InlineKeyboardButton(
+                "View Note",
+                callback_data=f"view_{note_id}",
+            ),
+            InlineKeyboardButton(
+                "Export This",
+                callback_data=f"export_{note_id}",
+            ),
         ],
         [
-            InlineKeyboardButton("Delete Note", callback_data=f"delete_{note_id}"),
-            InlineKeyboardButton("Share Note", callback_data=f"share_{note_id}"),
+            InlineKeyboardButton(
+                "Delete Note",
+                callback_data=f"delete_{note_id}",
+            ),
+            InlineKeyboardButton(
+                "Share Note",
+                callback_data=f"share_{note_id}",
+            ),
         ],
     ]
     return buttons
