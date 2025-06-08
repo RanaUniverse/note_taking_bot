@@ -155,3 +155,57 @@ async def export_note_as_txt_file(update: Update, context: ContextTypes.DEFAULT_
     )
 
     file_path.unlink(missing_ok=True)
+
+
+async def export_note_as_pdf_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    When User presses the button to export their note as a PDF,
+    this function will be called.
+
+    Callback Data:- `export_note_pdf_`
+    """
+
+    msg = update.effective_message
+    user = update.effective_user
+
+    if msg is None or user is None:
+        RanaLogger.warning("Export PDF Note Button must have the msg and user")
+        return None
+
+    query = update.callback_query
+    if query is None or query.data is None:
+        RanaLogger.warning("Export Note as PDF button must have the query and its data")
+        return None
+
+    note_id = query.data.removeprefix("export_note_pdf_")
+
+    note_row = db_functions.note_obj_from_note_id(
+        engine=engine,
+        note_id=note_id,
+    )
+
+    if note_row is None:
+        text = (
+            f"🚫 <b>Note Not Accessible</b>\n\n"
+            f"😢 This note is no longer available.\n"
+            f"It might have been <b>deleted</b> or "
+            f"there was an <b>unexpected issue</b>.\n\n"
+            f"📌 Try checking your other notes using /all_notes."
+        )
+        await msg.reply_html(text)
+        return None
+
+    if note_row.user_id != user.id:
+        RanaLogger.warning(
+            "User trying to export a note they don't own. "
+            "Potential issue or misuse attempt."
+        )
+        return None
+
+    await query.answer("Coming Soon!")
+    await msg.reply_html(
+        "<b>📄 Export as PDF</b>\n\n"
+        "🛠 This feature is not available yet.\n"
+        "🚧 It will be added in a future update. Stay tuned!"
+    )
+

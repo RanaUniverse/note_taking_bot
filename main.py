@@ -285,6 +285,13 @@ def main() -> None:
     )
 
     application.add_handler(
+        CallbackQueryHandler(
+            callback=export_note.export_note_as_pdf_file,
+            pattern=r"^export_note_pdf_.*$",
+        )
+    )
+
+    application.add_handler(
         CommandHandler(
             command="delete_note",
             callback=delete_note.delete_note_one_arg,
