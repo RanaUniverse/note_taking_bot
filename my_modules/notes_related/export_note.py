@@ -4,6 +4,8 @@ Here i will write code which will able and help me to export a note
     export_note_pdf_
 """
 
+from datetime import datetime
+
 from pathlib import Path
 
 
@@ -28,7 +30,12 @@ from my_modules.some_constants import BotSettingsValue
 TEMPORARY_FOLDER_NAME = BotSettingsValue.FOLDER_NOTE_TEM_NAME.value
 
 
-def make_txt_file_from_note(note_obj: NotePart, user: User, msg: Message) -> Path:
+def make_txt_file_from_note(
+    note_obj: NotePart,
+    user: User,
+    msg: Message,
+    use_corrent_time: bool = False,
+) -> Path:
     """
     This will generate the txt file with also footer and so on
     this is good for now, i want to use this for single
@@ -46,7 +53,11 @@ def make_txt_file_from_note(note_obj: NotePart, user: User, msg: Message) -> Pat
     )
 
     full_text = note_description + make_footer_text(user, msg)
-    filename = f"user_id_{user.id}_time_{int(msg.date.timestamp())}.txt"
+
+    timestamp = datetime.now() if use_corrent_time else msg.date
+    readable_time = timestamp.strftime("%Y-%m-%d_%H_%M_%S")
+
+    filename = f"time_{readable_time}.txt"
     file_dir = Path.cwd() / TEMPORARY_FOLDER_NAME
     file_dir.mkdir(parents=True, exist_ok=True)
     file_path = file_dir / filename
@@ -126,7 +137,13 @@ async def export_note_as_txt_file(update: Update, context: ContextTypes.DEFAULT_
         )
         return None
 
-    file_path = make_txt_file_from_note(note_obj=note_row, user=user, msg=msg)
+    file_path = make_txt_file_from_note(
+        note_obj=note_row,
+        user=user,
+        msg=msg,
+        use_corrent_time=True,
+    )
+
     caption_text = f"This Is Your Note as TXT File."
 
     await query.answer(f"Note Exported Successfully")
