@@ -292,6 +292,20 @@ def main() -> None:
     )
 
     application.add_handler(
+        CallbackQueryHandler(
+            callback=export_note.share_note_coming_soon,
+            pattern=r"^share_note_.*$",
+        )
+    )
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=export_note.duplicate_note_coming_soon,
+            pattern=r"^duplicate_note_.*$",
+        )
+    )
+
+    application.add_handler(
         CommandHandler(
             command="delete_note",
             callback=delete_note.delete_note_one_arg,

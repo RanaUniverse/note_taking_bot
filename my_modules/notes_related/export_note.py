@@ -209,3 +209,101 @@ async def export_note_as_pdf_file(update: Update, context: ContextTypes.DEFAULT_
         "🚧 It will be added in a future update. Stay tuned!"
     )
 
+
+# this fun need to be in a good module
+async def share_note_coming_soon(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Placeholder for future 'Share Note' feature.
+    Callback Data: 'share_note_<note_id>'
+    """
+
+    msg = update.effective_message
+    user = update.effective_user
+
+    if msg is None or user is None:
+        RanaLogger.warning("Share Note Button must have the msg and user")
+        return None
+
+    query = update.callback_query
+    if query is None or query.data is None:
+        RanaLogger.warning("Share Note button must have the query and its data")
+        return None
+
+    note_id = query.data.removeprefix("share_note_")
+
+    note_row = db_functions.note_obj_from_note_id(
+        engine=engine,
+        note_id=note_id,
+    )
+
+    if note_row is None:
+        text = (
+            f"🚫 <b>Note Not Accessible</b>\n\n"
+            f"😢 This note is no longer available.\n"
+            f"It might have been <b>deleted</b> or "
+            f"there was an <b>unexpected issue</b>.\n\n"
+            f"📌 Try checking your other notes using /all_notes."
+        )
+        await msg.reply_html(text)
+        return None
+
+    if note_row.user_id != user.id:
+        RanaLogger.warning("User tried to share a note they do not own.")
+        return None
+
+    await query.answer("Coming Soon!")
+    await msg.reply_html(
+        "<b>🔗 Share Note</b>\n\n"
+        "🚧 This feature is not available yet.\n"
+        "✨ It will be added in a future update. Stay tuned!"
+    )
+
+
+async def duplicate_note_coming_soon(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+):
+    """
+    Placeholder for future 'Duplicate Note' feature.
+    Callback Data: 'duplicate_note_<note_id>'
+    """
+
+    msg = update.effective_message
+    user = update.effective_user
+
+    if msg is None or user is None:
+        RanaLogger.warning("Duplicate Note Button must have the msg and user")
+        return None
+
+    query = update.callback_query
+    if query is None or query.data is None:
+        RanaLogger.warning("Duplicate Note button must have the query and its data")
+        return None
+
+    note_id = query.data.removeprefix("duplicate_note_")
+
+    note_row = db_functions.note_obj_from_note_id(
+        engine=engine,
+        note_id=note_id,
+    )
+
+    if note_row is None:
+        text = (
+            f"🚫 <b>Note Not Accessible</b>\n\n"
+            f"😢 This note is no longer available.\n"
+            f"It might have been <b>deleted</b> or "
+            f"there was an <b>unexpected issue</b>.\n\n"
+            f"📌 Try checking your other notes using /all_notes."
+        )
+        await msg.reply_html(text)
+        return None
+
+    if note_row.user_id != user.id:
+        RanaLogger.warning("User tried to duplicate a note they do not own.")
+        return None
+
+    await query.answer("Coming Soon!")
+    await msg.reply_html(
+        "<b>📋 Duplicate Note</b>\n\n"
+        "🚧 This feature is not available yet.\n"
+        "✨ It will be added in a future update. Stay tuned!"
+    )
