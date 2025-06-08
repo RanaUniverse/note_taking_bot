@@ -272,8 +272,15 @@ def main() -> None:
     # After a note del successfull, this is just a button
     application.add_handler(
         CallbackQueryHandler(
-            callback=search_notes.note_deleted_already_button,
+            callback=delete_note.note_deleted_already_button,
             pattern="note_deleted_already",
+        )
+    )
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=delete_note.note_del_cancel_button,
+            pattern="cancel_del",
         )
     )
 

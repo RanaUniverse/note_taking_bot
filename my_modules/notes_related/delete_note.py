@@ -386,3 +386,62 @@ async def confirm_note_del_button(
 
         await msg_waiting.edit_text(text, parse_mode=ParseMode.HTML)
         return None
+
+
+async def note_del_cancel_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Callback Data: `cancel_del`
+    When user choose he dont want to delete his note this callback
+    data will come and it will just say nothing now.
+    """
+    msg = update.effective_message
+    user = update.effective_user
+
+    if msg is None or user is None:
+        RanaLogger.warning(
+            f"When user choose not to delte his note in a button "
+            "The cancel_del data will should has the information of msg and user"
+        )
+        return None
+
+    query = update.callback_query
+
+    if query is None or query.data is None:
+        RanaLogger.warning(
+            f"When user choose not to delte his note by "
+            "cancel_del callback data must be present"
+        )
+        return None
+
+    text = (
+        "This message will not delete, "
+        "maybe here is some problem can happens when note has alreayd delete, "
+        "i need to refactor this little."
+    )
+
+    await query.edit_message_text(
+        text=text,
+        parse_mode=ParseMode.HTML,
+    )
+
+
+async def note_deleted_already_button(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    Callback Data: note_deleted_already
+    When user press the buttton it will just say it got deleted
+    """
+    query = update.callback_query
+
+    if query is None or query.data is None:
+        RanaLogger.warning(
+            "already note deleted button pressed but no callback data found."
+        )
+        return
+
+    text = f"Note Already Deleted 😁😁😁"
+    await query.answer(
+        text=text,
+        show_alert=True,
+    )

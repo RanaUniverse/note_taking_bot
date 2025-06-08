@@ -509,7 +509,6 @@ async def handle_edit_note_button(
     await msg.reply_html(text)
 
 
-
 async def handle_transfer_note_button(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
@@ -536,26 +535,5 @@ async def handle_duplicate_note_button(
 
     await query.answer(
         text="📋 Duplicate Note feature will be added in future update. 🚧",
-        show_alert=True,
-    )
-
-
-async def note_deleted_already_button(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
-    """
-    When user press the buttton it will just say it got deleted
-    """
-    query = update.callback_query
-
-    if query is None or query.data is None:
-        RanaLogger.warning(
-            "already note deleted button pressed but no callback data found."
-        )
-        return
-
-    text = f"Note Already Deleted 😁😁😁"
-    await query.answer(
-        text=text,
         show_alert=True,
     )
