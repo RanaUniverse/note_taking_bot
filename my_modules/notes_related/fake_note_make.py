@@ -4,8 +4,6 @@ This will make a fake note and insert in the database
 """
 
 import asyncio
-from pathlib import Path
-
 
 from faker import Faker
 
@@ -22,7 +20,7 @@ from my_modules.database_code.models_table import NotePart
 
 from my_modules.logger_related import RanaLogger
 
-from my_modules.rana_needed_things import make_footer_text
+from my_modules.notes_related.export_note import make_txt_file_from_note
 
 from my_modules.some_constants import BotSettingsValue
 
@@ -115,28 +113,11 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         f"📂 View them with /all_notes or /my_notes\n"
     )
 
-    note_description = (
-        f"📝 Title:\n"
-        f"{note_row.note_title}"
-        f"\n\n\n"
-        f"📄 Content:\n"
-        f"{note_row.note_content}"
-        f"\n\n\n"
-        f"Note ID: {note_row.note_id}"
-    )
-
-    # the file's directory i am checking in each time this fun run, so i need to adjust this
-
-    full_text = note_description + make_footer_text(user, msg)
-    filename = f"user_id_{user.id}_time_{int(msg.date.timestamp())}.txt"
-    file_dir = Path.cwd() / TEMPORARY_FOLDER_NAME
-    file_path = file_dir / filename
-    file_dir.mkdir(parents=True, exist_ok=True)
-    file_path.write_text(full_text)
+    file_path = make_txt_file_from_note(note_obj=note_row, user=user, msg=msg)
 
     await msg.reply_document(
         document=file_path,
-        filename=f"Fake Note {filename}",
+        filename=f"Fake Note",
         caption=caption_text,
         parse_mode=ParseMode.HTML,
     )
