@@ -257,14 +257,14 @@ def main() -> None:
     # Below is asking user for a confirmation with a new button not conversation
     application.add_handler(
         CallbackQueryHandler(
-            callback=search_notes.handle_delete_note_button,
+            callback=delete_note.handle_delete_note_button,
             pattern=r"^delete_note_.*$",
         )
     )
 
     application.add_handler(
         CallbackQueryHandler(
-            callback=search_notes.confirm_note_del_button,
+            callback=delete_note.confirm_note_del_button,
             pattern="^note_del_confirm_.*",
         )
     )

@@ -228,25 +228,29 @@ def generate_view_note_buttons(note_id: str) -> list[list[InlineKeyboardButton]]
                 callback_data=f"edit_note_{note_id}",
             ),
             InlineKeyboardButton(
-                text="🗑️ Delete Note 🟩",
+                text="🗑️ Delete Note 🟥",
                 callback_data=f"delete_note_{note_id}",
             ),
         ],
         [
             InlineKeyboardButton(
-                text="🔄 Transfer Ownership ❌❌❌",
-                callback_data=f"transfer_note_{note_id}",
+                text="🔗 Share Note 📤",
+                callback_data=f"share_note_{note_id}",
             ),
             InlineKeyboardButton(
-                text="📋 Duplicate Note ❌❌❌",
+                text="📋 Duplicate Note 🧬",
                 callback_data=f"duplicate_note_{note_id}",
             ),
         ],
         [
             InlineKeyboardButton(
-                text="📄 Export Note As TXT",
+                text="📄 Export as TXT 🗒️",
                 callback_data=f"export_note_txt_{note_id}",
-            )
+            ),
+            InlineKeyboardButton(
+                text="📤 Export as PDF 🧾",
+                callback_data=f"export_note_pdf_{note_id}",
+            ),
         ],
     ]
     return buttons
