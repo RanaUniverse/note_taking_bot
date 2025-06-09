@@ -188,6 +188,35 @@ keyboard_user_info = [
 ]
 
 
+# when /del_note come it will just a demo keyboard to shows
+keyboard_for_del_note = [
+    [
+        InlineKeyboardButton(
+            text="🗒️ All Notes",
+            callback_data="my_all_notes",
+        ),
+    ],
+    [
+        InlineKeyboardButton(
+            text="🔍 Search Note",
+            callback_data="search_note",
+        ),
+    ],
+    [
+        InlineKeyboardButton(
+            text="🗑️ Delete My All Notes",
+            callback_data="delete_my_all_notes",
+        ),
+    ],
+    [
+        InlineKeyboardButton(
+            text="❓ Help Section",
+            callback_data="help_section",
+        ),
+    ],
+]
+
+
 def new_note_make_successfull_buttons(note_id: str) -> list[list[InlineKeyboardButton]]:
     """When new note has been saved this buttons will shows there"""
     buttons = [

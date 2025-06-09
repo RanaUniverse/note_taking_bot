@@ -20,6 +20,8 @@ from my_modules.database_code.database_make import engine
 
 from my_modules.database_code import db_functions
 
+from my_modules.some_inline_keyboards import keyboard_for_del_note
+
 
 async def delete_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
@@ -39,33 +41,6 @@ async def delete_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     if not context.args:
 
-        keyboard = [
-            [
-                InlineKeyboardButton(
-                    text="🗒️ All Notes",
-                    callback_data="my_all_notes",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    text="🔍 Search Note",
-                    callback_data="search_note",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    text="🗑️ Delete My All Notes",
-                    callback_data="delete_my_all_notes",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    text="❓ Help Section",
-                    callback_data="help_section",
-                ),
-            ],
-        ]
-
         reply_text = (
             "You Haven't Passed any Note Id as arg. "
             "To Delete Your Note, please provide your note id, \n"
@@ -75,7 +50,7 @@ async def delete_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
         await msg.reply_html(
             text=reply_text,
-            reply_markup=InlineKeyboardMarkup(keyboard),
+            reply_markup=InlineKeyboardMarkup(keyboard_for_del_note),
         )
 
     else:
@@ -218,7 +193,10 @@ async def delete_note_many_args(
         f"💡 Tip: Use /view_notes to find the correct Note ID before deleting."
     )
 
-    await msg.reply_html(text=text_many_args)
+    await msg.reply_html(
+        text=text_many_args,
+        reply_markup=InlineKeyboardMarkup(keyboard_for_del_note),
+    )
 
 
 async def handle_delete_note_button(
@@ -461,3 +439,35 @@ async def note_deleted_already_button(
         text=text,
         show_alert=True,
     )
+
+
+async def all_note_delete_button(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    When user want to delete all his note by pressing the button
+    Callback Data: delete_my_all_notes
+    """
+
+    user = update.effective_user
+    msg = update.effective_message
+    if user is None or msg is None:
+        RanaLogger.warning(
+            f"When user want to delete all his note by pressing this button "
+            f"so user and msg must present always"
+        )
+        return None
+
+    query = update.callback_query
+    if query is None or query.data is None:
+        RanaLogger.warning(
+            "When all note delete button pressed but no callback data found."
+        )
+        return None
+
+    await query.answer(
+        "All Note Del in same time is in Development...",
+        show_alert=True,
+    )
+
+    await query.edit_message_reply_markup()

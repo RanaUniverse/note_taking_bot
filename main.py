@@ -276,6 +276,13 @@ def main() -> None:
             pattern="note_deleted_already",
         )
     )
+    # This is currently think not fully understandable
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=delete_note.all_note_delete_button,
+            pattern="delete_my_all_notes",
+        )
+    )
 
     application.add_handler(
         CallbackQueryHandler(
