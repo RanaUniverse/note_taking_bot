@@ -37,23 +37,45 @@ async def delete_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         )
         return None
 
-    print(context.args)
-
     if not context.args:
+
         keyboard = [
             [
-                InlineKeyboardButton("View All Notes", callback_data="my_all_notes"),
-                InlineKeyboardButton("Help", callback_data="help"),
-            ]
+                InlineKeyboardButton(
+                    text="🗒️ All Notes",
+                    callback_data="my_all_notes",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔍 Search Note",
+                    callback_data="search_note",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🗑️ Delete My All Notes",
+                    callback_data="delete_my_all_notes",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="❓ Help Section",
+                    callback_data="help_section",
+                ),
+            ],
         ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await msg.reply_html(
-            "⚠️ <b>Missing Note ID!</b>\n\n"
-            "To delete a note, please provide its unique Note ID.\n"
+
+        reply_text = (
+            "You Haven't Passed any Note Id as arg. "
+            "To Delete Your Note, please provide your note id, \n"
             "Usage: <code>/delete_note &lt;note_id&gt;</code>\n\n"
-            # "Usage: <code>/delete_note <note_id> </code>\n\n"
-            "You can also view your saved notes to find the correct ID, then come back and delete it. 👇",
-            reply_markup=reply_markup,
+            "You Can also see the buttons and delete the notes from there."
+        )
+
+        await msg.reply_html(
+            text=reply_text,
+            reply_markup=InlineKeyboardMarkup(keyboard),
         )
 
     else:
@@ -64,8 +86,7 @@ async def delete_note_one_arg(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """
-    This is very careful function as by the note id it will
-    delete the note permentatly.
+    Assume the note_id has passed as context.args when this fun triggers
     When user will send /delete_note without any args it will execute
     and it will say user to pass the correct note id and how to use.
     """
@@ -92,7 +113,8 @@ async def delete_note_one_arg(
             "⚠️ <b>Missing Note ID!</b>\n\n"
             "To delete a note, please provide its unique Note ID.\n"
             "Usage: <code>/delete_note &lt;note_id&gt;</code>\n\n"
-            "You can also browse your notes using the available options and find the Note ID easily. 📚"
+            "You can also browse your notes(/my_notes) using the available "
+            "options and find the Note ID easily. 📚"
         )
 
         await msg.reply_html(text=text_error)
@@ -109,7 +131,8 @@ async def delete_note_one_arg(
     if note_row is None:
         safe_note_id = html.escape(note_id)
         text = (
-            f"🚫 The Note ID You provided (<code>{safe_note_id}</code>) seems to be invalid.\n\n"
+            f"🚫 The Note ID You provided (<code>{safe_note_id}</code>) "
+            f"seems to be invalid.\n\n"
             f"Please double-check the ID.\n"
             f"You can:\n"
             f"• Search your notes 📖\n"
@@ -126,10 +149,10 @@ async def delete_note_one_arg(
 
     if user.id != owner_id:
         text = (
-            "🚫 <b>Access Denied!</b>\n\n"
-            "This note does not belong to your account, so you cannot delete it.\n"
-            "Only the original note creator has the permission to delete it."
-            f"If You you think you r the owner pls bug report at /help"
+            "🚫 <b>Access Denied</b>\n\n"
+            "You cannot delete this note because it does not belong to your account.\n"
+            "Only the original creator of the note has permission to delete it.\n\n"
+            "If you believe this is a mistake, please report the issue via /help."
         )
 
         await msg.reply_html(text)
@@ -145,11 +168,12 @@ async def delete_note_one_arg(
 
     if deletion_confirmation:
         note_del_confirm = (
+            f"Note Title Was:-\n"
+            f"<s>{note_row.note_title}</s>\n"
             "✅ <b>Note Deleted!</b>\n\n"
             "Your note has been successfully removed from the database. 🗑️\n"
             "If it was deleted by mistake, sadly, there's no going back 😢"
             f"\n\n"
-            f"Title Was:- <s>{note_row.note_title}</s>"
         )
 
         await msg.reply_html(note_del_confirm)
@@ -162,7 +186,7 @@ async def delete_note_one_arg(
         text = (
             "⚠️ <b>Deletion Failed</b>\n\n"
             "Something went wrong while trying to delete your note.\n"
-            "Please try again later or use <b>/help</b> to contact support. 🛠️"
+            "Please try again later or use <b>/help</b> to contact support with screenshots. 🛠️"
         )
 
         await msg.reply_html(text)
@@ -413,16 +437,8 @@ async def note_del_cancel_button(update: Update, context: ContextTypes.DEFAULT_T
         )
         return None
 
-    text = (
-        "This message will not delete, "
-        "maybe here is some problem can happens when note has alreayd delete, "
-        "i need to refactor this little."
-    )
-
-    await query.edit_message_text(
-        text=text,
-        parse_mode=ParseMode.HTML,
-    )
+    # For now this will just remove the buttons when this is pressed
+    await query.edit_message_reply_markup()
 
 
 async def note_deleted_already_button(

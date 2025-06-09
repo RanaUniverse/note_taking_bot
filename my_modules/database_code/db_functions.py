@@ -144,8 +144,10 @@ def delete_note_obj(
             note_row = results.first()
 
             if note_row is None:
-                print(
-                    "Note Row is not present this, should not happens, it can happens when user trying to remove a note which user_id got changed"
+                RanaLogger.warning(
+                    f"The Note Row Not Found,maybe the user_id or note_id got changed "
+                    "maybe this has some issue i dont know now, when user "
+                    "run the fun to delete the row note."
                 )
                 return False
 
