@@ -6,11 +6,12 @@ from telegram import Update
 
 from telegram.ext import ContextTypes
 
+from my_modules import bot_config_settings
+from my_modules import message_templates
 from my_modules.logger_related import RanaLogger
-from my_modules.some_constants import BotSettingsValue
 
 
-GROUP_LINK = BotSettingsValue.GROUP_LINK.value
+GROUP_LINK = bot_config_settings.GROUP_LINK
 
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -20,25 +21,19 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
 
     user = update.effective_user
+    msg = update.effective_message
 
     if user is None:
         RanaLogger.warning("This user need to be there")
         return
 
-    if update.effective_message is None:
+    if msg is None:
         RanaLogger.warning(f"Message need to be there.")
         return
 
-    text = (
-        "🤖 <b>Bot Help Guide</b>\n\n"
-        "Hello! 👋\n\n"
-        "I'm here to assist you. Here's what you can do:\n\n"
-        "• <b>/start</b> – Initiate a conversation with the bot.\n"
-        "• <b>/help</b> – Display this help message.\n"
-        "• <b>/contact</b> – Reach out to the administrator for further assistance.\n\n"
-        "Feel free to explore and let me know if you need any help!"
-    )
-    await update.effective_message.reply_html(text)
+    help_text = message_templates.help_cmd_text()
+
+    await msg.reply_html(text=help_text)
 
 
 async def help_cmd_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -57,11 +52,6 @@ async def help_cmd_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         RanaLogger.warning("Message is required for group /help.")
         return
 
-    text = (
-        f"You have send /help in a group message publically to others. "
-        f"⚠️ <b>Sorry, this bot is not available for use in groups at the moment.</b>\n\n"
-        f"💡 However, you can join our <b>Main Group</b> for discussions and support:\n"
-        f"👉 <a href='https://t.me/{GROUP_LINK}'>Join Main Group</a>"
-    )
+    text = message_templates.help_cmd_from_group_text(group_link=GROUP_LINK)
 
     await update.effective_message.reply_html(text)

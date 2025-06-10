@@ -81,6 +81,45 @@ def deeplink_simple_group_start_text(group_id: int | str) -> str:
     return text
 
 
+def help_cmd_text() -> str:
+    """
+    When /help will come normal string it will send
+    """
+    help_text = (
+        "🤖 <b>Welcome to the Bot Help Guide</b>\n\n"
+        "Hello there! 👋\n"
+        "I'm here to assist you with various commands and features.\n\n"
+        "<b>📌 Available Commands:</b>\n\n"
+        "• <b>/start</b>\n"
+        "  └─ Start a new conversation with the bot. Useful if you’re here for the first time!\n\n"
+        "• <b>/contact</b>\n"
+        "  └─ Need assistance? Use this to get in touch with the administrator directly.\n\n"
+        "<b>💡 Tips:</b>\n"
+        "• Try typing commands in the chat to explore more features.\n"
+        "• You can interact with buttons (if available) for quicker access.\n\n"
+        "📢 <i>More commands and features coming soon. Stay connected!</i>\n\n"
+        "<b>Thank you for using the bot 💙</b>"
+    )
+    return help_text
+
+
+def help_cmd_from_group_text(group_link: str) -> str:
+    """
+    It will take the group link and just say a normal help message
+    just not special just to say only
+    """
+    text = (
+        "⚠️ <b>This bot is not available for use in group chats.</b>\n\n"
+        "To access all features and interact with the bot, "
+        "please send commands in a <b>private chat</b>.\n\n"
+        "💬 For community discussions or support, feel free to "
+        "join our official group:\n"
+        f"👉 <a href='https://t.me/{group_link}'>Join the Main Group</a>\n\n"
+        "Thank you for understanding!"
+    )
+    return text
+
+
 def prompt_user_to_register(user: User) -> str:
     """
     When user is not register
