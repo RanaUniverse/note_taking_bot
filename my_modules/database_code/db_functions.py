@@ -184,3 +184,29 @@ def add_point_to_user_obj(
         session.refresh(user_row)
 
         return user_row
+
+
+def add_one_note_and_update_the_user(
+    engine: Engine,
+    user_row: UserPart,
+    note_row: NotePart,
+) -> NotePart:
+    """
+    I will pass the note obj and user obj, so that i can use this
+    funcions in other place to create any note.
+    This will also refresh the note_row and user_row value, 
+    and after run this fun the old variable will be updated value.
+    """
+
+    with Session(engine) as session:
+
+        user_row.points -= 1
+        user_row.note_count += 1
+        note_row.user = user_row
+
+        session.add(note_row)
+        session.commit()
+        session.refresh(note_row)
+        session.refresh(user_row)
+
+    return note_row

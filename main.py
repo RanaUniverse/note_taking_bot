@@ -207,6 +207,7 @@ def main() -> None:
     )
 
     # i twill just make one note and show user the note informaiton back to user
+    # /fake_note will make one fake note and shows this note.
     application.add_handler(
         CommandHandler(
             command=["fake_note"],

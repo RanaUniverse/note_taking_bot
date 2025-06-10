@@ -22,8 +22,6 @@ it will ask for note title and content, and it will save those in the database
 
 """
 
-from sqlmodel import Session
-
 from telegram import Update
 from telegram import InlineKeyboardMarkup
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
@@ -38,36 +36,82 @@ from telegram.ext import (
     MessageHandler,
 )
 
+from my_modules import bot_config_settings
+from my_modules import message_templates
+
 from my_modules.database_code.database_make import engine
 from my_modules.database_code.models_table import NotePart
 from my_modules.database_code import db_functions
 
 from my_modules.logger_related import RanaLogger
 
-from my_modules.some_inline_keyboards import new_note_make_successfull_buttons
+from my_modules.some_inline_keyboards import generate_view_note_buttons
+
 from my_modules.some_reply_keyboards import yes_no_reply_keyboard
-from my_modules.some_constants import BotSettingsValue
 
 
 # From Below My Code Logic will start Soon.
 
 
-MAX_TITLE_LEN = BotSettingsValue.MAX_TITLE_LEN.value
-MAX_CONTENT_LEN = BotSettingsValue.MAX_CONTENT_LEN.value
+MAX_TITLE_LEN = bot_config_settings.MAX_TITLE_LEN
+MAX_CONTENT_LEN = bot_config_settings.MAX_CONTENT_LEN
 
 
 TITLE, CONTENT, CONFIRMATION = range(3)
 
 
+async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """
+    Command: `/new_note`
+    Text: "Make New Note"
+    When This will come it will start the conversation
+    So that it will ask for title & progressing.
+    This will come from Direct Message & Privately also not any argument.
+    """
+
+    user = update.effective_user
+    msg = update.effective_message
+
+    if user is None:
+        RanaLogger.warning("for /new_note the user should be present.")
+        return ConversationHandler.END
+
+    if msg is None:
+        RanaLogger.warning(f"For this /new_note the update.message is must, why not")
+        return ConversationHandler.END
+
+    user_row = db_functions.user_obj_from_user_id(engine, user.id)
+
+    if user_row is None:
+        no_register_text = message_templates.prompt_user_to_register(user)
+        await msg.reply_html(text=no_register_text)
+        return ConversationHandler.END
+
+    # This line comes to executes means user row is available.
+
+    user_points = user_row.points
+
+    if user_points <= 0:
+        text_no_point = message_templates.user_has_no_valid_points(user)
+        await msg.reply_html(text=text_no_point)
+        return ConversationHandler.END
+
+    # Below part is for when user has sufficient points and he is going to make
+    # new note lets return him to a states for later input from user
+
+    text = message_templates.new_note_title_ask(user, user_points)
+    await msg.reply_html(text=text)
+
+    return TITLE
+
+
 async def new_note_button_press(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> int:
     """
-    When the button whose callbacak data is to make new note
-    will be trigger this function
-
+    When User Want to make new note by pressing the button.
         InlineKeyboardButton("📝 New Note ✅", callback_data="new_note_making"),
-    This upper is one of the button which is pressed for this.
     """
 
     user = update.effective_user
@@ -82,27 +126,20 @@ async def new_note_button_press(
         return ConversationHandler.END
 
     query = update.callback_query
-
     if query is None or query.data is None:
         RanaLogger.warning("Note button pressed but no callback data found.")
         return ConversationHandler.END
 
     await query.answer(
-        text="📋 You are going to make new note, Please Follow The Steps Below 🚧",
+        text="📋 Please Follow The Steps Below To Make New Note 🚧",
         show_alert=True,
     )
 
     user_row = db_functions.user_obj_from_user_id(engine, user.id)
 
     if user_row is None:
-        text = (
-            f"Hello <b>{user.mention_html()}</b>, You Are Not Registered Yet 😢\n"
-            f"Please send /register_me and then come back to use this bot.\n"
-            f"Else Contact Customer Support /help."
-        )
-        await msg.reply_html(
-            text=text,
-        )
+        no_register_text = message_templates.prompt_user_to_register(user)
+        await msg.reply_html(text=no_register_text)
         return ConversationHandler.END
 
     # This line comes to execute means user row is available.
@@ -110,103 +147,14 @@ async def new_note_button_press(
     user_points = user_row.points
 
     if user_points <= 0:
-        text = (
-            f"You Have Finished All Your Points, Now You Cannot "
-            f"make new note until you add new points, /add_points followed by int.\n\n"
-            f"Example if you want 20 Token, <blockquote><code>/add_points 20</code></blockquote>"
-        )
-
-        await msg.reply_html(
-            text=text,
-        )
+        text_no_point = message_templates.user_has_no_valid_points(user)
+        await msg.reply_html(text=text_no_point)
         return ConversationHandler.END
 
     # Below part is for when user has sufficient points and he is going to make
     # new note lets return him to a states for later input from user
 
-    text = (
-        f"You are going to make new note by pressing the button... \n\n"
-        f"Hello {user.mention_html()}, You have <b>{user_points} Tokens.</b> 🎉\n"
-        f"Creating a note will deduct <b>1 Token</b>. ⚠️\n\n"
-        f"If you want not to make note now send, /cancel anytime\n\n"
-        f"📝 <b>Step 1:</b> Please send me the <b><u>Title of Your Note</u> below.👇👇👇</b>"
-    )
-
-    await msg.reply_html(text=text)
-
-    return TITLE
-
-
-async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """
-    This will come from Direct Message & Privately also not any argument
-    /new_note or "Make New Note"
-
-    This will return int, as this is entry point which return to one states
-    And the states will handle later things.
-    """
-
-    user = update.effective_user
-    msg = update.effective_message
-
-    if user is None:
-        RanaLogger.warning("for /new_note the user should be present.")
-        return ConversationHandler.END
-
-    if msg is None:
-        RanaLogger.warning(f"For this /new_note the update.message is must, why not")
-        return ConversationHandler.END
-
-    # with Session(engine) as session:
-    #     statement = select(UserPart).where(UserPart.user_id == user.id)
-    #     results = session.exec(statement)
-    #     user_row = results.first()
-
-    user_row = db_functions.user_obj_from_user_id(engine, user.id)
-
-    # This row can be None when user is not register in the database,
-    # in this case it will say him to /register,
-    # If user row exists > proceed with check points and
-    # allow him to ask for title and then content, at last it will reduce the point and save
-
-    if user_row is None:
-        text = (
-            f"Hello <b>{user.mention_html()}</b>, You Are Not Registered Yet 😢\n"
-            f"Please send /register_me and then come back to use this bot.\n"
-            f"Else Contact Customer Support /help."
-        )
-        await msg.reply_html(
-            text=text,
-        )
-        return ConversationHandler.END
-
-    # This line comes to executes means user row is available.
-
-    user_points = user_row.points
-
-    if user_points <= 0:
-        text = (
-            f"You Have Finished All Your Points, Now You Cannot "
-            f"make new note until you add new points, /add_points followed by int.\n\n"
-            f"Example if you want 20 Token, <blockquote><code>/add_points 20</code></blockquote>"
-        )
-
-        await msg.reply_html(
-            text=text,
-        )
-        return ConversationHandler.END
-
-    # Below part is for when user has sufficient points and he is going to make
-    # new note lets return him to a states for later input from user
-
-    text = (
-        f"You are making new note by sending /new_note or 'Make New Note'\n\n"
-        f"Hello {user.mention_html()}, You have <b>{user_points} Tokens.</b> 🎉\n"
-        f"Creating a note will deduct atleast <b>1 Token</b>. ⚠️\n\n"
-        f"If you want Exit Now send, /cancel anytime\n\n"
-        f"📝 <b>Step 1:</b> Please send me the <b><u>Title of Your Note</u> below.👇👇👇</b>"
-    )
-
+    text = message_templates.new_note_title_ask(user, user_points)
     await msg.reply_html(text=text)
 
     return TITLE
@@ -214,13 +162,13 @@ async def new_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
 async def get_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
-    This will only executes for now,
-    bot get a text only response only direct message not edited one.
+    The Only Way, when a user send text to save as note's title,
+    This will executes and it will take the note' title in a cache to use later.
     """
     msg = update.effective_message
 
     if msg is None:
-        RanaLogger.warning(f"Note title is text got so this should not happens")
+        RanaLogger.warning(f"Note title is text got so msg must present")
         return ConversationHandler.END
 
     user_msg = msg.text
@@ -230,21 +178,20 @@ async def get_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     # user_msg_html = msg.text_html
 
     if user_msg is None:
-        RanaLogger.warning(
-            f"This should be any value of text of msg obj in getting the title."
-        )
+        RanaLogger.warning(f"User New Note's Title must has some value not None.")
         return ConversationHandler.END
 
     if len(user_msg) > MAX_TITLE_LEN:
-        text = f"Please send short title in {MAX_TITLE_LEN} character total."
-        await msg.reply_html(text)
-        return ConversationHandler.END
+        title_exceed = message_templates.title_length_exceed_warning_text()
+
+        await msg.reply_html(text=title_exceed)
+        return TITLE
 
     else:
 
         if context.user_data is None:
             RanaLogger.warning(
-                f"User Data Must be a empty list atleast not none, when getting the title"
+                f"User Data Must be a empty list atleast not None, when getting the Title"
             )
             return ConversationHandler.END
 
@@ -253,13 +200,9 @@ async def get_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         context.user_data["note_title"] = user_msg
 
-        text = (
-            f"✅ <b>Great!</b> Your note title has been saved. 🎯\n"
-            f"📜 <b>Step 2:</b> Now, please send me the <u><b>Content</b> of your note</u>. 📝\n\n"
-            f"💡 Tip: You can send a long message, and I'll save it as your note content."
-        )
+        ask_for_content = message_templates.new_note_content_ask()
 
-        await msg.reply_html(text=text, do_quote=True)
+        await msg.reply_html(text=ask_for_content, do_quote=True)
 
         return CONTENT
 
@@ -272,7 +215,9 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     msg = update.effective_message
 
     if msg is None:
-        RanaLogger.warning("Note content should be text, this should not happen.")
+        RanaLogger.warning(
+            "In New Note Making, the Note Content getting the msg must present"
+        )
         return ConversationHandler.END
 
     user_msg = msg.text
@@ -283,37 +228,36 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         return ConversationHandler.END
 
     if len(user_msg) > MAX_CONTENT_LEN:
-        text = f"⚠️ Your note content is too long! Please keep it within {MAX_CONTENT_LEN} characters."
-        await msg.reply_html(text)
+        exceed_content = message_templates.content_length_exceed_warning_text()
+
+        await msg.reply_html(text=exceed_content)
+        return CONTENT
 
     if context.user_data is None:
         RanaLogger.warning(
-            "User data must not be None, should be at least an empty dictionary at time of content getting."
+            "User data must not be None, should be at least an "
+            "empty dictionary at time of content getting."
         )
         return ConversationHandler.END
 
     context.user_data["note_content"] = user_msg_html
 
-    text = (
-        f"✅ <b>Great!</b> Your note content has been saved. 🎯\n\n"
-        f"⚡ <b>Step 3:</b> Do you want to save this note permanently? Select <b>Yes</b> or <b>No</b>.\n\n"
-        f"💡 Tip: You can cancel anytime with /cancel."
+    ask_for_note_save = message_templates.new_note_save_ask()
+
+    in_keyboard_button = ReplyKeyboardMarkup(
+        keyboard=yes_no_reply_keyboard,
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        input_field_placeholder="Press Any Button Quickly",
     )
 
-    await msg.reply_html(
-        text=text,
-        reply_markup=ReplyKeyboardMarkup(
-            keyboard=yes_no_reply_keyboard,
-            resize_keyboard=True,
-            one_time_keyboard=True,
-            input_field_placeholder="Press Button Shortcut",
-        ),
-    )
+    await msg.reply_html(text=ask_for_note_save, reply_markup=in_keyboard_button)
     return CONFIRMATION
 
 
 async def note_confirmation_yes(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> int:
     """
     I separate this as when user will press /yes on confirmation it will executes.
@@ -341,7 +285,9 @@ async def note_confirmation_yes(
         return ConversationHandler.END
 
     if context.user_data is None:
-        RanaLogger.warning("This time user_data must be present as can think")
+        RanaLogger.warning(
+            "at note save confirmation yes, user_data " "must be present as can think"
+        )
         return ConversationHandler.END
 
     note_row = NotePart(
@@ -350,28 +296,18 @@ async def note_confirmation_yes(
         is_available=True,
     )
 
-    with Session(engine) as session:
+    db_functions.add_one_note_and_update_the_user(engine, user_row, note_row)
 
-        user_row.points -= 1
-        user_row.note_count +=1
-        note_row.user = user_row
+    # As the upper fun re value the variable, so this is just automatically
+    note_maked_text = message_templates.new_note_making_confirmation_yes(
+        note_obj=note_row,
+        user_balance=user_row.points,
+    )
 
-        session.add(note_row)
-        session.commit()
-        session.refresh(note_row)
-        session.refresh(user_row)
-
-        # i need to keep the text in the with block as otherwise i will get lazy operation problem
-        text = (
-            f"Your Note Has Been saved Successfully.\n"
-            f"Your Note Id is: <code>{note_row.note_id}</code>.\n"
-            f"New Balance is: {note_row.user.points}"
-        )
-
-    buttons_successfull_note = new_note_make_successfull_buttons(note_row.note_id)
+    buttons_successfull_note = generate_view_note_buttons(note_row.note_id)
 
     await msg.reply_html(
-        text,
+        text=note_maked_text,
         do_quote=True,
         reply_markup=InlineKeyboardMarkup(buttons_successfull_note),
     )
@@ -379,7 +315,8 @@ async def note_confirmation_yes(
 
 
 async def note_confirmation_no(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> int:
     """
     When user dont want to save his data at last it will be by
@@ -388,12 +325,11 @@ async def note_confirmation_no(
 
     user = update.effective_user
     msg = update.effective_message
-    if user is None:
-        RanaLogger.warning("Here a user should stay")
-        return ConversationHandler.END
 
-    if msg is None:
-        RanaLogger.warning(f"This must have a message")
+    if user is None or msg is None:
+        RanaLogger.warning(
+            "User or msg must present when user choose no in new note save"
+        )
         return ConversationHandler.END
 
     if context.user_data is None:
@@ -402,15 +338,68 @@ async def note_confirmation_no(
 
     context.user_data.clear()
 
-    text = (
-        f"Hello {user.name}, Your Note has not been saved. If You "
-        f"want to make new note, then pls Make new note in /new_note."
-    )
+    note_not_save = message_templates.new_note_making_confirmation_no(user=user)
 
     await msg.reply_html(
-        text,
+        text=note_not_save,
         do_quote=True,
         reply_markup=ReplyKeyboardRemove(),
+    )
+    return ConversationHandler.END
+
+
+async def note_confirmation_as_draft(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+):
+    """
+    When user will want to save his note by marking
+    Is Available: No
+    This will just save the note like this,
+    so That user will not avle to see note Right Now.
+    """
+    user = update.effective_user
+    msg = update.effective_message
+
+    if user is None or msg is None:
+        RanaLogger.warning(
+            "User or msg must present when user choose note as not available."
+        )
+        return ConversationHandler.END
+
+    if context.user_data is None:
+        RanaLogger.warning(
+            "at note save confirmation yes, user_data " "must be present as can think"
+        )
+        return ConversationHandler.END
+
+    user_row = db_functions.user_obj_from_user_id(engine, user.id)
+
+    if user_row is None:
+        RanaLogger.warning(
+            f"This should not happens as in entry point it check if "
+            f"user has register or not, it mans user is not"
+            " register in time of note saving draft."
+        )
+        return ConversationHandler.END
+
+    note_row = NotePart(
+        note_title=context.user_data.get("note_title", None),
+        note_content=context.user_data.get("note_content", None),
+        is_available=False,
+    )
+
+    db_functions.add_one_note_and_update_the_user(engine, user_row, note_row)
+
+    note_maked_text = message_templates.new_note_making_confirmation_as_draft(
+        note_obj=note_row,
+    )
+
+    buttons_successfull_note = generate_view_note_buttons(note_row.note_id)
+
+    await msg.reply_html(
+        text=note_maked_text,
+        do_quote=True,
+        reply_markup=InlineKeyboardMarkup(buttons_successfull_note),
     )
     return ConversationHandler.END
 
@@ -687,7 +676,7 @@ new_note_conv = ConversationHandler(
         ),
         # This below going to same fun, though it should looks wired
         MessageHandler(
-            filters=filters.Text(["Make New Note"]),
+            filters=filters.Text(["Make New Note Now"]),
             callback=new_note_cmd,
             block=False,
         ),
@@ -763,6 +752,11 @@ new_note_conv = ConversationHandler(
             MessageHandler(
                 filters=filters.Text(["No", "/no"]),
                 callback=note_confirmation_no,
+                block=False,
+            ),
+            MessageHandler(
+                filters=filters.Text(["Save As Draft", "/draft_note"]),
+                callback=note_confirmation_as_draft,
                 block=False,
             ),
             MessageHandler(
