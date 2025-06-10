@@ -4,6 +4,25 @@ Some Settings Values
 
 """
 
+import os
+import sys
+
+
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+if BOT_TOKEN is None:
+    print(
+        ".no .env file or env file has not any bot token. "
+        "Please make sure the token is there and re run this program."
+    )
+    sys.exit(1)
+    # i did exit so that in below in bot token it will always a str not none
+
+
+BOT_USERNAME = os.environ.get("BOT_USERNAME", None)
+if not BOT_USERNAME:
+    raise ValueError("❌ BOT_USERNAME not found in .env file!")
+
+
 DEFAULT_REGISTER_TOKEN = 3000
 
 MAX_TITLE_LEN: int = 500
