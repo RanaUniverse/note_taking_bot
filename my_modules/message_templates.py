@@ -3,7 +3,7 @@ Here i will make some funcions which will return some demo
 Text which i can reuse in different places.
 """
 
-from telegram import User
+from telegram import Chat, User
 
 from my_modules import bot_config_settings
 from my_modules.database_code.models_table import NotePart
@@ -11,6 +11,74 @@ from my_modules.database_code.models_table import NotePart
 
 MAX_TITLE_LEN = bot_config_settings.MAX_TITLE_LEN
 MAX_CONTENT_LEN = bot_config_settings.MAX_CONTENT_LEN
+
+
+def start_text_for_private(user: User) -> str:
+    """
+    When user will send /start in private chate this will trigger
+    """
+
+    text = (
+        f"👋 Hello, {user.mention_html()}! "
+        f"Welcome to <b><u>The Note-Taking Bot</u></b> 📝🤖\n\n"
+        f"Use the buttons below to manage your notes, or use commands if needed! 🔒🗂️\n\n"
+        f"<b>🔹 Available Commands:</b>\n"
+        f"📝 /new_note - Create a new note(use button)\n"
+        f"📂 /view_notes - View all your notes\n"
+        f"✏️ /edit_note - Edit an existing note\n"
+        f"🔍 /search_note - Search notes by title\n"
+        f"❌ /delete_note - Delete a note\n"
+        f"📤 /export_notes - Export all notes\n"
+        f"⚙️ /update_profile - Update your profile\n"
+        f"❓ /help - Get help and usage instructions\n\n"
+        f"⚠️ <b>Note:</b> If buttons don't work, use the above commands manually."
+        f"⚠️ <b>WARNING:</b> The buttons below are still in development. "
+        f"Please use the commands above for now. 🚧🔄"
+    )
+
+    return text
+
+
+def start_text_for_group(chat_obj: Chat) -> str:
+    """
+    When user will send /start in group the text message will come from here
+    """
+
+    chat_type = chat_obj.type  # e.g., "group", "supergroup"
+    chat_name = chat_obj.title or chat_obj.full_name or "this group"
+
+    text = (
+        f"📢 <b>Hello {chat_name}!</b>\n\n"
+        f"🧠 This bot is currently <b>not operational in group chats</b> like this one "
+        f"({chat_type}).\n\n"
+        "🔧 <b>Why?</b>\n"
+        "Group note-taking features have not been implemented yet.\n"
+        "They're being built and will be included in a future update. 🚧\n\n"
+        "💡 In the meantime, you can still use this bot in a private chat.\n"
+        "Tap the button below or message me directly to get started.\n\n"
+        "🙏 Thanks for your patience!"
+    )
+
+    return text
+
+
+def deeplink_simple_group_start_text(group_id: int | str) -> str:
+    """
+    This is just a basic deeplink message reply, this time when
+    i need to say user based on the deeplink value this is the demo text
+    """
+
+    text = (
+        f"👋 You came from a group: <code>{group_id}</code>\n\n"
+        "Thanks for starting the bot from the group chat! 🙌\n\n"
+        "Currently, this bot works only in private messages. "
+        "Please continue using it here for now. "
+        "Group support will be added in a future update. 🚧\n\n"
+        "If you used a deep link like <code>/start</code>, that's totally fine "
+        "— just follow the instructions below. 👇"
+    )
+
+    return text
 
 
 def prompt_user_to_register(user: User) -> str:

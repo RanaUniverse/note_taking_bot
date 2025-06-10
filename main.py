@@ -111,6 +111,16 @@ def main() -> None:
         )
     )
 
+    # Below start is comes from any group
+    application.add_handler(
+        CommandHandler(
+            command="start",
+            callback=start_module.start_cmd_group,
+            filters=filters.ChatType.GROUPS & filters.UpdateType.MESSAGE,
+            block=False,
+        )
+    )
+    
     # This below is seems a simple deep_link come from group i need to change logic
     application.add_handler(
         CommandHandler(
@@ -122,15 +132,6 @@ def main() -> None:
         )
     )
 
-    # Below start is comes from any group
-    application.add_handler(
-        CommandHandler(
-            command="start",
-            callback=start_module.start_cmd_group,
-            filters=filters.ChatType.GROUPS & filters.UpdateType.MESSAGE,
-            block=False,
-        )
-    )
 
     # Below is user send simple start the bot in private chat from user.
     application.add_handler(

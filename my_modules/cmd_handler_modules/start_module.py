@@ -15,15 +15,15 @@ from telegram.constants import ChatAction, ParseMode
 
 from telegram.ext import ContextTypes
 
+from my_modules import bot_config_settings
+from my_modules import message_templates
 
 from my_modules.inline_keyboards_enum_values import start_cmd_button
 
 from my_modules.logger_related import RanaLogger
 
-from my_modules.some_constants import PrivateValue
 
-
-BOT_USERNAME = PrivateValue.BOT_USERNAME.value
+BOT_USERNAME = bot_config_settings.BOT_USERNAME
 
 
 async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -31,46 +31,29 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     When user sends /start in private chat, this executes
     """
 
-    if update.message is None or update.message.from_user is None:
-        RanaLogger.warning(
-            f"when /start come in private the message and from user must present."
-        )
-        return
+    msg = update.effective_message
+    user = update.effective_user
 
-    user = update.message.from_user
+    if msg is None or user is None:
+        RanaLogger.warning(f"when /start come in private msg & user must present.")
+        return None
 
-    text = (
-        f"👋 Hello, {user.mention_html()}! "
-        f"Welcome to <b><u>The Note-Taking Bot</u></b> 📝🤖\n\n"
-        f"Use the buttons below to manage your notes, or use commands if needed! 🔒🗂️\n\n"
-        f"<b>🔹 Available Commands:</b>\n"
-        f"📝 /new_note - Create a new note(use button)\n"
-        f"📂 /view_notes - View all your notes\n"
-        f"✏️ /edit_note - Edit an existing note\n"
-        f"🔍 /search_note - Search notes by title\n"
-        f"❌ /delete_note - Delete a note\n"
-        f"📤 /export_notes - Export all notes\n"
-        f"⚙️ /update_profile - Update your profile\n"
-        f"❓ /help - Get help and usage instructions\n\n"
-        f"⚠️ <b>Note:</b> If buttons don't work, use the above commands manually."
-        f"⚠️ <b>WARNING:</b> The buttons below are still in development. "
-        f"Please use the commands above for now. 🚧🔄"
-    )
+    reply_text = message_templates.start_text_for_private(user=user)
 
     await context.bot.send_message(
         chat_id=user.id,
-        text=text,
+        text=reply_text,
         parse_mode=ParseMode.HTML,
         reply_markup=InlineKeyboardMarkup(start_cmd_button),
     )
-    # For now there is the button not works, for now the buttons
-    # will show a alart that it not implimented yet, rather use this command.
 
 
 async def start_cmd_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    When a /start get by groups
-    i need to use chat , as user maybe not available when user is hidden admin
+    When a /start come in any group.
+    i need to use chat, as user maybe not available when user is hidden admin
+    using the chat object (not user) since the sender could be anonymous.
+
     """
     chat = update.effective_chat
 
@@ -78,16 +61,9 @@ async def start_cmd_group(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         RanaLogger.warning("/start in group it should has the chat obj")
         return None
 
-    text = (
-        "📢 <b>Notice:</b>\n\n"
-        "⚠️ This bot currently <b>cannot take notes in groups</b>.\n"
-        "🛠️ This feature is <b>is not implimenteds yet not available ❌</b>, "
-        f"but it will be added in a future update.\n"
-        "🔔 Stay tuned for updates!\n"
-        "Please Press This button To Accss This Bot..."
-    )
+    reply_text = message_templates.start_text_for_group(chat_obj=chat)
 
-    url_value = f"https://t.me/{BOT_USERNAME}?start=group_start"
+    url_value = f"https://t.me/{BOT_USERNAME}?start=group_start_{chat.id}"
 
     button = InlineKeyboardMarkup(
         [
@@ -101,7 +77,7 @@ async def start_cmd_group(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     )
     await context.bot.send_message(
         chat_id=chat.id,
-        text=text,
+        text=reply_text,
         parse_mode=ParseMode.HTML,
         reply_markup=button,
     )
@@ -121,27 +97,24 @@ async def start_cmd_from_group_to_private(
         RanaLogger.warning("When deep link is used the value should has somethign")
         return None
 
-    if update.message is None or update.message.from_user is None:
-        RanaLogger.warning(
-            f"on the button on group as deeplink in private it msg and usr present"
-        )
+    msg = update.effective_message
+    user = update.effective_user
+    if msg is None or user is None:
+        RanaLogger.warning(f"On start deeplink the msg and user should present.")
         return None
 
-    user = update.message.from_user
+    if context.args[0].startswith("group_start_"):
 
-    if context.args[0] == "group_start":
         RanaLogger.info(f"{user.full_name} now came to private chat from any group.")
-        text = (
-            "You have started this bot from a group chat, "
-            f"Currently please just use this bot in private and "
-            f"later use this bot until we will update this in a official update.\n"
-            f"Or maybe you have send a deeplink /start command here. \n"
-            f"Please see the below message. 👇👇👇"
+        group_id = context.args[0].removeprefix("group_start_")
+
+        reply_text = message_templates.deeplink_simple_group_start_text(
+            group_id=group_id
         )
 
         await context.bot.send_message(
             chat_id=user.id,
-            text=text,
+            text=reply_text,
             parse_mode=ParseMode.HTML,
         )
         await context.bot.send_chat_action(user.id, ChatAction.TYPING)
@@ -153,10 +126,13 @@ async def start_cmd_from_group_to_private(
     else:
         RanaLogger.info(f"{user.full_name} send a new type of /start deeplink")
         text = (
-            f"YOu wanted to use the deeplink, but for now this features "
-            f"has not been made yet, wait until this will come, now "
-            f"Please send /start"
+            "⚠️ Unknown deep link\n\n"
+            "It looks like you tried to use a special link, but "
+            "this feature isn't available yet.\n"
+            "Please wait for a future update, or simply type /start "
+            "to begin using the bot. 😊"
         )
+
         await context.bot.send_message(
             chat_id=user.id,
             text=text,
