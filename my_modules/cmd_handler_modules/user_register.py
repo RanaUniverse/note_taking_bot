@@ -166,12 +166,21 @@ async def register_me_cmd_new(
                 account_creation_time=msg.date.astimezone(IST_TIMEZONE),
             )
 
-            session.add(user_obj)
-            session.commit()
-            text = message_templates.user_register_success_text(
-                tg_user_obj=user,
-                db_user_obj=user_obj,
-            )
+            try:
+                session.add(user_obj)
+                session.commit()
+                text = message_templates.user_register_success_text(
+                    tg_user_obj=user,
+                    db_user_obj=user_obj,
+                )
+                await msg.reply_html(text)
+
+            except Exception as e:
+                RanaLogger.error(f"Error while registering user {user.id}: {e}")
+                await msg.reply_text(
+                    "An error occurred during registration. Please try again later."
+                )
+                return None
 
         else:
             # Means existing_user is note equal's to None, it is must UserPart Row value present
@@ -180,5 +189,4 @@ async def register_me_cmd_new(
                 db_user_obj=existing_user,
                 msg_obj=msg,
             )
-
-    await msg.reply_html(text)
+            await msg.reply_html(text)
