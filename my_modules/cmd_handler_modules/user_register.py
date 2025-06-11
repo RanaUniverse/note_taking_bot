@@ -131,6 +131,9 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         )
 
 
+from sqlalchemy.exc import OperationalError
+
+
 async def register_me_cmd_new(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
@@ -173,6 +176,11 @@ async def register_me_cmd_new(
                     tg_user_obj=user,
                     db_user_obj=user_obj,
                 )
+                await msg.reply_html(text)
+
+            except OperationalError as e:
+                RanaLogger.warning("Operation error which describe as \n" f"{e}")
+                text = f"Database is locaked please try after a minute"
                 await msg.reply_html(text)
 
             except Exception as e:
