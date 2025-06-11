@@ -3,14 +3,16 @@ Here i will make some funcions which will return some demo
 Text which i can reuse in different places.
 """
 
-from telegram import Chat, User
+from telegram import Chat, Message, User
 
 from my_modules import bot_config_settings
-from my_modules.database_code.models_table import NotePart
+from my_modules.database_code.models_table import NotePart, UserPart
 
 
 MAX_TITLE_LEN = bot_config_settings.MAX_TITLE_LEN
 MAX_CONTENT_LEN = bot_config_settings.MAX_CONTENT_LEN
+
+IST_TIMEZONE = bot_config_settings.IST_TIMEZONE
 
 
 def start_text_for_private(user: User) -> str:
@@ -260,3 +262,66 @@ def new_note_making_confirmation_as_draft(note_obj: NotePart) -> str:
     )
 
     return text
+
+
+def user_register_success_text(tg_user_obj: User, db_user_obj: UserPart) -> str:
+    """
+    When user register to database got success this text will show
+    """
+
+    text_success = (
+        f"🎉 Welcome, <b>{tg_user_obj.mention_html()}</b>! 🎉\n\n"
+        f"✅ You are now successfully registered!\n"
+        f"🪙 You have received <b>{db_user_obj.points} Welcome Tokens</b>.\n\n"
+        f"📋 You can add more details later using:\n"
+        f"   🔹 Buttons below (coming soon!) ⬇️\n"
+        f"   🔹 Or use manual commands ⌨️\n\n"
+        f"🚀 Let's get started!"
+    )
+    return text_success
+
+
+def user_already_register_text(
+    tg_user_obj: User, db_user_obj: UserPart, msg_obj: Message
+) -> str:
+    """
+    When user is already present in database it will execute and
+    say the text reply to user back.
+    """
+
+    time_formatting = f"Date:%Y-%m-%d, Time:%H-%M-%S"
+
+    old_register_time = db_user_obj.account_creation_time
+    now = msg_obj.date.astimezone(IST_TIMEZONE).replace(tzinfo=None)
+    delta = now - old_register_time
+
+    text_user_exists = (
+        f"⚠️ Hello <b>{tg_user_obj.mention_html()}, you're already registered!</b>\n\n"
+        f"<b>🗓️ Account created:</b> {old_register_time.strftime(time_formatting)}"
+        f" ({delta} ago)\n"
+        f"<b>📝 Notes created:</b> {db_user_obj.note_count}\n"
+        f"<b>💰 Token balance:</b> {db_user_obj.points}\n"
+        f"<b>🔗 Referral Code:</b> "
+        f"{db_user_obj.referral_code if db_user_obj.referral_code else 'No Refer'}\n"
+        f"<b>📧 Email ID:</b> "
+        f"{db_user_obj.email_id if db_user_obj.email_id else 'No Email'}\n"
+    )
+
+    return text_user_exists
+
+
+def user_register_unknown_error() -> str:
+    """
+    When insert a row gives a unknown error
+    Nor insert the data properly nor also integrity error
+    i need to just say user a custome text to try how?
+    """
+
+    text_error = (
+        "A database error occurred during your registration attempt. "
+        "Kindly reattempt the registration process. Should the issue persist, "
+        "please utilize the /help command to contact an administrator.\n"
+        "Please contact admin with proper screenshot or mail us."
+    )
+
+    return text_error

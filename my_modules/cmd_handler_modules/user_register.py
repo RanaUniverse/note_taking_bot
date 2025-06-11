@@ -16,14 +16,15 @@ from telegram import InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
 
+from my_modules import bot_config_settings
+from my_modules import message_templates
+
 from my_modules.logger_related import RanaLogger
 
 from my_modules.database_code import db_functions
 from my_modules.database_code.database_make import engine
 from my_modules.database_code.models_table import UserPart
 
-from my_modules.some_constants import IST_TIMEZONE
-from my_modules.some_constants import BotSettingsValue
 from my_modules.some_constants import MessageEffectEmojies
 
 from my_modules.some_inline_keyboards import MyInlineKeyboard
@@ -34,6 +35,9 @@ GOOD_EFFECTS = [
     MessageEffectEmojies.HEART.value,
     MessageEffectEmojies.TADA.value,
 ]
+
+IST_TIMEZONE = bot_config_settings.IST_TIMEZONE
+DEFAULT_REGISTER_TOKEN = bot_config_settings.DEFAULT_REGISTER_TOKEN
 
 
 async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -61,7 +65,7 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         username=user.username,
         first_name=user.first_name,
         last_name=user.last_name,
-        points=BotSettingsValue.DEFAULT_REGISTER_TOKEN.value,
+        points=DEFAULT_REGISTER_TOKEN,
         account_creation_time=msg.date.astimezone(IST_TIMEZONE),
     )
 
@@ -71,17 +75,9 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             session.commit()
             session.refresh(user_obj)
 
-        text_success = (
-            f"🎉 Hello, <b>{user.mention_html()}</b>! 🎉\n\n"
-            f"✅ You have successfully registered with <b>{user_obj.points} "
-            f"Tokens as Welcome Bonus</b> 🪙.\n\n"
-            f"📋 To Manually Add More Information You can:\n"
-            f"   🔹 Use the Buttons below ⬇️\n"
-            f"   🔹 Or type the appropriate Commands ⌨️\n\n"
-            f"🚀 Let's get started!"
-            f"\n\n"
-            f"For Now The Buttons is not working as this is not "
-            f"developed yet will come later."
+        text_success = message_templates.user_register_success_text(
+            tg_user_obj=user,
+            db_user_obj=user_obj,
         )
         await msg.reply_html(
             text=text_success,
@@ -101,31 +97,17 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         if user_row is None:
             RanaLogger.warning(
                 f"i got itegrity error of /register_me but i got integrity error "
-                f"but i got the user_row as none, so it maybbe a real problem as usrrow if none, it means the integrity error should not be shows."
+                f"but i got the user_row as none, so it maybbe a real problem as user row if none, it means the integrity error should not be shows."
             )
             return None
 
         # This means the user is present in the database,
         # and i will fetch data from the user row below.
-
-        time_formatting = f"Date:%Y-%m-%d, Time:%H-%M-%S"
-
-        old_register_time = user_row.account_creation_time
-        now = msg.date.astimezone(IST_TIMEZONE).replace(tzinfo=None)
-        delta = now - old_register_time
-
-        text_user_exists = (
-            f"⚠️ Hello <b>{user.mention_html()}, you're already registered!</b>\n\n"
-            f"<b>🗓️ Account created:</b> {old_register_time.strftime(time_formatting)}"
-            f" ({delta} ago)\n"
-            f"<b>📝 Notes created:</b> {user_row.note_count}\n"
-            f"<b>💰 Token balance:</b> {user_row.points}\n"
-            f"<b>🔗 Referral Code:</b> "
-            f"{user_row.referral_code if user_row.referral_code else 'No Refer'}\n"
-            f"<b>📧 Email ID:</b> "
-            f"{user_row.email_id if user_row.email_id else 'No Email'}\n"
+        text_user_exists = message_templates.user_already_register_text(
+            tg_user_obj=user,
+            db_user_obj=user_row,
+            msg_obj=msg,
         )
-
         await msg.reply_html(
             text=text_user_exists,
             reply_markup=InlineKeyboardMarkup(
@@ -142,10 +124,7 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             f"Please see the below informaion:\n"
             f"{e}"
         )
-        text_error = (
-            f"Its seems some problem in the side of database, "
-            f"Please contact a adming or /help"
-        )
+        text_error = message_templates.user_register_unknown_error()
         await msg.reply_html(
             text=text_error,
             message_effect_id=MessageEffectEmojies.DISLIKE.value,

@@ -120,7 +120,7 @@ def main() -> None:
             block=False,
         )
     )
-    
+
     # This below is seems a simple deep_link come from group i need to change logic
     application.add_handler(
         CommandHandler(
@@ -131,7 +131,6 @@ def main() -> None:
             has_args=1,
         )
     )
-
 
     # Below is user send simple start the bot in private chat from user.
     application.add_handler(
