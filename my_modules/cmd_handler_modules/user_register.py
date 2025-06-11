@@ -9,7 +9,7 @@ is single command not a converstaion so this is ok for now
 import random
 
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from telegram import Update
 from telegram import InlineKeyboardMarkup
@@ -129,3 +129,56 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             text=text_error,
             message_effect_id=MessageEffectEmojies.DISLIKE.value,
         )
+
+
+async def register_me_cmd_new(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    This is just a practise register me to check how to handle database
+    insert of user row in my table.
+    """
+
+    user = update.effective_user
+    msg = update.effective_message
+
+    if user is None or msg is None:
+        RanaLogger.warning(
+            f"When user will send /register_me it should have "
+            f"exists the user and msg object"
+        )
+        return None
+
+    with Session(engine) as session:
+        statement = select(UserPart).where(UserPart.user_id == user.id)
+        result = session.exec(statement)
+        existing_user = result.first()
+
+        # This existing_user gives give None if not present user already
+
+        if not existing_user:
+            user_obj = UserPart(
+                user_id=user.id,
+                username=user.username,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                points=DEFAULT_REGISTER_TOKEN,
+                account_creation_time=msg.date.astimezone(IST_TIMEZONE),
+            )
+
+            session.add(user_obj)
+            session.commit()
+            text = message_templates.user_register_success_text(
+                tg_user_obj=user,
+                db_user_obj=user_obj,
+            )
+
+        else:
+            # Means existing_user is note equal's to None, it is must UserPart Row value present
+            text = message_templates.user_already_register_text(
+                tg_user_obj=user,
+                db_user_obj=existing_user,
+                msg_obj=msg,
+            )
+
+    await msg.reply_html(text)
