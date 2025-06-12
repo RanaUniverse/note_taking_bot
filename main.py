@@ -163,7 +163,7 @@ def main() -> None:
     application.add_handler(
         CommandHandler(
             command="register_me",
-            callback=user_register.register_me_cmd_new,
+            callback=user_register.register_me_cmd,
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
         )
     )

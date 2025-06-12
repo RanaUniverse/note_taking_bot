@@ -9,6 +9,7 @@ is single command not a converstaion so this is ok for now
 import random
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import OperationalError
 from sqlmodel import Session, select
 
 from telegram import Update
@@ -40,7 +41,9 @@ IST_TIMEZONE = bot_config_settings.IST_TIMEZONE
 DEFAULT_REGISTER_TOKEN = bot_config_settings.DEFAULT_REGISTER_TOKEN
 
 
-async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def register_me_cmd_old(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
     """
     /register_me :- For now it will just save.
     I want this will just register the user directly, without asking anythings extra
@@ -131,13 +134,11 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         )
 
 
-from sqlalchemy.exc import OperationalError
-
-
-async def register_me_cmd_new(
+async def register_me_cmd_confused(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """
+    I Got Confused To Use This functions, so i am making new fun for this
     This is just a practise register me to check how to handle database
     insert of user row in my table.
     """
@@ -198,3 +199,11 @@ async def register_me_cmd_new(
                 msg_obj=msg,
             )
             await msg.reply_html(text)
+
+
+async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    /register_me
+    This function will execute
+    """
+    ...
