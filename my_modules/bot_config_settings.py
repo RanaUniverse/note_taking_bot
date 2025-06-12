@@ -44,5 +44,7 @@ FOLDER_NOTE_TEM_NAME = "000_user_msg"
 GROUP_LINK = "RanaUniverse"
 LOG_FILE_NAME = "RanaUniverse_Log_File.log"
 
+REGISTER_ACCOUNT_WAIT_TIME = 3
+
 
 IST_TIMEZONE = datetime.timezone(datetime.timedelta(hours=5, minutes=30))

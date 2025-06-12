@@ -194,7 +194,7 @@ def add_one_note_and_update_the_user(
     """
     I will pass the note obj and user obj, so that i can use this
     funcions in other place to create any note.
-    This will also refresh the note_row and user_row value, 
+    This will also refresh the note_row and user_row value,
     and after run this fun the old variable will be updated value.
     """
 
@@ -210,3 +210,17 @@ def add_one_note_and_update_the_user(
         session.refresh(user_row)
 
     return note_row
+
+
+def add_new_user_to_user_table(engine: Engine, user_row: UserPart) -> UserPart:
+    """
+    I will pass a user_row obj and this function will try to add the user
+    to the usertable and return 0,1 as failure or success.
+    It also refresh the given user_row value so i can also use old argument value.
+    """
+    with Session(engine) as session:
+        session.add(user_row)
+        session.commit()
+        session.refresh(user_row)
+
+    return user_row

@@ -6,6 +6,7 @@ Some User related command will be here, for now register me
 is single command not a converstaion so this is ok for now
 """
 
+import asyncio
 import random
 
 from sqlalchemy.exc import IntegrityError
@@ -14,6 +15,7 @@ from sqlmodel import Session, select
 
 from telegram import Update
 from telegram import InlineKeyboardMarkup
+from telegram.constants import ChatAction, ParseMode
 from telegram.ext import ContextTypes
 
 
@@ -39,6 +41,7 @@ GOOD_EFFECTS = [
 
 IST_TIMEZONE = bot_config_settings.IST_TIMEZONE
 DEFAULT_REGISTER_TOKEN = bot_config_settings.DEFAULT_REGISTER_TOKEN
+REGISTER_ACCOUNT_WAIT_TIME = bot_config_settings.REGISTER_ACCOUNT_WAIT_TIME
 
 
 async def register_me_cmd_old(
@@ -206,4 +209,45 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     /register_me
     This function will execute
     """
-    ...
+    msg = update.effective_message
+    user = update.effective_user
+
+    if msg is None or user is None:
+        RanaLogger.warning("On /register_me The msg and user must present")
+        return None
+
+    user_present = db_functions.user_obj_from_user_id(engine=engine, user_id=user.id)
+
+    if user_present:
+        text_user_already = message_templates.user_already_register_text(
+            tg_user_obj=user,
+            db_user_obj=user_present,
+            msg_obj=msg,
+        )
+        await msg.reply_html(text_user_already)
+        return None
+
+    # It means user is not present so i need to add him in database
+    text = f"I am Registering You in our system. please wait."
+    response_msg = await msg.reply_html(text)
+
+    await msg.reply_chat_action(action=ChatAction.TYPING)
+    await asyncio.sleep(REGISTER_ACCOUNT_WAIT_TIME)
+
+    user_obj = UserPart(
+        user_id=user.id,
+        username=user.username,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        points=DEFAULT_REGISTER_TOKEN,
+        account_creation_time=msg.date.astimezone(IST_TIMEZONE),
+    )
+
+    after_insert_user_obj = db_functions.add_new_user_to_user_table(engine, user_obj)
+
+    text_new_user_create = message_templates.user_register_success_text(
+        tg_user_obj=user,
+        db_user_obj=after_insert_user_obj,
+    )
+
+    await response_msg.edit_text(text_new_user_create, parse_mode=ParseMode.HTML)
