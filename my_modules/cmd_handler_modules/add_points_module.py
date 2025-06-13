@@ -12,7 +12,6 @@ for now i will make it as demo so that use can by himself add notes.
 """
 
 import asyncio
-import html
 import random
 
 from sqlmodel import Session
@@ -22,17 +21,20 @@ from telegram.constants import ParseMode, ChatAction
 from telegram.ext import ContextTypes
 
 
+from my_modules import bot_config_settings
+from my_modules import message_templates
+
 from my_modules.database_code.database_make import engine
 from my_modules.database_code.db_functions import (
     user_obj_from_user_id,
     add_point_to_user_obj,
 )
 from my_modules.logger_related import logger, RanaLogger
-from my_modules.some_constants import BotSettingsValue
 
-MAX_POINT = BotSettingsValue.MAX_ADD_POINT.value
 
-ADD_POINT_WAIT = BotSettingsValue.ADD_POINT_WAIT_TIME.value
+MAX_ADD_POINT = bot_config_settings.MAX_ADD_POINT
+
+ADD_POINT_WAIT_TIME = bot_config_settings.ADD_POINT_WAIT_TIME
 
 
 async def add_points_cmd_old(
@@ -132,10 +134,10 @@ async def add_points_cmd_old(
             )
             return None
 
-        if points_to_add > MAX_POINT:
+        if points_to_add > MAX_ADD_POINT:
             text = (
                 f"⚠️ You are requesting too many points ({points_to_add})!\n"
-                f"🔹 The maximum allowed per request is <b>{MAX_POINT}</b> points.\n"
+                f"🔹 The maximum allowed per request is <b>{MAX_ADD_POINT}</b> points.\n"
                 f"Please enter a smaller value.\n"
                 f"Example:\n<blockquote><code>/add_points 20</code></blockquote>\n"
                 f"If you want to add many points pls contact admin (/admin)."
@@ -207,7 +209,7 @@ async def add_points_cmd_no_arg(
         )
         return None
 
-    random_point_value = random.randint(1, BotSettingsValue.MAX_ADD_POINT.value)
+    random_point_value = random.randint(1, MAX_ADD_POINT)
 
     text_msg = (
         f"👋 Hello {user.mention_html()}, "
@@ -248,7 +250,7 @@ async def add_points_cmd_many_args(
 
     if len(context.args) > 1:
 
-        random_point_value = random.randint(1, BotSettingsValue.MAX_ADD_POINT.value)
+        random_point_value = random.randint(1, MAX_ADD_POINT)
 
         text = (
             f"⚠️ You have entered multiple values!\n"
@@ -282,13 +284,13 @@ async def add_points_cmd_one_arg(
             f"On /add_points int of 1 args the user and msg will be present must"
         )
         return None
-    random_point_value = random.randint(1, BotSettingsValue.MAX_ADD_POINT.value)
+    random_point_value = random.randint(1, MAX_ADD_POINT)
 
     # Below lines execute means the real thigns come i need to check the value of the
     # args and then check and try to add the points in the database
 
     if context.args is None:
-        print("on /add_points int_value the context.args should present")
+        RanaLogger.warning("on /add_points int_value the context.args should present")
         return None
 
     arg_value = context.args[0]
@@ -298,23 +300,20 @@ async def add_points_cmd_one_arg(
         text_real_int = (
             f"Hello {user.mention_html()}, you have requested "
             f"to add {points_to_add} point in ur account. "
-            f"Please wait {ADD_POINT_WAIT} Seconds to verify your account."
+            f"Please wait {ADD_POINT_WAIT_TIME} Seconds to verify your account."
         )
         await msg.reply_html(text=text_real_int)
         # i want after this try will successful then the main db logic will come
         await msg.reply_chat_action(action=ChatAction.TYPING)
 
-        await asyncio.sleep(ADD_POINT_WAIT)
+        await asyncio.sleep(ADD_POINT_WAIT_TIME)
 
     except ValueError:
 
-        text_int_not = (
-            f"👋 Hello {user.mention_html()}, you sent 👇🏻\n\n"
-            f"<code>{html.escape(arg_value)}</code> — "
-            f"but this is not a valid number of points.\n\n"
-            f"As a example "
-            f"to add {random_point_value} points, please send this command:\n"
-            f"<code>/add_points {random_point_value}</code> ✅"
+        text_int_not = message_templates.invalid_int_value_in_add_points(
+            user_obj=user,
+            arg_value=arg_value,
+            random_point_value=random_point_value,
         )
 
         await msg.reply_html(text=text_int_not)
@@ -330,10 +329,10 @@ async def add_points_cmd_one_arg(
         await msg.reply_html(text)
         return None
 
-    if points_to_add > MAX_POINT:
+    if points_to_add > MAX_ADD_POINT:
         text = (
             f"⚠️ You are requesting too many points ({points_to_add})!\n"
-            f"🔹 The maximum allowed per request is <b>{MAX_POINT}</b> points.\n"
+            f"🔹 The maximum allowed per request is <b>{MAX_ADD_POINT}</b> points.\n"
             f"Please enter a smaller value.\n"
             f"To add {random_point_value} points, please send this command:\n"
             f"<code>/add_points {random_point_value}</code> ✅\n"
@@ -349,28 +348,24 @@ async def add_points_cmd_one_arg(
     user_row = user_obj_from_user_id(engine=engine, user_id=user.id)
 
     if user_row is None:
-        text_no_user = (
-            f"Hello {user.mention_html()},"
-            f" it seems you are not register in our system "
-            f"Please go and register first with /register_me. "
-            f"You can also /help"
-        )
+        text_no_user = message_templates.prompt_user_to_register(user=user)
         await msg.reply_html(text=text_no_user)
         return
 
     # Now lets add the point to account
+    # i use try except here because i didn't use try except in the function.
 
-    new_user_row = add_point_to_user_obj(engine, user_row, points_to_add)
+    try:
+        new_user_row = add_point_to_user_obj(engine, user_row, points_to_add)
 
-    # text = f"Your New Point is: "f"{user_row.points}"
-    # await msg.reply_html(text)
+        text = (
+            f"👋 Hello {user.mention_html()},\n"
+            f"✅ Your request to add 💰 {points_to_add} Points has been successful!\n\n"
+            f"📊 Your New Point Balance is: 🎯 {new_user_row.points}"
+        )
 
-    # Though upper is working but i am confused on upper code working,
-    # why the old user row is working
+    except Exception as e:
+        RanaLogger.warning("Some Error happens here." "\n" f"{e}")
+        text = f"Here is some problem in out side." "\n" f"{e}"
 
-    text = (
-        f"👋 Hello {user.mention_html()},\n"
-        f"✅ Your request to add 💰 {points_to_add} Points has been successful!\n\n"
-        f"📊 Your New Point Balance is: 🎯 {new_user_row.points}"
-    )
     await msg.reply_html(text)

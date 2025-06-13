@@ -3,6 +3,8 @@ Here i will make some funcions which will return some demo
 Text which i can reuse in different places.
 """
 
+import html
+
 from telegram import Chat, Message, User
 
 from my_modules import bot_config_settings
@@ -325,3 +327,24 @@ def user_register_unknown_error() -> str:
     )
 
     return text_error
+
+
+def invalid_int_value_in_add_points(
+    user_obj: User,
+    arg_value: str,
+    random_point_value: int,
+) -> str:
+    """
+    When use will send wrong value which cannot be make in int
+    This error message will be send to user.
+    """
+    text_int_not = (
+        f"👋 Hello {user_obj.mention_html()}, you sent 👇🏻\n\n"
+        f"<code>{html.escape(arg_value)}</code> — "
+        f"but this is not a valid number of points.\n\n"
+        f"As a example "
+        f"to add {random_point_value} points, please send this command:\n"
+        f"<code>/add_points {random_point_value}</code> ✅"
+    )
+
+    return text_int_not
