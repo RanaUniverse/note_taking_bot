@@ -6,6 +6,8 @@ i will import those thigns in my main.py to work with
 import datetime
 from uuid import uuid4
 
+from my_modules import bot_config_settings
+
 from sqlmodel import (
     Field,
     # Session,
@@ -14,15 +16,15 @@ from sqlmodel import (
     Relationship,
 )
 
-GMT_TIMEZONE = datetime.timezone(datetime.timedelta(hours=0, minutes=0))
-IST_TIMEZONE = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+GMT_TIMEZONE = bot_config_settings.GMT_TIMEZONE
+IST_TIMEZONE = bot_config_settings.IST_TIMEZONE
 
 
 class UserPart(SQLModel, table=True):
     __tablename__: str = "user_data"  # type: ignore
 
     id_: int | None = Field(default=None, primary_key=True)
-    user_id: int = Field(default=None, unique=True)
+    user_id: int = Field(default=None, unique=True, index=True)
     username: str | None = Field(default=None, index=True)
     first_name: str | None = Field(default=None)
     last_name: str | None = Field(default=None)
@@ -42,9 +44,7 @@ class NotePart(SQLModel, table=True):
     __tablename__: str = "note_data"  # type: ignore
 
     id_: int | None = Field(default=None, primary_key=True)
-    note_id: str = Field(
-        default_factory=lambda: uuid4().hex.upper(),
-    )
+    note_id: str = Field(default_factory=lambda: uuid4().hex.upper(), index=True)
     # Use a lambda function for unique id i will for each note.
     note_title: str | None = Field(default=None)
     note_content: str | None = Field(default=None)

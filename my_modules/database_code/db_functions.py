@@ -1,36 +1,63 @@
 """
-Here i will write code which is same as
+Here i will write code which will do the work
+Of Some Database Functions to interect with DB.
 
-def count_user_notes(user_id: str) -> int
-    ## do logic to return a number of notes
-
-
-def get_user_notes(user_id: str, offset: int = 0, limit: int = 10) -> list[NotePart]:
-    ## do logic to get user notes
-
-And the main logic is i will call this function and it will work in my main places.
+And the main logic is i will call this function
+and it will work in my main places.
 
 """
 
 from typing import Sequence
 
-
 from sqlalchemy import Engine
-
 from sqlmodel import func
 from sqlmodel import Session, select
-
-# from my_modules.database_code.database_make import engine
 
 from my_modules.database_code.models_table import NotePart, UserPart
 from my_modules.logger_related import RanaLogger
 
 
+def note_obj_from_note_id(
+    engine: Engine,
+    note_id: str,
+) -> NotePart | None:
+    """
+    i want to pass the note_id = uuid4().hex which i got from user
+    and then access the note obj or None
+    """
+    with Session(engine) as session:
+        statement = select(NotePart).where(NotePart.note_id == note_id)
+        results = session.exec(statement)
+        note_row = results.first()
+
+    return note_row
+
+
+def user_obj_from_user_id(
+    engine: Engine,
+    user_id: int,
+) -> UserPart | None:
+    """
+    here i will pass the user_id and it will send me the user obj or none if not
+    This user_id value will come from telegram user id unique id
+    """
+
+    with Session(engine) as session:
+        statement = select(UserPart).where(UserPart.user_id == user_id)
+        results = session.exec(statement)
+        user_row = results.first()
+
+    return user_row
+
+
+# This Below Is Not Usefull. It Is Just for old reference.
 def count_user_notes_old(
     engine: Engine,
     user_id: int,
 ) -> int:
     """
+    This is Old Function's Logic, this is not good.
+    I shouldn't use this ever.
     When the user_id (from tg) is passed it will count the total note he own
     and return the integer value of his notes
     """
@@ -89,35 +116,42 @@ def get_user_notes(
         return notes
 
 
-def note_obj_from_note_id(
+def add_one_note_and_update_the_user(
     engine: Engine,
-    note_id: str,
-) -> NotePart | None:
+    user_row: UserPart,
+    note_row: NotePart,
+) -> NotePart:
     """
-    i want to pass the note_id = uuid4().hex which i got from user
-    and then access the note obj or None
+    I will pass the note obj and user obj, so that i can use this
+    funcions in other place to create any note.
+    This will also refresh the note_row and user_row value,
+    and after run this fun the old variable will be updated value.
     """
+
     with Session(engine) as session:
-        statement = select(NotePart).where(NotePart.note_id == note_id)
-        results = session.exec(statement)
-        note_row = results.first()
+
+        user_row.points -= 1
+        user_row.note_count += 1
+        note_row.user = user_row
+
+        session.add(note_row)
+        session.commit()
+        session.refresh(note_row)
+        session.refresh(user_row)
 
     return note_row
 
 
-def user_obj_from_user_id(
-    engine: Engine,
-    user_id: int,
-) -> UserPart | None:
+def add_new_user_to_user_table(engine: Engine, user_row: UserPart) -> UserPart:
     """
-    here i will pass the user_id and it will send me the user obj or none if not
-    This user_id value will come from telegram user id unique id
+    I will pass a user_row obj and this function will try to add the user
+    to the usertable and return 0,1 as failure or success.
+    It also refresh the given user_row value so i can also use old argument value.
     """
-
     with Session(engine) as session:
-        statement = select(UserPart).where(UserPart.user_id == user_id)
-        results = session.exec(statement)
-        user_row = results.first()
+        session.add(user_row)
+        session.commit()
+        session.refresh(user_row)
 
     return user_row
 
@@ -184,43 +218,3 @@ def add_point_to_user_obj(
         session.refresh(user_row)
 
         return user_row
-
-
-def add_one_note_and_update_the_user(
-    engine: Engine,
-    user_row: UserPart,
-    note_row: NotePart,
-) -> NotePart:
-    """
-    I will pass the note obj and user obj, so that i can use this
-    funcions in other place to create any note.
-    This will also refresh the note_row and user_row value,
-    and after run this fun the old variable will be updated value.
-    """
-
-    with Session(engine) as session:
-
-        user_row.points -= 1
-        user_row.note_count += 1
-        note_row.user = user_row
-
-        session.add(note_row)
-        session.commit()
-        session.refresh(note_row)
-        session.refresh(user_row)
-
-    return note_row
-
-
-def add_new_user_to_user_table(engine: Engine, user_row: UserPart) -> UserPart:
-    """
-    I will pass a user_row obj and this function will try to add the user
-    to the usertable and return 0,1 as failure or success.
-    It also refresh the given user_row value so i can also use old argument value.
-    """
-    with Session(engine) as session:
-        session.add(user_row)
-        session.commit()
-        session.refresh(user_row)
-
-    return user_row

@@ -137,7 +137,7 @@ async def register_me_cmd_old(
         )
 
 
-async def register_me_cmd_confused(
+async def register_me_cmd_confused_old_2(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """

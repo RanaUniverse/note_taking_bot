@@ -47,4 +47,8 @@ LOG_FILE_NAME = "RanaUniverse_Log_File.log"
 REGISTER_ACCOUNT_WAIT_TIME = 3
 
 
+# Below are some Regular Important Needy Constants
+
+
+GMT_TIMEZONE = datetime.timezone(datetime.timedelta(hours=0, minutes=0))
 IST_TIMEZONE = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
