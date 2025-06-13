@@ -298,10 +298,14 @@ async def add_points_cmd_one_arg(
     try:
         points_to_add = int(arg_value)
         text_real_int = (
-            f"Hello {user.mention_html()}, you have requested "
-            f"to add {points_to_add} point in ur account. "
-            f"Please wait {ADD_POINT_WAIT_TIME} Seconds to verify your account."
+            f"👋 Hello {user.mention_html()},\n\n"
+            f"🧾 You’ve requested to add <b>{points_to_add}</b> point(s) "
+            "to your account.\n"
+            f"⏳ Please wait <b>{ADD_POINT_WAIT_TIME}</b> seconds while "
+            "we verify your account.\n\n"
+            f"✅ We appreciate your patience!"
         )
+
         await msg.reply_html(text=text_real_int)
         # i want after this try will successful then the main db logic will come
         await msg.reply_chat_action(action=ChatAction.TYPING)
@@ -321,23 +325,27 @@ async def add_points_cmd_one_arg(
 
     if points_to_add <= 0:
         text = (
-            f"⚠️ Invalid points amount!\n"
-            f"Please enter a positive number greater than 0.\n"
-            f"To add {random_point_value} points, please send this command:\n"
+            f"⚠️ <b>Invalid points amount!</b>\n\n"
+            f"🚫 Please enter a <b>positive number greater than 0</b>.\n"
+            f"💡 To try again, you can use this command:\n"
             f"<code>/add_points {random_point_value}</code> ✅"
         )
+
         await msg.reply_html(text)
         return None
 
     if points_to_add > MAX_ADD_POINT:
         text = (
-            f"⚠️ You are requesting too many points ({points_to_add})!\n"
-            f"🔹 The maximum allowed per request is <b>{MAX_ADD_POINT}</b> points.\n"
-            f"Please enter a smaller value.\n"
-            f"To add {random_point_value} points, please send this command:\n"
-            f"<code>/add_points {random_point_value}</code> ✅\n"
-            f"If you want to add many points pls contact admin (/admin or /help)."
+            f"⚠️ <b>Too many points requested!</b>\n\n"
+            f"❗ You asked for <b>{points_to_add}</b> points.\n"
+            f"🔹 But the maximum allowed per request is <b>{MAX_ADD_POINT}</b> points.\n\n"
+            f"💡 Please try a smaller number.\n"
+            f"For example, use:\n"
+            f"<code>/add_points {random_point_value}</code> ✅\n\n"
+            f"📞 Want to add more points? Contact the admin with <code>/admin</code> "
+            "or <code>/help</code>."
         )
+
         await msg.reply_html(text)
         return None
 
@@ -366,6 +374,6 @@ async def add_points_cmd_one_arg(
 
     except Exception as e:
         RanaLogger.warning("Some Error happens here." "\n" f"{e}")
-        text = f"Here is some problem in out side." "\n" f"{e}"
+        text = f"Here is some problem in our Side. Please Report to Admin."
 
     await msg.reply_html(text)
