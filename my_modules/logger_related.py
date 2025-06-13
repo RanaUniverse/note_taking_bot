@@ -1,7 +1,6 @@
 import logging
 
-from my_modules.some_constants import BotSettingsValue
-
+from my_modules import bot_config_settings
 
 # 🌟 1️⃣ Global logging for backend this need by the PTB
 
@@ -18,10 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 # Below Logics are for making the log for my own beheaviour
-# which includes use the my log file name from the .env file
+# which includes use the my log file name from bot_config_settings module
 
 
-LOG_FILE_NAME = BotSettingsValue.LOG_FILE_NAME.value
+LOG_FILE_NAME = bot_config_settings.LOG_FILE_NAME
 
 
 # 🌟 2️⃣ Custom `RanaLogger` for file logging i will think to use.
@@ -47,21 +46,3 @@ file_handler.setFormatter(
 
 RanaLogger.addHandler(file_handler)
 RanaLogger.propagate = False  # Prevent console logging
-
-
-def main():
-    """
-    This will for test the log file name form the .env file
-    """
-    from dotenv import load_dotenv
-
-    load_dotenv()
-
-    RanaLogger.warning("Thsi is made by Rana Universe For Testing")
-
-    logger.warning("This is backend of ptb")
-
-
-if __name__ == "__main__":
-    print("This is my custom logger logics.")
-    main()
