@@ -1,22 +1,27 @@
 import ast
 
-def list_functions_in_file(filename):
+def get_function_info(filename):
     with open(filename, "r") as file:
         tree = ast.parse(file.read(), filename=filename)
 
-    # Include both regular and async function definitions
-    functions = [
-        node.name for node in ast.walk(tree)
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-    ]
+    functions = []
+
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            func_type = "async def" if isinstance(node, ast.AsyncFunctionDef) else "def"
+            functions.append({
+                "name": node.name,
+                "type": func_type,
+                "line": node.lineno
+            })
 
     return functions
 
 # Example usage
 file_location = "my_modules/database_code/db_functions.py"
-functions = list_functions_in_file(file_location)
+function_info = get_function_info(file_location)
 
-print(f"Total functions: {len(functions)}")
-print("Function names:")
-for func in functions:
-    print(f" - {func}")
+print(f"Total functions: {len(function_info)}")
+print("Functions:")
+for func in function_info:
+    print(f" - {func['type']} {func['name']} (line {func['line']})")
