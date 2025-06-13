@@ -30,6 +30,7 @@ from my_modules import bot_config_settings
 MAX_TITLE_LEN = bot_config_settings.MAX_TITLE_LEN
 MAX_CONTENT_LEN = bot_config_settings.MAX_CONTENT_LEN
 MAX_FAKE_NOTE_COUNT = bot_config_settings.MAX_FAKE_NOTE_COUNT
+WILL_TEM_NOTE_DELETE = bot_config_settings.WILL_TEM_NOTE_DELETE
 
 
 fake = Faker()
@@ -105,7 +106,9 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         parse_mode=ParseMode.HTML,
     )
 
-    file_path.unlink(missing_ok=True)
+    if WILL_TEM_NOTE_DELETE:
+        file_path.unlink(missing_ok=True)
+        return None
 
 
 async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

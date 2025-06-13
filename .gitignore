@@ -22,3 +22,7 @@ DATABASE.db
 RanaUniverse_Log_File.log
 
 DATABASE_old.db
+
+# Below is so that i can keep untrack all the files and folder in this below folder
+# As this below locaion there all files and folder are kept and made.
+000_user_msg/
