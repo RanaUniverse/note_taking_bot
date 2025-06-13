@@ -3,6 +3,8 @@ Here i will make some funcions which will return some demo
 Text which i can reuse in different places.
 """
 
+import random
+
 import html
 
 from telegram import Chat, Message, User
@@ -11,8 +13,9 @@ from my_modules import bot_config_settings
 from my_modules.database_code.models_table import NotePart, UserPart
 
 
-MAX_TITLE_LEN = bot_config_settings.MAX_TITLE_LEN
+MAX_ADD_POINT = bot_config_settings.MAX_ADD_POINT
 MAX_CONTENT_LEN = bot_config_settings.MAX_CONTENT_LEN
+MAX_TITLE_LEN = bot_config_settings.MAX_TITLE_LEN
 
 IST_TIMEZONE = bot_config_settings.IST_TIMEZONE
 
@@ -145,11 +148,13 @@ def user_has_no_valid_points(user: User) -> str:
     When user has 0 points, it means it will say user
     to buy new points.
     """
+    suggested_int_value = random.randint(0, MAX_ADD_POINT)
+
     text_no_point = (
         f"🚫 <b>Oops!</b> You've run out of points 😢🪄\n\n"
         f"But don't worry — you can easily top up! Just use the command:\n"
-        f"<blockquote><code>/add_points 20</code></blockquote>\n"
-        f"(Here, 20 is an example — choose your own number 🧮)\n\n"
+        f"<blockquote><code>/add_points {suggested_int_value}</code></blockquote>\n"
+        f"(This is just a suggestion — you can choose any number you like 🧮)\n\n"
         f"💡 Once you've added some points, you'll be all set to create notes again!"
     )
 
@@ -226,10 +231,10 @@ def new_note_making_confirmation_yes(note_obj: NotePart, user_balance: int) -> s
     This will say about the note with little information
     """
     text = (
-        f"Your Note Has Been saved Successfully.\n"
-        f"Note Title: <u>{note_obj.note_title}\n</u>"
+        f"Your Note Has Been saved Successfully.\n\n"
+        f"<b>Note Title</b>: <u>{note_obj.note_title}</u>\n\n"
         f"Your Note Id is: <code>{note_obj.note_id}</code>.\n"
-        f"Current Point is: {user_balance}\n"
+        f"Current Available Point is: {user_balance}\n"
     )
     return text
 

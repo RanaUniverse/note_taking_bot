@@ -168,7 +168,7 @@ async def add_points_cmd_old(
                 text=text,
                 parse_mode=ParseMode.HTML,
             )
-            return
+            return None
 
         with Session(engine) as session:
 

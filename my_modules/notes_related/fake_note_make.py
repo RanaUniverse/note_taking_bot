@@ -5,6 +5,7 @@ This will make a fake note and insert in the database
 
 import asyncio
 
+
 from faker import Faker
 
 from sqlmodel import Session
@@ -13,22 +14,23 @@ from telegram import Update
 from telegram.constants import ChatAction, ParseMode
 from telegram.ext import ContextTypes
 
+from my_modules import message_templates
 
 from my_modules.database_code.database_make import engine
-from my_modules.database_code.db_functions import user_obj_from_user_id
+from my_modules.database_code import db_functions
 from my_modules.database_code.models_table import NotePart
 
 from my_modules.logger_related import RanaLogger
 
 from my_modules.notes_related.export_note import make_txt_file_from_note
 
-from my_modules.some_constants import BotSettingsValue
+from my_modules import bot_config_settings
 
 
-MAX_TITLE_LEN = BotSettingsValue.MAX_TITLE_LEN.value
-MAX_CONTENT_LEN = BotSettingsValue.MAX_CONTENT_LEN.value
-MAX_FAKE_NOTE_COUNT = BotSettingsValue.MAX_FAKE_NOTE.value
-TEMPORARY_FOLDER_NAME = BotSettingsValue.FOLDER_NOTE_TEM_NAME.value
+MAX_TITLE_LEN = bot_config_settings.MAX_TITLE_LEN
+MAX_CONTENT_LEN = bot_config_settings.MAX_CONTENT_LEN
+MAX_FAKE_NOTE_COUNT = bot_config_settings.MAX_FAKE_NOTE_COUNT
+
 
 fake = Faker()
 
@@ -51,17 +53,11 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         RanaLogger.warning("No message object found when user send /fake_note.")
         return None
 
-    user_row = user_obj_from_user_id(engine, user.id)
+    user_row = db_functions.user_obj_from_user_id(engine, user.id)
 
     if user_row is None:
-        text_no_user = (
-            f"Hello <b>{user.mention_html()}</b>, You Are Not Registered Yet 😢\n"
-            f"Please send /register_me and then come back to use this bot.\n"
-            f"Else Contact Customer Support /help."
-        )
-        await msg.reply_html(
-            text=text_no_user,
-        )
+        text_no_user = message_templates.prompt_user_to_register(user=user)
+        await msg.reply_html(text=text_no_user)
         return None
 
     # below line will executes when user_row is present
@@ -69,16 +65,8 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     user_points = user_row.points
 
     if user_points <= 0:
-        text_no_point = (
-            f"You Have Finished All Your Points, Now You Cannot "
-            f"make new note until you add new points, /add_points followed by int.\n\n"
-            f"Example if you want 20 Token, "
-            f"<blockquote><code>/add_points 20</code></blockquote>"
-        )
-
-        await msg.reply_html(
-            text=text_no_point,
-        )
+        text_no_point = message_templates.user_has_no_valid_points(user)
+        await msg.reply_html(text=text_no_point)
         return None
 
     # below line comes means user has valid positive int value of token
@@ -92,23 +80,18 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         is_available=True,
     )
 
-    with Session(engine) as session:
+    # This below fun run will changes the user row and note row update
+    db_functions.add_one_note_and_update_the_user(engine, user_row, note_row)
 
-        user_row.points -= 1
-        user_row.note_count += 1
-        note_row.user = user_row
-
-        session.add(note_row)
-        session.commit()
-        session.refresh(note_row)
-        session.refresh(user_row)
+    # As the upper fun re value the variable, so this is just automatically
+    note_maked_text = message_templates.new_note_making_confirmation_yes(
+        note_obj=note_row,
+        user_balance=user_row.points,
+    )
 
     caption_text = (
-        f"🎉 Your Note Has Been saved Successfully.\n\n"
         f"🧪 1 Fake Note created.\n"
-        f"➖ Points spent: <b>One(1)</b>\n"
-        f"🆔 This Note Id is: <code>{note_row.note_id}</code>.\n"
-        f"💰 Remaining Points: <b>{user_row.points}</b>\n\n"
+        f"{note_maked_text}"
         f"If you want to make many fake note pls send: <code> /fake_note Number </code>\n\n"
         f"📂 View them with /all_notes or /my_notes\n"
     )
@@ -203,7 +186,7 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         )
         return None
 
-    user_row = user_obj_from_user_id(engine, user.id)
+    user_row = db_functions.user_obj_from_user_id(engine, user.id)
     if user_row is None:
         text = (
             f"Hello <b>{user.mention_html()}</b>, You Are Not Registered Yet 😢\n"
