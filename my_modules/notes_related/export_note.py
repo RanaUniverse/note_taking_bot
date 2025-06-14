@@ -20,14 +20,14 @@ from my_modules.database_code.database_make import engine
 from my_modules.database_code.models_table import NotePart
 
 
+from my_modules import bot_config_settings
+
 from my_modules.logger_related import RanaLogger
 
 from my_modules.rana_needed_things import make_footer_text
 
-from my_modules.some_constants import BotSettingsValue
 
-
-TEMPORARY_FOLDER_NAME = BotSettingsValue.FOLDER_NOTE_TEM_NAME.value
+TEM_FOLDER_NOTE_STORE = bot_config_settings.TEM_FOLDER_NOTE_STORE
 
 
 def make_txt_file_from_note(
@@ -58,7 +58,7 @@ def make_txt_file_from_note(
     readable_time = timestamp.strftime("%Y-%m-%d_%H_%M_%S")
 
     filename = f"time_{readable_time}.txt"
-    file_dir = Path.cwd() / TEMPORARY_FOLDER_NAME
+    file_dir = Path.cwd() / TEM_FOLDER_NOTE_STORE
     file_dir.mkdir(parents=True, exist_ok=True)
     file_path = file_dir / filename
     file_path.write_text(full_text)
@@ -307,3 +307,29 @@ async def duplicate_note_coming_soon(
         "🚧 This feature is not available yet.\n"
         "✨ It will be added in a future update. Stay tuned!"
     )
+
+
+def txt_file_making_for_many_fake_note(
+    note_text:str,
+    user: User,
+    msg: Message,
+    use_corrent_time: bool = False,
+):
+    """
+    This here i will pass the big string which i will mainly use
+    in the /fake_note many_big_number
+    Like this i will use and i will get the file from here.
+    """
+
+    full_text = note_text + make_footer_text(user, msg)
+
+    timestamp = datetime.now() if use_corrent_time else msg.date
+    readable_time = timestamp.strftime("%Y-%m-%d_%H_%M_%S")
+
+    filename = f"all_fake_note_time_{readable_time}.txt"
+    file_dir = Path.cwd() / TEM_FOLDER_NOTE_STORE
+    file_dir.mkdir(parents=True, exist_ok=True)
+    file_path = file_dir / filename
+    file_path.write_text(full_text)
+
+    return file_path

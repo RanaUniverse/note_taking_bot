@@ -22,7 +22,7 @@ from my_modules.database_code.models_table import NotePart
 
 from my_modules.logger_related import RanaLogger
 
-from my_modules.notes_related.export_note import make_txt_file_from_note
+from my_modules.notes_related import export_note
 
 from my_modules import bot_config_settings
 
@@ -97,7 +97,9 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         f"📂 View them with /all_notes or /my_notes\n"
     )
 
-    file_path = make_txt_file_from_note(note_obj=note_row, user=user, msg=msg)
+    file_path = export_note.make_txt_file_from_note(
+        note_obj=note_row, user=user, msg=msg
+    )
 
     await msg.reply_document(
         document=file_path,
@@ -191,14 +193,8 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     user_row = db_functions.user_obj_from_user_id(engine, user.id)
     if user_row is None:
-        text = (
-            f"Hello <b>{user.mention_html()}</b>, You Are Not Registered Yet 😢\n"
-            f"Please send /register_me and then come back to use this bot.\n"
-            f"If You already register but see this, please Contact Customer Support /help."
-        )
-        await msg.reply_html(
-            text=text,
-        )
+        text_no_user = message_templates.prompt_user_to_register(user=user)
+        await msg.reply_html(text=text_no_user)
         return None
 
     user_points = user_row.points
@@ -209,7 +205,8 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             f"👤 You currently have <b>{user_points} points</b>, "
             f"but you want to create <b>{how_many_note} notes</b>.\n\n"
             f"💡 Each note requires 1 point.\n"
-            f"➡️ Please reduce the number or earn more points to continue. /add_points"
+            f"➡️ Please reduce the number or earn more points to continue."
+            f"You can use the command /add_points to add points."
         )
         await msg.reply_html(text)
         return None
@@ -234,7 +231,18 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         session.add(user_row)
         session.commit()
 
-        text = (
+        note_info_text = ""
+
+        for idx, note in enumerate(notes_to_add, start=1):
+            note_info_text += (
+                f"Note No. {idx}"
+                "\n"
+                f"Note ID: {note.note_id}"
+                "\n"
+                f"Title: {note.note_title}\n\n"
+            )
+
+        caption_text = (
             f"🎉 <b>Success!</b>\n\n"
             f"🧪 <b>{how_many_note}</b> fake notes created.\n"
             f"➖ Points spent: <b>{how_many_note}</b>\n"
@@ -243,4 +251,17 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             f"➕ Need more points? Try /add_points"
         )
 
-        await msg.reply_text(text, parse_mode=ParseMode.HTML)
+    file_path = export_note.txt_file_making_for_many_fake_note(
+        note_text=note_info_text, user=user, msg=msg, use_corrent_time=True
+    )
+
+    await msg.reply_document(
+        document=file_path,
+        filename=f"Many_FakeNote_{file_path.name}",
+        caption=caption_text,
+        parse_mode=ParseMode.HTML,
+    )
+
+    if WILL_TEM_NOTE_DELETE:
+        file_path.unlink(missing_ok=True)
+        return None
