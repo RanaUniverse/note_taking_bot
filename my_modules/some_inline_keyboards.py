@@ -292,7 +292,7 @@ def note_del_confirmation_button(note_id: str) -> list[list[InlineKeyboardButton
             InlineKeyboardButton(
                 text="✅ Yes, Delete", callback_data=f"note_del_confirm_{note_id}"
             ),
-            InlineKeyboardButton(text="❌ No Skip", callback_data="cancel_del"),
+            InlineKeyboardButton(text="❌ No Skip", callback_data="note_del_cancel"),
         ]
     ]
     return buttons

@@ -156,7 +156,7 @@ def add_new_user_to_user_table(engine: Engine, user_row: UserPart) -> UserPart:
     return user_row
 
 
-def delete_note_obj(
+def delete_note_obj_old_1(
     engine: Engine,
     note_id: str,
     user_id: int | None,
@@ -197,6 +197,40 @@ def delete_note_obj(
         )
 
         return False
+
+
+def delete_note_obj(
+    engine: Engine,
+    note_id: str,
+    user_id: int | None,
+) -> bool:
+    """
+    Delete a note if it belongs to the given user.
+    Returns True if deleted successfully, False otherwise.
+    """
+    try:
+        with Session(engine) as session:
+            stat = (
+                select(NotePart)
+                .where(NotePart.note_id == note_id)
+                .where(NotePart.user_id == user_id)
+            )
+            results = session.exec(stat)
+            note_row = results.first()
+
+            if note_row:
+                session.delete(note_row)
+                session.commit()
+                return True
+
+            RanaLogger.warning(
+                f"Note not found for note_id={note_id} and user_id={user_id}."
+            )
+
+    except Exception as e:
+        RanaLogger.warning(f"UNEXPECTED ERROR WHEN DELETING NOTE: {e}")
+
+    return False
 
 
 def add_point_to_user_obj(

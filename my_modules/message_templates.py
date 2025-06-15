@@ -365,3 +365,18 @@ NOTE_NO_FOUND_TEXT = (
     f"📌 Try checking your other notes using /my_notes.\n"
     f"Or You can contact Admins For This issue."
 )
+
+
+SUCCESS_NOTE_DELETE_TEXT = (
+    "✅ <b>Note Deleted Successfully!</b>\n\n"
+    "🗑️ Your note has been permanently removed from the database.\n"
+    "Please remember, this action cannot be undone.\n\n"
+    "If you deleted it by mistake, unfortunately, it's gone for good. 😢"
+)
+
+FAIL_NOTE_DELETE_TEXT = (
+    "⚠️ <b>Deletion Failed</b>\n\n"
+    "Something went wrong while trying to delete your note.\n"
+    "Please try again later or use <b>/help</b> to contact support. 🛠️ "
+    "Please Send Proper Screenshots."
+)

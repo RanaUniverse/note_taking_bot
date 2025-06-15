@@ -270,6 +270,13 @@ def main() -> None:
         )
     )
 
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=delete_note.note_del_cancel_button,
+            pattern="note_del_cancel",
+        )
+    )
+
     # After a note del successfull, this is just a button
     application.add_handler(
         CallbackQueryHandler(
@@ -282,13 +289,6 @@ def main() -> None:
         CallbackQueryHandler(
             callback=delete_note.all_note_delete_button,
             pattern="delete_my_all_notes",
-        )
-    )
-
-    application.add_handler(
-        CallbackQueryHandler(
-            callback=delete_note.note_del_cancel_button,
-            pattern="cancel_del",
         )
     )
 

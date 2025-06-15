@@ -240,8 +240,19 @@ async def handle_delete_note_button(
     if note_row is None:
         RanaLogger.warning(f"This time the note row should present")
         text_no_note = message_templates.NOTE_NO_FOUND_TEXT
-        # await msg.reply_html(text_no_note)
-        await query.edit_message_text(text_no_note, parse_mode=ParseMode.HTML)
+
+        if msg.text:
+            await query.edit_message_text(
+                text=text_no_note,
+                parse_mode=ParseMode.HTML,
+            )
+
+        elif msg.caption:
+            await query.edit_message_caption(
+                caption=text_no_note,
+                parse_mode=ParseMode.HTML,
+            )
+
         return None
 
     await query.answer(
@@ -327,7 +338,7 @@ async def confirm_note_del_button(
         f"Note ID: <code>{note_id}</code>\n"
     )
 
-    msg_waiting = await msg.reply_html(waiting_text)
+    msg_waiting = await msg.reply_html(waiting_text, do_quote=True)
 
     RanaLogger.info(
         f"{user.full_name} want to delete the note id of: "
@@ -342,16 +353,20 @@ async def confirm_note_del_button(
     await asyncio.sleep(1)
 
     if note_row is None:
-        text_no_note = (
-            f"{waiting_text}\n\n"
-            "⚠️ <b>Note Not Found</b>\n\n"
-            "It looks like this note may have already been deleted or the ID is invalid.\n\n"
-            "If you believe this is a mistake, please contact support using "
-            f"/help with screenshots🛠️"
-        )
-        RanaLogger.warning(
-            "Note ID from confirm button should have been valid, but note not found."
-        )
+        RanaLogger.warning(f"Note id should be present when del confirm callback.")
+        text_no_note = f"{waiting_text}\n\n" f"{message_templates.NOTE_NO_FOUND_TEXT}"
+
+        button = [
+            [
+                InlineKeyboardButton(
+                    text="Note Delete Failed 😢",
+                    callback_data="note_delete_failed",
+                )
+            ]
+        ]
+
+        await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(button))
+
         await msg_waiting.edit_text(text=text_no_note, parse_mode=ParseMode.HTML)
 
         return None
@@ -367,13 +382,7 @@ async def confirm_note_del_button(
     # user specefically,otherwise it can be problem
 
     if delection_confirmation:
-        text = (
-            f"{waiting_text}\n\n"
-            "✅ <b>Note Deleted Successfully!</b>\n\n"
-            "🗑️ Your note has been permanently removed from the database.\n"
-            "Please remember, this action cannot be undone.\n\n"
-            "If you deleted it by mistake, unfortunately, it's gone for good. 😢"
-        )
+        text = f"{waiting_text}\n\n" f"{message_templates.SUCCESS_NOTE_DELETE_TEXT}"
 
         await msg_waiting.edit_text(text, parse_mode=ParseMode.HTML)
 
@@ -389,27 +398,42 @@ async def confirm_note_del_button(
         await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(button))
         return None
 
-    else:
+    # else:
 
+    #     RanaLogger.warning(
+    #         f"When the note id is ok and user id is matched, then it should delete the note "
+    #         "i dont understand maybe some inner problem is happening in db."
+    #     )
+    #     text = f"{waiting_text}\n\n" f"{message_templates.FAIL_NOTE_DELETE_TEXT}"
+
+    #     await msg_waiting.edit_text(text, parse_mode=ParseMode.HTML)
+    #     return None
+
+    else:
         RanaLogger.warning(
             f"When the note id is ok and user id is matched, then it should delete the note "
             "i dont understand maybe some inner problem is happening in db."
         )
-        text = (
-            f"{waiting_text}\n\n"
-            "⚠️ <b>Deletion Failed</b>\n\n"
-            "Something went wrong while trying to delete your note.\n"
-            "Please try again later or use <b>/help</b> to contact support. 🛠️ "
-            "Please Send Proper Screenshots."
-        )
+        text = f"{waiting_text}\n\n" f"{message_templates.FAIL_NOTE_DELETE_TEXT}"
 
         await msg_waiting.edit_text(text, parse_mode=ParseMode.HTML)
+
+        button = [
+            [
+                InlineKeyboardButton(
+                    text="Note Delete Failed 😢",
+                    callback_data="note_delete_failed",
+                )
+            ]
+        ]
+
+        await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(button))
         return None
 
 
 async def note_del_cancel_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    Callback Data: `cancel_del`
+    Callback Data: `note_del_cancel`
     When user choose he dont want to delete his note this callback
     data will come and it will just say nothing now.
     """
@@ -419,7 +443,7 @@ async def note_del_cancel_button(update: Update, context: ContextTypes.DEFAULT_T
     if msg is None or user is None:
         RanaLogger.warning(
             f"When user choose not to delte his note in a button "
-            "The cancel_del data will should has the information of msg and user"
+            "The note_del_cancel data will should has the information of msg and user"
         )
         return None
 
@@ -428,7 +452,7 @@ async def note_del_cancel_button(update: Update, context: ContextTypes.DEFAULT_T
     if query is None or query.data is None:
         RanaLogger.warning(
             f"When user choose not to delte his note by "
-            "cancel_del callback data must be present"
+            "note_del_cancel callback data must be present"
         )
         return None
 
