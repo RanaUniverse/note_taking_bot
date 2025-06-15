@@ -284,6 +284,15 @@ def main() -> None:
             pattern="note_deleted_already",
         )
     )
+
+    # This is when user has cancel his note deletion will shows this
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=delete_note.note_deletion_stopped_button,
+            pattern="note_delete_stopped",
+        )
+    )
+
     # This is currently think not fully understandable
     application.add_handler(
         CallbackQueryHandler(

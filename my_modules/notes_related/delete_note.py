@@ -456,8 +456,40 @@ async def note_del_cancel_button(update: Update, context: ContextTypes.DEFAULT_T
         )
         return None
 
+    button = [
+        [
+            InlineKeyboardButton(
+                text="Note Deletion Stopped 🚫",
+                callback_data="note_delete_stopped",
+            )
+        ]
+    ]
+
     # For now this will just remove the buttons when this is pressed
-    await query.edit_message_reply_markup()
+    await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(button))
+
+
+async def note_deletion_stopped_button(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    Callback Data: note_delete_stopped
+    When the user presses the "Note Deletion Stopped 🚫" button,
+    show an alert that it was already cancelled.
+    """
+    query = update.callback_query
+
+    if query is None or query.data is None:
+        RanaLogger.warning(
+            "note_delete_stopped button pressed but no callback data found."
+        )
+        return
+
+    text = "Note Deletion Was Already Cancelled 🚫"
+    await query.answer(
+        text=text,
+        show_alert=True,
+    )
 
 
 async def note_deleted_already_button(
