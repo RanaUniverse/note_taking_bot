@@ -529,3 +529,24 @@ async def all_note_delete_button(
     )
 
     await query.edit_message_reply_markup()
+
+    how_many_note_delete = db_functions.delete_all_notes_of_user(
+        engine=engine,
+        user_id=user.id,
+    )
+
+    if how_many_note_delete == 0:
+        text = (
+            f"No note has been deleted or maybe you have "
+            "no note, or maybe there is database "
+            "related problem in our server side"
+        )
+        await msg.reply_html(text=text, do_quote=True)
+        return None
+
+    elif how_many_note_delete >= 1:
+        text = (
+            f"YOur {how_many_note_delete} Has been deleted, no more note left to delete"
+        )
+        await msg.reply_html(text=text, do_quote=True)
+        return None

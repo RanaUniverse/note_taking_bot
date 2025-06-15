@@ -252,3 +252,29 @@ def add_point_to_user_obj(
         session.refresh(user_row)
 
         return user_row
+
+
+def delete_all_notes_of_user(engine: Engine, user_id: int) -> int:
+    """
+    By returning the 0 or the integer value i can know if the note has delted
+    or how many notse gote deleted successfully.
+    """
+    try:
+        with Session(engine) as session:
+            stmt = select(NotePart).where(NotePart.user_id == user_id)
+            results = session.exec(stmt).all()
+
+            if not results:
+                RanaLogger.info(f"No notes found for user_id={user_id}.")
+                return 0
+
+            for note in results:
+                session.delete(note)
+
+            session.commit()
+            RanaLogger.info(f"Deleted {len(results)} notes for user_id={user_id}.")
+            return len(results)
+
+    except Exception as e:
+        RanaLogger.warning(f"Error deleting notes for user_id={user_id}: {e}")
+        return 0
