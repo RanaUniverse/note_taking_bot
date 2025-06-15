@@ -47,10 +47,14 @@ async def delete_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if not context.args:
 
         reply_text = (
-            "You Haven't Passed any Note Id as arg. "
-            "To Delete Your Note, please provide your note id, \n"
-            "Usage: <code>/delete_note &lt;note_id&gt;</code>\n\n"
-            "You Can also see the buttons and delete the notes from there."
+            "⚠️ You didn't provide a note ID.\n\n"
+            "To delete a specific note, please use:\n"
+            "<code>/delete_note &lt;note_id&gt;</code>\n\n"
+            "❓ Don't know your note ID?\n"
+            "Use the buttons below to:\n"
+            "• View all your notes\n"
+            "• Search by keyword\n"
+            "• Or delete all notes at once\n"
         )
 
         await msg.reply_html(
@@ -94,7 +98,8 @@ async def delete_note_one_arg(
             "To delete a note, please provide its unique Note ID.\n"
             "Usage: <code>/delete_note &lt;note_id&gt;</code>\n\n"
             "You can also browse your notes(/my_notes) using the available "
-            "options and find the Note ID easily. 📚"
+            "options and find the Note ID easily. 📚\n"
+            "This is a problem maybe plesse report to admin."
         )
 
         await msg.reply_html(text=text_error)
@@ -113,14 +118,8 @@ async def delete_note_one_arg(
         text = (
             f"🚫 The Note ID You provided (<code>{safe_note_id}</code>) "
             f"seems to be invalid.\n\n"
-            f"Please double-check the ID.\n"
-            f"You can:\n"
-            f"• Search your notes 📖\n"
-            f"• View old chats 💬\n"
-            f"• Export your notes 💾\n"
-            f"Or simply contact admin for help via <b>/help</b> 🛠️"
+            f"{message_templates.NOTE_NO_FOUND_TEXT}"
         )
-
         await msg.reply_html(text=text)
         return None
 
@@ -128,17 +127,14 @@ async def delete_note_one_arg(
     owner_id = note_row.user_id
 
     if user.id != owner_id:
-        text = (
-            "🚫 <b>Access Denied</b>\n\n"
-            "You cannot delete this note because it does not belong to your account.\n"
-            "Only the original creator of the note has permission to delete it.\n\n"
-            "If you believe this is a mistake, please report the issue via /help."
-        )
+
+        text = message_templates.access_denied_messages(user=user, what_action="Delete")
 
         await msg.reply_html(text)
         return None
 
     # this line executes means the owner id of the note and the user is same
+    # so it means the note can be delted now properly.
 
     deletion_confirmation = db_functions.delete_note_obj(
         engine=engine,
@@ -147,14 +143,7 @@ async def delete_note_one_arg(
     )
 
     if deletion_confirmation:
-        note_del_confirm = (
-            f"Note Title Was:-\n"
-            f"<s>{note_row.note_title}</s>\n"
-            "✅ <b>Note Deleted!</b>\n\n"
-            "Your note has been successfully removed from the database. 🗑️\n"
-            "If it was deleted by mistake, sadly, there's no going back 😢"
-            f"\n\n"
-        )
+        note_del_confirm = f"{message_templates.SUCCESS_NOTE_DELETE_TEXT}"
 
         await msg.reply_html(note_del_confirm)
         return None
@@ -163,11 +152,7 @@ async def delete_note_one_arg(
         RanaLogger.warning(
             f"delete fun has been run for note so it should be yes / no."
         )
-        text = (
-            "⚠️ <b>Deletion Failed</b>\n\n"
-            "Something went wrong while trying to delete your note.\n"
-            "Please try again later or use <b>/help</b> to contact support with screenshots. 🛠️"
-        )
+        text = f"{message_templates.FAIL_NOTE_DELETE_TEXT}"
 
         await msg.reply_html(text)
         return None

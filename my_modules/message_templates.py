@@ -355,6 +355,25 @@ def invalid_int_value_in_add_points(
     return text_int_not
 
 
+def access_denied_messages(user: User, what_action: str) -> str:
+    """
+    This is say the text based on
+    Edit
+    Delete
+    Share
+    """
+
+    text = (
+        f"🚫 <b>Access Denied</b>\n\n"
+        f"Dear {user.mention_html()}, you are not the owner of this note and therefore "
+        f"cannot {what_action} it. 😢\n\n"
+        f"If you believe this is an error or need assistance, "
+        f"please contact support via /help."
+    )
+
+    return text
+
+
 # Below is some constants variables for some text generation.
 
 NOTE_NO_FOUND_TEXT = (
