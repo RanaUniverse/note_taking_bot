@@ -285,6 +285,19 @@ def generate_view_note_buttons(note_id: str) -> list[list[InlineKeyboardButton]]
     return buttons
 
 
+def note_del_confirmation_button(note_id: str) -> list[list[InlineKeyboardButton]]:
+
+    buttons: list[list[InlineKeyboardButton]] = [
+        [
+            InlineKeyboardButton(
+                text="✅ Yes, Delete", callback_data=f"note_del_confirm_{note_id}"
+            ),
+            InlineKeyboardButton(text="❌ No Skip", callback_data="cancel_del"),
+        ]
+    ]
+    return buttons
+
+
 class MyInlineKeyboard(Enum):
 
     START_MENU = keyboard_start_menu

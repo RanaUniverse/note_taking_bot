@@ -353,3 +353,15 @@ def invalid_int_value_in_add_points(
     )
 
     return text_int_not
+
+
+# Below is some constants variables for some text generation.
+
+NOTE_NO_FOUND_TEXT = (
+    f"🚫 <b>Note Not Accessible</b>\n\n"
+    f"😢 This note is no longer available.\n"
+    f"It might have been <b>deleted</b> or "
+    f"there was an <b>unexpected issue</b>.\n\n"
+    f"📌 Try checking your other notes using /my_notes.\n"
+    f"Or You can contact Admins For This issue."
+)

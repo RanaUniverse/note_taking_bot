@@ -304,7 +304,7 @@ async def button_for_search_notes(
             f"😢 This note is no longer available.\n"
             f"It might have been <b>deleted</b> or "
             f"there was an <b>unexpected issue</b>.\n\n"
-            f"📌 Try checking your other notes using /all_notes."
+            f"📌 Try checking your other notes using /my_notes."
         )
         await msg.reply_html(text)
         return None

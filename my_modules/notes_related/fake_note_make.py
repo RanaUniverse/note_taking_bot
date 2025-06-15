@@ -11,9 +11,11 @@ from faker import Faker
 from sqlmodel import Session
 
 from telegram import Update
+from telegram import InlineKeyboardMarkup
 from telegram.constants import ChatAction, ParseMode
 from telegram.ext import ContextTypes
 
+from my_modules import bot_config_settings
 from my_modules import message_templates
 
 from my_modules.database_code.database_make import engine
@@ -24,7 +26,7 @@ from my_modules.logger_related import RanaLogger
 
 from my_modules.notes_related import export_note
 
-from my_modules import bot_config_settings
+from my_modules.some_inline_keyboards import generate_view_note_buttons
 
 
 MAX_TITLE_LEN = bot_config_settings.MAX_TITLE_LEN
@@ -94,18 +96,21 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         f"🧪 1 Fake Note created.\n"
         f"{note_maked_text}"
         f"If you want to make many fake note pls send: <code> /fake_note Number </code>\n\n"
-        f"📂 View them with /all_notes or /my_notes\n"
+        f"📂 View them with /my_notes\n"
     )
 
     file_path = export_note.make_txt_file_from_note(
         note_obj=note_row, user=user, msg=msg
     )
 
+    buttons_successfull_note = generate_view_note_buttons(note_row.note_id)
+
     await msg.reply_document(
         document=file_path,
         filename=f"FakeNote_{file_path.name}",
         caption=caption_text,
         parse_mode=ParseMode.HTML,
+        reply_markup=InlineKeyboardMarkup(buttons_successfull_note),
     )
 
     if WILL_TEM_NOTE_DELETE:
@@ -247,7 +252,7 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             f"🧪 <b>{how_many_note}</b> fake notes created.\n"
             f"➖ Points spent: <b>{how_many_note}</b>\n"
             f"💰 Remaining Points: <b>{user_row.points}</b>\n\n"
-            f"📂 View them with /all_notes or /my_notes\n"
+            f"📂 View them with /my_notes\n"
             f"➕ Need more points? Try /add_points"
         )
 

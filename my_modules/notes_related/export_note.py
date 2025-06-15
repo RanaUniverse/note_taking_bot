@@ -122,7 +122,7 @@ async def export_note_as_txt_file(update: Update, context: ContextTypes.DEFAULT_
             f"😢 This note is no longer available.\n"
             f"It might have been <b>deleted</b> or "
             f"there was an <b>unexpected issue</b>.\n\n"
-            f"📌 Try checking your other notes using /all_notes."
+            f"📌 Try checking your other notes using /my_notes."
         )
         await msg.reply_html(text)
         return None
@@ -190,7 +190,7 @@ async def export_note_as_pdf_file(update: Update, context: ContextTypes.DEFAULT_
             f"😢 This note is no longer available.\n"
             f"It might have been <b>deleted</b> or "
             f"there was an <b>unexpected issue</b>.\n\n"
-            f"📌 Try checking your other notes using /all_notes."
+            f"📌 Try checking your other notes using /my_notes."
         )
         await msg.reply_html(text)
         return None
@@ -242,7 +242,7 @@ async def share_note_coming_soon(update: Update, context: ContextTypes.DEFAULT_T
             f"😢 This note is no longer available.\n"
             f"It might have been <b>deleted</b> or "
             f"there was an <b>unexpected issue</b>.\n\n"
-            f"📌 Try checking your other notes using /all_notes."
+            f"📌 Try checking your other notes using /my_notes."
         )
         await msg.reply_html(text)
         return None
@@ -292,7 +292,7 @@ async def duplicate_note_coming_soon(
             f"😢 This note is no longer available.\n"
             f"It might have been <b>deleted</b> or "
             f"there was an <b>unexpected issue</b>.\n\n"
-            f"📌 Try checking your other notes using /all_notes."
+            f"📌 Try checking your other notes using /my_notes."
         )
         await msg.reply_html(text)
         return None

@@ -14,13 +14,18 @@ from telegram.constants import ChatAction, ParseMode
 
 from telegram.ext import ContextTypes
 
+from my_modules import message_templates
+
 from my_modules.logger_related import RanaLogger
 
 from my_modules.database_code.database_make import engine
 
 from my_modules.database_code import db_functions
 
-from my_modules.some_inline_keyboards import keyboard_for_del_note
+from my_modules.some_inline_keyboards import (
+    keyboard_for_del_note,
+    note_del_confirmation_button,
+)
 
 
 async def delete_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -203,8 +208,13 @@ async def handle_delete_note_button(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """
+    As This button can be attached with Simple Text
+    Or maybe it attached with a file + caption.
+    So For This two i keep this logic check.
+
     When delete_note_ note_id come in callback button value
     This function will executes and this will ask user to del or not.
+        pattern=r"^delete_note_.*$",
     """
     user = update.effective_user
     msg = update.effective_message
@@ -219,12 +229,7 @@ async def handle_delete_note_button(
     query = update.callback_query
     if query is None or query.data is None:
         RanaLogger.warning("Delete Note button pressed but no callback data found.")
-        return
-
-    await query.answer(
-        text="🗑️ Please Read all carefully must ⏳",
-        show_alert=True,
-    )
+        return None
 
     note_id = query.data.replace("delete_note_", "")
 
@@ -234,45 +239,57 @@ async def handle_delete_note_button(
     )
     if note_row is None:
         RanaLogger.warning(f"This time the note row should present")
-        await msg.reply_html(f"Something wrong the note not found")
-        return
+        text_no_note = message_templates.NOTE_NO_FOUND_TEXT
+        # await msg.reply_html(text_no_note)
+        await query.edit_message_text(text_no_note, parse_mode=ParseMode.HTML)
+        return None
 
-    title = f"{note_row.note_title}"
-
-    created_time = (
-        note_row.created_time.strftime("%d %b %Y, %I:%M %p")
-        if note_row.created_time
-        else "Unknown"
+    await query.answer(
+        text="🗑️ Please Read all carefully must ⏳",
+        show_alert=True,
     )
 
-    edited_time = (
-        f"<b>✏️ Last Edited:</b> <code>{note_row.edited_time.strftime('%d %b %Y, %I:%M %p')}</code>\n"
+    title = f"{note_row.note_title or 'Untitled Note'}"
+
+    created_info = (
+        f"📅 <b>Created On:</b> <code>{note_row.created_time.strftime('%d %b %Y, %I:%M %p')}</code>\n"
+        if note_row.created_time
+        else "📅 <b>Created On:</b> <code>Unknown</code>\n"
+    )
+
+    edited_info = (
+        f"✏️ <b>Last Edited:</b> <code>{note_row.edited_time.strftime('%d %b %Y, %I:%M %p')}</code>\n"
         if note_row.edited_time
         else ""
     )
+
     text = (
-        f"⚠️ <b>Are you sure you want to delete this note?</b>\n\n"
+        f"⚠️ <b>Delete Confirmation</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━\n"
         f"<b>📝 Title:</b> <code>{html.escape(title)}</code>\n"
-        f"<b>🕒 Created:</b> <code>{created_time}</code>\n"
-        f"{edited_time}\n"
-        f"🚫 <u>This action is permanent and cannot be undone!</u>\n"
-        f"Please confirm your choice below 👇"
+        f"<b>📅 Created On:</b> <code>{created_info}</code>\n"
+        f"{edited_info}"
+        f"━━━━━━━━━━━━━━━━━━━\n"
+        f"🚫 <i>This action is <b>permanent</b> and cannot be undone!</i>\n"
+        f"Are you absolutely sure you want to <b>delete</b> this note?\n\n"
+        f"👇 Please confirm your choice:"
     )
 
-    buttons: list[list[InlineKeyboardButton]] = [
-        [
-            InlineKeyboardButton(
-                text="✅ Yes, Delete", callback_data=f"note_del_confirm_{note_id}"
-            ),
-            InlineKeyboardButton(text="❌ No Skip", callback_data="cancel_del"),
-        ]
-    ]
+    buttons = note_del_confirmation_button(note_id=note_id)
 
-    await query.edit_message_text(
-        text=text,
-        reply_markup=InlineKeyboardMarkup(buttons),
-        parse_mode=ParseMode.HTML,
-    )
+    if msg.text:
+        await query.edit_message_text(
+            text=text,
+            reply_markup=InlineKeyboardMarkup(buttons),
+            parse_mode=ParseMode.HTML,
+        )
+
+    elif msg.caption:
+        await query.edit_message_caption(
+            caption=text,
+            reply_markup=InlineKeyboardMarkup(buttons),
+            parse_mode=ParseMode.HTML,
+        )
 
 
 async def confirm_note_del_button(
