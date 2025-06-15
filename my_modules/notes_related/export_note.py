@@ -34,7 +34,7 @@ def make_txt_file_from_note(
     note_obj: NotePart,
     user: User,
     msg: Message,
-    use_corrent_time: bool = False,
+    use_current_time: bool = True,
 ) -> Path:
     """
     This will generate the txt file with also footer and so on
@@ -52,9 +52,12 @@ def make_txt_file_from_note(
         f"Note ID: {note_obj.note_id}"
     )
 
-    full_text = note_description + make_footer_text(user, msg)
+    full_text = note_description + make_footer_text(
+        user=user,
+        use_current_time=use_current_time,
+    )
 
-    timestamp = datetime.now() if use_corrent_time else msg.date
+    timestamp = datetime.now() if use_current_time else msg.date
     readable_time = timestamp.strftime("%Y-%m-%d_%H_%M_%S")
 
     filename = f"time_{readable_time}.txt"
@@ -141,7 +144,7 @@ async def export_note_as_txt_file(update: Update, context: ContextTypes.DEFAULT_
         note_obj=note_row,
         user=user,
         msg=msg,
-        use_corrent_time=True,
+        use_current_time=True,
     )
 
     caption_text = f"This Is Your Note as TXT File."
@@ -310,7 +313,7 @@ async def duplicate_note_coming_soon(
 
 
 def txt_file_making_for_many_fake_note(
-    note_text:str,
+    note_text: str,
     user: User,
     msg: Message,
     use_corrent_time: bool = False,
@@ -321,7 +324,7 @@ def txt_file_making_for_many_fake_note(
     Like this i will use and i will get the file from here.
     """
 
-    full_text = note_text + make_footer_text(user, msg)
+    full_text = note_text + make_footer_text(user, use_current_time=True)
 
     timestamp = datetime.now() if use_corrent_time else msg.date
     readable_time = timestamp.strftime("%Y-%m-%d_%H_%M_%S")
