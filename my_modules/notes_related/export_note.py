@@ -206,11 +206,23 @@ async def export_note_as_pdf_file(update: Update, context: ContextTypes.DEFAULT_
         return None
 
     await query.answer("Coming Soon!")
-    await msg.reply_html(
+
+    text = (
         "<b>📄 Export as PDF</b>\n\n"
         "🛠 This feature is not available yet.\n"
         "🚧 It will be added in a future update. Stay tuned!"
+        "This is just a demo PDF"
     )
+
+    rana_demo_pdf = (
+        "BQACAgEAAxkBAA"
+        "IjMmhOf-sgSMrP0h8"
+        "iMvyhMuinklI8AA"
+        "KfBAACUKBwRsG"
+        "Y3jBlGtBDNgQ"
+    )
+
+    await msg.reply_document(document=rana_demo_pdf, caption=text, parse_mode=ParseMode.HTML)
 
 
 # this fun need to be in a good module
