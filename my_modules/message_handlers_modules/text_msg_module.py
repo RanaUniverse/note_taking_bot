@@ -4,14 +4,20 @@ This python code is for just checking, though this not need, maybe i will use ec
 
 import asyncio
 
-from pathlib import Path
 
 from telegram import ReplyParameters
 from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 
+from my_modules import bot_config_settings
+
 from my_modules.rana_needed_things import make_footer_text
+
+from my_modules.rana_needed_things import create_txt_file_from_string
+
+
+WILL_TEM_NOTE_DELETE = bot_config_settings.WILL_TEM_NOTE_DELETE
 
 
 async def echo_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -47,21 +53,14 @@ async def text_msg_to_txt_file(
     user = update.effective_user
     msg = update.effective_message
 
-    if user is None or msg is None:
-        return
+    if user is None or msg is None or msg.text is None:
+        return None
 
-    text = f"{msg.text}" + make_footer_text(user=user, msg=msg)
+    text = f"{msg.text}" + make_footer_text(user=user, use_current_time=True)
 
     # filename = "user_message.txt"
     filename = f"user_id_{user.id}_time_{int(msg.date.timestamp())}.txt"
-
-    file_dir = Path.cwd() / "000_user_msg"
-
-    file_path = file_dir / filename
-
-    file_dir.mkdir(parents=True, exist_ok=True)
-
-    file_path.write_text(text)
+    file_path = create_txt_file_from_string(content=text, filename=filename)
 
     old_caption = "📄 <b>Document Sent By The Echo Function</b>"
 
@@ -85,8 +84,11 @@ async def text_msg_to_txt_file(
 
     await asyncio.sleep(1)
 
-    # i want it will first delete the file and then only send the updated caption
-    # so that it will also sure nothign wrong happens here
-    file_path.unlink(missing_ok=True)
+    new_caption += f"TXT File has been deleted from server."
 
     await file_send.edit_caption(caption=new_caption, parse_mode=ParseMode.HTML)
+
+    if WILL_TEM_NOTE_DELETE:
+        print("Temp file will Delete now")
+        file_path.unlink(missing_ok=True)
+        return None

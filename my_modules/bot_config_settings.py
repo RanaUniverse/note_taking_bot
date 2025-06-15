@@ -40,7 +40,7 @@ OFFSET_VALUE = 0
 ADMIN_ID_1 = 1895194333
 
 TEM_FOLDER_NOTE_STORE = "000_user_msg"
-WILL_TEM_NOTE_DELETE:bool = False
+WILL_TEM_NOTE_DELETE:bool = True
 
 GROUP_LINK = "RanaUniverse"
 LOG_FILE_NAME = "RanaUniverse_Log_File.log"

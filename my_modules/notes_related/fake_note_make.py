@@ -114,6 +114,7 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     )
 
     if WILL_TEM_NOTE_DELETE:
+        print("Temp file willd elete now")
         file_path.unlink(missing_ok=True)
         return None
 
