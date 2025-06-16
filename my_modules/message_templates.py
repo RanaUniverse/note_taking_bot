@@ -3,9 +3,12 @@ Here i will make some funcions which will return some demo
 Text which i can reuse in different places.
 """
 
-import random
+from enum import Enum
 
 import html
+
+import random
+
 
 from telegram import Chat, Message, User
 
@@ -355,7 +358,13 @@ def invalid_int_value_in_add_points(
     return text_int_not
 
 
-def access_denied_messages(user: User, what_action: str) -> str:
+class WhatMessageAction(Enum):
+    EDIT = "edit"
+    DELETE = "delete"
+    SHARE = "share"
+
+
+def access_denied_messages(user: User, what_action: WhatMessageAction) -> str:
     """
     This is say the text based on
     Edit
@@ -399,3 +408,21 @@ FAIL_NOTE_DELETE_TEXT = (
     "Please try again later or use <b>/help</b> to contact support. 🛠️ "
     "Please Send Proper Screenshots."
 )
+
+
+def generate_no_note_found_with_note_id(wrong_note: str) -> str:
+    """
+    When User need to be replied with the bad note id also
+    That the note is not accessable i need to use this function.
+    As i am using html thats why i need to make the input safe of html
+    """
+
+    safe_note_id = html.escape(wrong_note)
+
+    text = (
+        f"🚫 The Note ID You provided (<code>{safe_note_id}</code>) "
+        f"seems to be invalid.\n\n"
+        f"{NOTE_NO_FOUND_TEXT}"
+    )
+
+    return text
