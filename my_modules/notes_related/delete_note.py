@@ -16,6 +16,8 @@ from telegram.ext import ContextTypes
 
 from my_modules import message_templates
 
+from my_modules.message_templates import WhatMessageAction
+
 from my_modules.logger_related import RanaLogger
 
 from my_modules.database_code.database_make import engine
@@ -128,7 +130,10 @@ async def delete_note_one_arg(
 
     if user.id != owner_id:
 
-        text = message_templates.access_denied_messages(user=user, what_action="Delete")
+        text = message_templates.access_denied_messages(
+            user=user,
+            what_action=WhatMessageAction.DELETE,
+        )
 
         await msg.reply_html(text)
         return None
