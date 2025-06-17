@@ -2,10 +2,16 @@
 This will a edit note features, where user can
 Edit his own note.
 
+
+
+    context.user_data["old_note_id"] = note_id
+    context.user_data["old_note_title"] = note_row.note_title
+    context.user_data["old_note_content_preview"] = content_preview
+
+    context.user_data["new_note_title"] = user_text
+    context.user_data["new_note_content"] = user_msg_html
+
 """
-
-import html
-
 
 from telegram import Update
 from telegram import (
@@ -28,14 +34,15 @@ from telegram.ext import (
 from my_modules import bot_config_settings
 
 from my_modules import inline_keyboard_buttons
-from inline_keyboard_buttons import (
+from my_modules.inline_keyboard_buttons import (
     CANCEL_EDIT_NOTE_CONV_BUTTON,
     EDIT_TITLE_BUTTON,
     EDIT_CONTENT_BUTTON,
+    DELETE_NOTE_BUTTON,
 )
 
 from my_modules import message_templates
-from message_templates import WhatMessageAction
+from my_modules.message_templates import WhatMessageAction
 
 from my_modules.database_code import db_functions
 from my_modules.database_code.database_make import engine
@@ -176,8 +183,18 @@ async def edit_note_cmd_one_arg(
     else:
         content_preview = content_full[:100] + "..."
 
+    if context.user_data is None:
+        RanaLogger.warning(
+            f"User Data Must be a empty list atleast not none when editing note"
+        )
+        return ConversationHandler.END
+
+    context.user_data["old_note_id"] = note_id
+    context.user_data["old_note_title"] = note_row.note_title
+    context.user_data["old_note_content_preview"] = content_preview
+
     reply_text = (
-        f"Hello {user.mention_html()}, you own this note 🙋\n\n"
+        f"Hello {user.mention_html()}, Below is Your Old Note Content 🙋\n\n"
         f"<u>TITLE</u>: {note_row.note_title}\n\n"
         f"<u>CONTENT</u>: {content_preview}\n\n"
         f"Please select one of the buttons below to edit your note.\n"
@@ -185,15 +202,6 @@ async def edit_note_cmd_one_arg(
     )
 
     button = inline_keyboard_buttons.EDIT_NOTE_CONV_KEYBOARD
-
-    if context.user_data is None:
-        RanaLogger.warning(
-            f"User Data Must be a empty list atleast not none when editing note"
-        )
-        return ConversationHandler.END
-
-    context.user_data["note_id_of_edited_note"] = note_id
-    context.user_data["reply_text"] = reply_text
 
     await msg.reply_html(
         text=reply_text,
@@ -318,8 +326,9 @@ async def cancel_fallbacks_by_button(
 
 async def get_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
-    When user will send text it will execute and try to save this in the dictionary first
-    Then if it is wrong it will say to send him again
+    Handles the input when the user is in the 'Title' state.
+    If a valid title is provided, it is saved in context.user_data.
+    Rejects whnen long titles and guides the user accordingly.
     """
 
     user = update.effective_user
@@ -327,7 +336,8 @@ async def get_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     if user is None or msg is None:
         RanaLogger.warning(
-            "when i got text msg for note it should be present the user and msg"
+            "when i got text msg for note title "
+            "it should be present the user and msg"
         )
         return ConversationHandler.END
 
@@ -337,36 +347,37 @@ async def get_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         text = (
             f"The New Note Title exceed {MAX_TITLE_LEN} characters. "
             f"So i cannot take this note title, please resend me note title in the limit of "
-            f"{MAX_TITLE_LEN}."
+            f"{MAX_TITLE_LEN} Characters."
         )
         await msg.reply_html(text)
         return TITLE
 
-    else:
-        if context.user_data is None:
-            RanaLogger.warning(f"User Data Must be a empty list atleast not none")
-            return ConversationHandler.END
+    # else: i dont use else, as when title is in good condition it will executes below line.
 
-        context.user_data["edit_note_title"] = user_text
+    if context.user_data is None:
+        RanaLogger.warning(
+            f"User Data Must be a empty list atleast not none "
+            "when new note title get by the user in edit note"
+        )
+        return ConversationHandler.END
 
-        text = f"You have send me a correct title, " f"now please select what you want."
+    old_title = context.user_data.get("old_note_title", "Unknown Title")
 
-        button = [
-            [
-                InlineKeyboardButton(
-                    text="Edit Title Done Already 🍌🍌🍌",
-                    callback_data="edit_title",
-                ),
-                InlineKeyboardButton(
-                    text="Edit Content",
-                    callback_data="edit_content",
-                ),
-            ],
-        ]
+    context.user_data["new_note_title"] = user_text
 
-        await msg.reply_html(text=text, reply_markup=InlineKeyboardMarkup(button))
+    reply_text = (
+        f"🙋‍♂️ Hello {user.mention_html()}, here's your note info:\n\n"
+        f"📝 <b>Old Title:</b> <i>{old_title}</i>\n\n"
+        f"✨ <b>New Title:</b> <i>{user_text}</i>\n\n"
+        f"Please choose what you'd like to do next using the buttons below.\n"
+        f"You can also send /cancel or press 'Cancel Now' to exit."
+    )
 
-        return SELECT_OPTION
+    button = inline_keyboard_buttons.EDIT_NOTE_CONV_KEYBOARD
+
+    await msg.reply_html(text=reply_text, reply_markup=InlineKeyboardMarkup(button))
+
+    return SELECT_OPTION
 
 
 async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -379,7 +390,8 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     if user is None or msg is None:
         RanaLogger.warning(
-            "when i got text msg for note it should be present the user and msg"
+            "I got new content of my note so this time "
+            "i should has the user and msg exists"
         )
         return ConversationHandler.END
 
@@ -387,29 +399,47 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     user_msg_html = msg.text_html
 
     if user_msg is None:
-        RanaLogger.warning("Content message should not be None.")
+        RanaLogger.warning(
+            "Content message should not be None. when get the note content value."
+        )
         return ConversationHandler.END
 
     if len(user_msg) > MAX_CONTENT_LEN:
         text = (
             f"⚠️ Your note content is too long! Please keep it within {MAX_CONTENT_LEN} characters."
             f"Please resend your note's content properly in {MAX_TITLE_LEN} characters"
+            "Please send the new content again below."
         )
 
         await msg.reply_html(text)
+        return CONTENT
+
+    if context.user_data is None:
+        RanaLogger.warning(
+            "User data must not be None, should be at least an empty dictionary."
+            "when the new contetn is get in the edit note"
+        )
         return ConversationHandler.END
 
-    else:
+    old_content_preview = context.user_data.get(
+        "old_note_content_preview", "Old Note Content NOt Showing."
+    )
 
-        if context.user_data is None:
-            RanaLogger.warning(
-                "User data must not be None, should be at least an empty dictionary."
-            )
-            return ConversationHandler.END
+    context.user_data["new_note_content"] = user_msg_html
 
-        context.user_data["note_content"] = user_msg_html
+    reply_text = (
+        f"🙋‍♂️ Hello {user.mention_html()}, here's your note info:\n\n"
+        f"📄 <b>OLD Note Content Preview:</b>\n<i>{old_content_preview}\n\n</i>"
+        f"New NOTE CONTENT: {user_msg_html}\n\n"
+        f"Please choose what you'd like to do next using the buttons below.\n"
+        f"You can also send /cancel or press 'Cancel Now' to exit."
+    )
 
-        return CONFIRMATION
+    button = inline_keyboard_buttons.EDIT_NOTE_CONV_KEYBOARD
+
+    await msg.reply_html(text=reply_text, reply_markup=InlineKeyboardMarkup(button))
+
+    return SELECT_OPTION
 
 
 async def note_edit_confirmation_yes(
@@ -497,9 +527,11 @@ async def bad_note_title_other_type(
 
     if msg.text:
         text = (
-            f"Thsi should not happens as thsi is maybe handle "
-            f"by the first filters.Text() in the handler"
+            f"You Send a Text But this is not checking for now. "
+            "Some issue is here please contact admin or /help"
         )
+        await msg.reply_html(text=text)
+        return ConversationHandler.END
 
     # Checking the type of message and responding accordingly
     elif msg.photo:
@@ -734,12 +766,89 @@ async def bad_note_confirmation(
     return CONFIRMATION
 
 
+# async def select_option_handler(
+#     update: Update, context: ContextTypes.DEFAULT_TYPE
+# ) -> int:
+#     query = update.callback_query
+#     await query.answer()  # acknowledge the callback
+#     option = query.data
+
+#     button = [
+#         [
+#             InlineKeyboardButton(
+#                 text=f"Save Current State",
+#                 callback_data="save_now",
+#             )
+#         ],
+#         [
+#             InlineKeyboardButton(
+#                 text=f"Cancel Now",
+#                 callback_data="cancel",
+#             )
+#         ],
+#     ]
+
+#     if option == "edit_title":
+#         await query.edit_message_text(
+#             text="✏️ Please send the new title:",
+#             reply_markup=InlineKeyboardMarkup(button),
+#         )
+#         return TITLE
+#     elif option == "edit_content":
+#         await query.edit_message_text(
+#             text="📝 Please send the new content:",
+#             reply_markup=InlineKeyboardMarkup(button),
+#         )
+#         return CONTENT
+#     elif option == "delete_note":
+#         await query.edit_message_text(
+#             text="🗑️ Confirm deletion of the note, please type 'YES' to proceed or 'NO' to cancel:"
+#         )
+#         return CONFIRMATION
+#     elif option == "export_note":
+#         await query.edit_message_text(text="📤 Preparing your note for export...")
+#         # Handle export logic here; you might then end the conversation or redirect the flow.
+#         return ConversationHandler.END
+#     elif option == "cancel_conv":
+#         await query.edit_message_text(text="❌ Note editing canceled.")
+#         return ConversationHandler.END
+#     else:
+#         await query.edit_message_text(text="❓ Unrecognized option. Please try again.")
+#         return SELECT_OPTION
+
+
 async def select_option_handler(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> int:
+
     query = update.callback_query
-    await query.answer()  # acknowledge the callback
-    option = query.data
+    msg = update.effective_message
+    user = update.effective_user
+
+    if query is None or query.data is None:
+        RanaLogger.warning(
+            "Selecting any Editing Button must need to have some "
+            "Query's Callback Data present"
+        )
+        return ConversationHandler.END
+
+    if msg is None or user is None:
+        RanaLogger.warning(
+            f"On going to select option it must need to have" "the user and msg object"
+        )
+        return ConversationHandler.END
+
+    callback_data = query.data
+
+    # This Need to Remove.
+    await query.answer(f"'{callback_data}' is the value of callback data.")
+
+    if context.user_data is None:
+        RanaLogger.warning(
+            "On all the callback query of note edit related always the "
+            "context.user_data dictionary must need to present."
+        )
+        return ConversationHandler.END
 
     button = [
         [
@@ -756,33 +865,45 @@ async def select_option_handler(
         ],
     ]
 
-    if option == "edit_title":
-        await query.edit_message_text(
-            text="✏️ Please send the new title:",
-            reply_markup=InlineKeyboardMarkup(button),
+    if callback_data == f"{EDIT_TITLE_BUTTON.callback_data}":
+        old_title = context.user_data.get("old_note_title", "Unknown Title")
+        text = (
+            f"📝 <b>Old Title:</b> <i>{old_title}</i>\n\n"
+            f"✏️ Please send the <b><u>new title</u></b> you'd "
+            f"like to update your note with.\n\n"
+            f"👇👇👇👇👇"
         )
+        await query.edit_message_text(text=text, parse_mode=ParseMode.HTML)
         return TITLE
-    elif option == "edit_content":
-        await query.edit_message_text(
-            text="📝 Please send the new content:",
-            reply_markup=InlineKeyboardMarkup(button),
+
+    elif callback_data == f"{EDIT_CONTENT_BUTTON.callback_data}":
+        old_content_preview = context.user_data.get(
+            "old_note_content_preview", "No preview available."
         )
+        text = (
+            f"📄 <b>Old Content Preview:</b>\n"
+            f"<i>{old_content_preview}</i>\n\n"
+            f"🖊️ Please send the <b><u>new content</u></b> you'd "
+            f"like to update your note with.\n\n"
+            f"👇👇👇👇👇"
+        )
+        await query.edit_message_text(text=text, parse_mode=ParseMode.HTML)
         return CONTENT
-    elif option == "delete_note":
-        await query.edit_message_text(
-            text="🗑️ Confirm deletion of the note, please type 'YES' to proceed or 'NO' to cancel:"
-        )
+
+    elif callback_data == f"{DELETE_NOTE_BUTTON.callback_data}":
+        text = "You want to delete your note. Are you sure? Confirm or cancel."
+        await msg.reply_html(text=text, reply_markup=InlineKeyboardMarkup(button))
         return CONFIRMATION
-    elif option == "export_note":
-        await query.edit_message_text(text="📤 Preparing your note for export...")
-        # Handle export logic here; you might then end the conversation or redirect the flow.
+
+    elif callback_data == f"{CANCEL_EDIT_NOTE_CONV_BUTTON.callback_data}":
+        text = "Note editing has been canceled."
+        await msg.reply_html(text=text, reply_markup=InlineKeyboardMarkup(button))
         return ConversationHandler.END
-    elif option == "cancel_conv":
-        await query.edit_message_text(text="❌ Note editing canceled.")
-        return ConversationHandler.END
+
     else:
-        await query.edit_message_text(text="❓ Unrecognized option. Please try again.")
-        return SELECT_OPTION
+        text = f"Not Valid Response For Now Please Contact Admin."
+        await msg.reply_html(text=text, reply_markup=InlineKeyboardMarkup(button))
+        return ConversationHandler.END
 
 
 edit_note_conv = ConversationHandler(
@@ -818,32 +939,17 @@ edit_note_conv = ConversationHandler(
             # Handler for editing the title
             CallbackQueryHandler(
                 callback=select_option_handler,
-                pattern=r"^edit_title$",
+                pattern=f"{EDIT_TITLE_BUTTON.callback_data}",
             ),
             # Handler for editing the content
             CallbackQueryHandler(
                 callback=select_option_handler,
-                pattern=r"^edit_content$",
+                pattern=f"{EDIT_CONTENT_BUTTON.callback_data}",
             ),
             # Handler for exporting the note (any note id)
             CallbackQueryHandler(
                 callback=select_option_handler,
-                pattern=r"^export_note_.*$",
-            ),
-            # Handler for deleting the note (any note id)
-            CallbackQueryHandler(
-                callback=select_option_handler,
-                pattern=r"^delete_note_.*$",
-            ),
-            # Handler for changing ownership (any note id)
-            CallbackQueryHandler(
-                callback=select_option_handler,
-                pattern=r"^owner_change_.*$",
-            ),
-            # Handler for canceling via the inline button
-            CallbackQueryHandler(
-                callback=cancel_fallbacks_by_button,
-                pattern=r"^cancel_button$",
+                pattern=f"{DELETE_NOTE_BUTTON.callback_data}",
             ),
             # Handler for canceling via the command "/cancel"
             CommandHandler(
@@ -853,7 +959,7 @@ edit_note_conv = ConversationHandler(
                 & filters.ChatType.PRIVATE
                 & filters.UpdateType.MESSAGE,
             ),
-            # Handler for canceling via a callback with exact data "cancel"
+            # Handler for canceling via a callback with cancel button
             CallbackQueryHandler(
                 callback=cancel_fallbacks_by_button,
                 pattern=f"{CANCEL_EDIT_NOTE_CONV_BUTTON.callback_data}",
@@ -868,8 +974,8 @@ edit_note_conv = ConversationHandler(
                 & filters.UpdateType.MESSAGE,
             ),
             CallbackQueryHandler(
-                pattern="cancel",
                 callback=cancel_fallbacks_by_button,
+                pattern=f"{CANCEL_EDIT_NOTE_CONV_BUTTON.callback_data}",
             ),
             MessageHandler(
                 filters=filters.Command(),
@@ -896,6 +1002,10 @@ edit_note_conv = ConversationHandler(
                 filters=filters.COMMAND
                 & filters.ChatType.PRIVATE
                 & filters.UpdateType.MESSAGE,
+            ),
+            CallbackQueryHandler(
+                callback=cancel_fallbacks_by_button,
+                pattern=f"{CANCEL_EDIT_NOTE_CONV_BUTTON.callback_data}",
             ),
             MessageHandler(
                 filters=filters.Command(),
