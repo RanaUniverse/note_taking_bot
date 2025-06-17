@@ -26,9 +26,16 @@ from telegram.ext import (
 
 
 from my_modules import bot_config_settings
+
 from my_modules import inline_keyboard_buttons
+from inline_keyboard_buttons import (
+    CANCEL_EDIT_NOTE_CONV_BUTTON,
+    EDIT_TITLE_BUTTON,
+    EDIT_CONTENT_BUTTON,
+)
+
 from my_modules import message_templates
-from my_modules.message_templates import WhatMessageAction
+from message_templates import WhatMessageAction
 
 from my_modules.database_code import db_functions
 from my_modules.database_code.database_make import engine
@@ -803,7 +810,7 @@ edit_note_conv = ConversationHandler(
         ),
         CallbackQueryHandler(
             callback=cancel_fallbacks_by_button,
-            pattern=r"cancel_edit_note_conv",
+            pattern=f"{CANCEL_EDIT_NOTE_CONV_BUTTON.callback_data}",
         ),
     ],
     states={
@@ -849,7 +856,7 @@ edit_note_conv = ConversationHandler(
             # Handler for canceling via a callback with exact data "cancel"
             CallbackQueryHandler(
                 callback=cancel_fallbacks_by_button,
-                pattern=r"cancel_edit_note_conv",
+                pattern=f"{CANCEL_EDIT_NOTE_CONV_BUTTON.callback_data}",
             ),
         ],
         TITLE: [
