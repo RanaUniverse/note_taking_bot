@@ -1,10 +1,6 @@
 """
-Here is a lot of error warning but pylance warning
-from my_modules.some_constants import BotSettingsValue
-
-Here i will keep the logic and code which will help me
-to edit a note's title content and something
-First i will do this in a command /edit_note
+This will a edit note features, where user can
+Edit his own note.
 
 """
 
@@ -17,38 +13,43 @@ from telegram import (
     InlineKeyboardMarkup,
 )
 
+from telegram.constants import ParseMode
+
 from telegram.ext import ContextTypes
 from telegram.ext import (
     CallbackQueryHandler,
-    # i need to use this in reality
     CommandHandler,
     ConversationHandler,
     MessageHandler,
     filters,
 )
+
+
+from my_modules import bot_config_settings
+from my_modules import inline_keyboard_buttons
+from my_modules import message_templates
+from my_modules.message_templates import WhatMessageAction
+
 from my_modules.database_code import db_functions
 from my_modules.database_code.database_make import engine
 
 from my_modules.logger_related import RanaLogger
 
-from my_modules.some_constants import BotSettingsValue
-
 
 SELECT_OPTION, TITLE, CONTENT, CONFIRMATION = range(4)
 
 
-
-MAX_TITLE_LEN = BotSettingsValue.MAX_TITLE_LEN.value
-MAX_CONTENT_LEN = BotSettingsValue.MAX_CONTENT_LEN.value
+MAX_TITLE_LEN = bot_config_settings.MAX_TITLE_LEN
+MAX_CONTENT_LEN = bot_config_settings.MAX_CONTENT_LEN
 
 
 async def edit_note_cmd_no_args(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> int:
     """
     When user will only send /edit_note without anything else
-    this function will execute it will give user the choice to choose
-    a old note, or say make a note and return for sure
+    this function will execute it will say him to how to use this.
     """
 
     user = update.effective_user
@@ -58,52 +59,27 @@ async def edit_note_cmd_no_args(
         RanaLogger.warning(f"/edit_note it should has user and msg obj")
         return ConversationHandler.END
 
-    if context.args is None:
-        RanaLogger.warning(
-            "On send /edit_note the context.args should has some value of list"
-        )
-        return ConversationHandler.END
-
     # if len(context.args) == 0:
-    # i dont need to check this args len as it will always 0 as in i pass
-
-    buttons = [
-        [
-            InlineKeyboardButton(
-                text="Find From All Notes To Edit ✅",
-                callback_data="my_all_notes",
-            ),
-            InlineKeyboardButton(
-                text="New Note Make Now ✅",
-                callback_data="new_note",
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="Need Help",
-                callback_data="customer_care",
-            ),
-            InlineKeyboardButton(
-                text="Cancel Now ✅",
-                callback_data="cancel_conv",
-            ),
-        ],
-    ]
-
+    # i dont need to check this args len as it will always 0
+    # as in i pass in the CommandHandler when refer to this functions
     text = (
-        f"You get if from single fun as you dont pass any args. "
-        f"Hello {user.mention_html()}, you have not pass the note id, so i dont know which "
-        f" note you are going to edit. "
-        f"So please select a note below and then found the note id of "
-        f"After you get the note id please send me the note id as "
-        f"<code>/edit_note &lt;note_id&gt;</code>"
-        f"Conversation has ended."
+        f"⚠️ <b>Missing Note ID</b>\n\n"
+        f"Hello {user.mention_html()}, you didn’t specify <u>which note</u> "
+        f"you want to edit.\n\n"
+        f"🛠️ To edit a note, please provide the note ID right after the command.\n\n"
+        f"✅ Example usage:\n"
+        f"<code>/edit_note NOTE123</code>\n\n"
+        f"🔍 Or, visit your notes and use the <b>EDIT NOTE</b> button after opening a note.\n\n"
+        f"📌 Please try again!"
     )
+
+    buttons = inline_keyboard_buttons.EDIT_NOTE_KEYBOARD
+
     await msg.reply_html(
         text=text,
         reply_markup=InlineKeyboardMarkup(buttons),
     )
-    # After this fun execute it want for note id,
+
     return ConversationHandler.END
 
 
@@ -124,22 +100,28 @@ async def edit_note_cmd_many_args(
 
     text = (
         f"⚠️ <b>Too Many Arguments</b>\n\n"
-        f"Hello {user.mention_html()}, you've passed too many values after <code>/edit_note</code>. "
-        f"This command expects <b>exactly one</b> argument — the <u>note ID</u> you want to edit.\n\n"
+        f"Hello {user.mention_html()}, you've passed too many values after "
+        f"<code>/edit_note</code>. "
+        f"This command expects <b>exactly one</b> argument — the <u>note ID</u> "
+        f"you want to edit.\n\n"
         f"✅ Example usage:\n"
         f"<code>/edit_note NOTE123</code>\n\n"
+        f"You can also Open Your note and edit directly.\n"
         f"Please try again with just the note ID."
     )
+    buttons = inline_keyboard_buttons.EDIT_NOTE_KEYBOARD
 
-    await msg.reply_html(text=text)
+    await msg.reply_html(text=text, reply_markup=InlineKeyboardMarkup(buttons))
     return ConversationHandler.END
 
 
-async def edit_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def edit_note_cmd_one_arg(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> int:
     """
-    This is my current best logic i will check the one args value and see
-    if this is note id and so on and the conversation will start from here.
-    as from handler it will only executes one args.
+    `/edit_note NOTE_ID`
+    This upper is the format of response this function will execute.
+    Only 1 argument value this fun will take to start.
 
     """
     user = update.effective_user
@@ -155,122 +137,99 @@ async def edit_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         )
         return ConversationHandler.END
 
-    else:
-        note_id = context.args[0]
-        note_row = db_functions.note_obj_from_note_id(
-            engine=engine,
-            note_id=note_id,
+    note_id = context.args[0]
+    note_row = db_functions.note_obj_from_note_id(
+        engine=engine,
+        note_id=note_id,
+    )
+
+    if note_row is None:
+        text = message_templates.generate_no_note_found_with_note_id(note_id)
+        await msg.reply_html(text=text)
+        return ConversationHandler.END
+
+    # Below is execute when note_row is present
+    owner_id = note_row.user_id
+
+    if user.id != owner_id:
+        text = message_templates.access_denied_messages(
+            user=user,
+            what_action=WhatMessageAction.EDIT,
         )
+        await msg.reply_html(text=text)
+        return ConversationHandler.END
 
-        if note_row is None:
-            text = (
-                f"Note ID: <u>{html.escape(note_id)}</u>\n\n"
-                f"This is not a valid note id Please provideo correct note id, else find "
-                f"correct note id in /my_notes section."
-            )
-            await msg.reply_html(text=text)
-            return ConversationHandler.END
+    # Below part is the greatest part which is my main logic to do the note edit
+    # i am thinking to keep the note's id to be in the dict so that i can know which note
+    # i need to edit and what to do with this.
 
-        # Below is execute when note_row is present
-        owner_id = note_row.user_id
+    content_full = f"{note_row.note_content}"
+    if len(content_full) <= 100:
+        content_preview = content_full
+    else:
+        content_preview = content_full[:100] + "..."
 
-        if user.id != owner_id:
-            text = (
-                f"🚫 <b>Access Denied</b>\n\n"
-                f"Dear {user.mention_html()}, you are not the owner of this note and therefore "
-                f"cannot edit it. 😢\n\n"
-                f"If you believe this is an error or need assistance, "
-                f"please contact support via /help."
-            )
-            await msg.reply_html(text=text)
-            return ConversationHandler.END
+    reply_text = (
+        f"Hello {user.mention_html()}, you own this note 🙋\n\n"
+        f"<u>TITLE</u>: {note_row.note_title}\n\n"
+        f"<u>CONTENT</u>: {content_preview}\n\n"
+        f"Please select one of the buttons below to edit your note.\n"
+        f"You can also send /cancel or press the 'Cancel Now' button to exit editing."
+    )
 
-        # Below part is the greatest part which is my main logic to do the note edit
-        # i am thinking to keep the note's id to be in the dict so that i can know which note
-        # i need to edit and what to do with this.
-        else:
-            content_preview = f"{note_row.note_content}"[:100]
-            text = (
-                f"Hello {user.mention_html()}, You own this note 🙋\n\n"
-                f"<u>TITLE</u>: {note_row.note_title} \n\n"
-                f"<u>CONTENT</u>: {content_preview}... \n\n"
-                f"Please SElect the correct button to edit the note. "
-                f"Also send /cancel anytime to exit this note making"
-            )
-            button = [
-                [
-                    InlineKeyboardButton(
-                        text="Edit Title",
-                        callback_data="edit_title",
-                    ),
-                    InlineKeyboardButton(
-                        text="Edit Content",
-                        callback_data="edit_content",
-                    ),
-                ],
-                [
-                    InlineKeyboardButton(
-                        text="Export Current Note",
-                        callback_data=f"export_note_{note_id}",
-                    ),
-                    InlineKeyboardButton(
-                        text="Delete This Note ✅",
-                        callback_data=f"delete_note_{note_id}",
-                    ),
-                ],
-                [
-                    InlineKeyboardButton(
-                        text="Change Ownership",
-                        callback_data=f"owner_change_{note_id}",
-                    ),
-                    InlineKeyboardButton(
-                        text="Cancel Editing",
-                        callback_data="cancel_button",
-                    ),
-                ],
-            ]
+    button = inline_keyboard_buttons.EDIT_NOTE_CONV_KEYBOARD
 
-            if context.user_data is None:
-                RanaLogger.warning(f"User Data Must be a empty list atleast not none")
-                return ConversationHandler.END
+    if context.user_data is None:
+        RanaLogger.warning(
+            f"User Data Must be a empty list atleast not none when editing note"
+        )
+        return ConversationHandler.END
 
-            context.user_data["note_id_of_edited_note"] = note_id
+    context.user_data["note_id_of_edited_note"] = note_id
+    context.user_data["reply_text"] = reply_text
 
-            await msg.reply_html(
-                text=text,
-                reply_markup=InlineKeyboardMarkup(button),
-            )
-            return SELECT_OPTION
+    await msg.reply_html(
+        text=reply_text,
+        reply_markup=InlineKeyboardMarkup(button),
+    )
+    return SELECT_OPTION
 
 
 async def cancel_fallbacks_by_cmd(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> int:
     """
-    When user want to cancel this process anytime during the conversation
-
-    /cancel & "Cancel My Note Making"
+    During the note editing time if user press the /cancel
+    This will stop the note editing process and stop this.
     """
     user = update.effective_user
     msg = update.effective_message
 
     if user is None or msg is None:
-        RanaLogger.warning(
-            "in conversation of edit note the msg and user is must need "
-        )
+        RanaLogger.warning("in conversation of edit note the msg and user is must need")
         return ConversationHandler.END
 
     if context.user_data is None:
-        RanaLogger.warning(f"Context .user data at least is a empty dict,")
+        RanaLogger.warning(
+            f"Context .user data at least is a empty "
+            "dict, also i passed the note_id in the "
+            "context.user data when starting the note editing"
+        )
         return ConversationHandler.END
 
-    RanaLogger.warning(f"📝 User ({user.name}) Data Removed: {context.user_data}")
+    RanaLogger.info(
+        f"📝 User ({user.name}) Stopped His Note Making. "
+        f"Data Removed: {context.user_data}"
+    )
 
     context.user_data.clear()
 
     text = (
-        f"You have just cancel teh note editing process by ur wish. "
-        f"If you want to edit again pls come in /edit_note again."
+        f"🛑 You've successfully canceled the note editing process.\n\n"
+        f"If you'd like to continue editing later, just use the command:\n"
+        f"<code>/edit_note &lt;NOTE_ID&gt;</code>\n\n"
+        f"Your current editing data has been safely cleared 🧹"
     )
 
     await msg.reply_html(text=text)
@@ -281,43 +240,72 @@ async def cancel_fallbacks_by_button(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> int:
     """
-    when a button has say to cancel the note editing process
+    When the Cancel Editing Note
+    Button has been pressed this will executes.
+        CANCEL_EDIT_NOTE_CONV_BUTTON = InlineKeyboardButton(
+            text="Cancel Now",
+            callback_data="cancel_edit_note_conv",
+        )
     """
     query = update.callback_query
     msg = update.effective_message
+    user = update.effective_user
 
     if query is None or query.data is None:
-        RanaLogger.warning(f"When cancel edit note button is pressed it should exists")
+        RanaLogger.warning(
+            f"When cancel edit note button is pressed "
+            "callback query data should exists"
+        )
         return ConversationHandler.END
 
-    if msg is None:
+    if msg is None or user is None:
         RanaLogger.warning(f"The message should be present ")
         return ConversationHandler.END
 
-    if context.user_data is None:
-        RanaLogger.warning(f"Context .user data at least is a empty dict,")
-        return ConversationHandler.END
-
-    if query.data != "cancel":
-        RanaLogger.warning(f"Button data is must need 'cancel'")
+    if query.data != "cancel_edit_note_conv":
+        RanaLogger.warning(f"Button data is must need 'cancel_edit_note_conv'")
         await msg.reply_html(
             f"Some Query's Data has some issue but this edit "
             f"Note conversation has just ended."
         )
         return ConversationHandler.END
 
-    if query.data == "cancel":
-        await query.answer("You have pressed cancel button")
-        context.user_data.clear()
-        text = (
-            f"You have pressed the cancel note making button "
-            f"so this note editing has been stopped, you can "
-            f"start again in /edit_note"
+    # it means the query data is matched
+
+    await query.answer("You have pressed cancel button")
+
+    if context.user_data is None:
+        RanaLogger.warning(
+            f"Context .user data at least is a empty "
+            "dict, also i passed the note_id in the "
+            "context.user data when starting the note editing"
         )
-        await msg.reply_html(text)
         return ConversationHandler.END
 
-    # Below is saying to return to end explicitely
+    RanaLogger.info(
+        f"📝 User ({user.name}) Stopped His Note Making. "
+        f"Data Removed: {context.user_data}"
+    )
+
+    new_text = (
+        f"❌ You’ve canceled the note editing process By Pressing the Cancel Button.\n\n"
+        f"No worries — your session has been stopped. "
+        f"Your current editing data has been safely cleared 🧹"
+        f"You can always start editing again with the command:\n"
+        f"<code>/edit_note &lt;NOTE_ID&gt;</code> 📝"
+    )
+
+    # i want to update the message where the button is attached so i did this.
+    # i need to make it good design.
+
+    # When a old Message's Button is pressed below will give Default value in .get
+    old_text = context.user_data.get("reply_text", "OLD Message Removed.")
+
+    context.user_data.clear()
+
+    updated_text = old_text + "..." + "\n\n\n" + "..." + new_text
+    await query.edit_message_text(text=updated_text, parse_mode=ParseMode.HTML)
+
     return ConversationHandler.END
 
 
@@ -801,7 +789,7 @@ edit_note_conv = ConversationHandler(
         ),
         CommandHandler(
             command="edit_note",
-            callback=edit_note_cmd,
+            callback=edit_note_cmd_one_arg,
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
             block=False,
             has_args=1,
@@ -813,12 +801,9 @@ edit_note_conv = ConversationHandler(
             block=False,
             has_args=None,
         ),
-        MessageHandler(
-            filters=filters.Text(["Edit My Note", "edit note"])
-            & filters.ChatType.PRIVATE
-            & filters.UpdateType.MESSAGE,
-            callback=edit_note_cmd,
-            block=False,
+        CallbackQueryHandler(
+            callback=cancel_fallbacks_by_button,
+            pattern=r"cancel_edit_note_conv",
         ),
     ],
     states={
@@ -864,7 +849,7 @@ edit_note_conv = ConversationHandler(
             # Handler for canceling via a callback with exact data "cancel"
             CallbackQueryHandler(
                 callback=cancel_fallbacks_by_button,
-                pattern=r"^cancel$",
+                pattern=r"cancel_edit_note_conv",
             ),
         ],
         TITLE: [
