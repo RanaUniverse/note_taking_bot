@@ -68,28 +68,26 @@ HELP_BUTTON = InlineKeyboardButton(
     callback_data="need_help",
 )
 
+
 CANCEL_EDIT_NOTE_CONV_BUTTON = InlineKeyboardButton(
-    text="❌ Cancel Edit Note Now",
+    text="🚫 Cancel Editing",
     callback_data="cancel_edit_note_conv",
 )
 
-
 EDIT_TITLE_BUTTON = InlineKeyboardButton(
-    text="Edit The Title",
+    text="📝 Edit Title",
     callback_data="edit_note_title",
 )
 
 EDIT_CONTENT_BUTTON = InlineKeyboardButton(
-    text="Edit Main Content",
+    text="📄 Edit Content",
     callback_data="edit_note_content",
 )
 
 DELETE_NOTE_BUTTON = InlineKeyboardButton(
-    text="Delete This Note",
+    text="🗑️ Delete Note",
     callback_data="delete_the_note",
 )
-
-
 # Below are some Varialbe for constant keyboards
 
 START_SIMPLE_KEYBOARD = [

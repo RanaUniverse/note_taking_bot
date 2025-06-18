@@ -418,8 +418,8 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     if context.user_data is None:
         RanaLogger.warning(
-            "User data must not be None, should be at least an empty dictionary."
-            "when the new contetn is get in the edit note"
+            "User data must not be None, should be at least an empty dictionary. "
+            "When the new contetn is get in the edit note"
         )
         return ConversationHandler.END
 
@@ -534,91 +534,15 @@ async def bad_note_title_other_type(
             f"You Send a Text But this is not checking for now. "
             "Some issue is here please contact admin or /help"
         )
-        await msg.reply_html(text=text)
-        return ConversationHandler.END
-
-    # Checking the type of message and responding accordingly
-    elif msg.photo:
-        text = (
-            f"📸 <b>Oops! That's a photo!</b>\n\n"
-            f"I need a <b>text message</b> to set as the note's title.\n"
-            f"Please send only text here. 📝"
-        )
-    elif msg.animation:
-        text = (
-            f"🎞️ <b>Oops! That's an animation (GIF)!</b>\n\n"
-            f"I need a simple <b>text message</b> to use as the note title.\n"
-            f"Please type and send your title. 📝"
-        )
-    elif msg.document:
-        text = (
-            f"📄 <b>Oops! That's a document!</b>\n\n"
-            f"A file can't be used as a note title.\n"
-            f"Please type the note title and send it as a message. 📝"
-        )
-    elif msg.game:
-        text = (
-            f"🎮 <b>Oops! That's a game!</b>\n\n"
-            f"I can't use a game as a note title.\n"
-            f"Please send only text. 📝"
-        )
-    elif msg.sticker:
-        text = (
-            f"🎭 <b>Oops! That's a sticker!</b>\n\n"
-            f"I need a text message for the note title, not a sticker.\n"
-            f"Please type and send your note title. 📝"
-        )
-    elif msg.story:
-        text = (
-            f"📖 <b>Oops! That's a story!</b>\n\n"
-            f"A story can't be used as a note title.\n"
-            f"Please send only text. 📝"
-        )
-    elif msg.video:
-        text = (
-            f"🎥 <b>Oops! That's a video!</b>\n\n"
-            f"A video can't be used as a note title.\n"
-            f"Please send only text to set your note title. 📝"
-        )
-    elif msg.voice:
-        text = (
-            f"🎙️ <b>Oops! That's a voice message!</b>\n\n"
-            f"I can't use voice messages for a note title.\n"
-            f"Please send only text. 📝"
-        )
-    elif msg.video_note:
-        text = (
-            f"📹 <b>Oops! That's a video note!</b>\n\n"
-            f"I need a text message, not a video note.\n"
-            f"Please type and send the title. 📝"
-        )
-    elif msg.audio:
-        text = (
-            f"🎵 <b>Oops! That's an audio file!</b>\n\n"
-            f"I need a text input, not an audio file.\n"
-            f"Please type the note title and send it as a message. 📝"
-        )
-    elif msg.poll:
-        text = (
-            f"📊 <b>Oops! That's a poll!</b>\n\n"
-            f"I can't use a poll as a note title.\n"
-            f"Please send only text. 📝"
-        )
-    elif msg.dice:
-        text = (
-            f"🎲 <b>Oops! That's a dice roll!</b>\n\n"
-            f"A dice roll can't be used as a note title.\n"
-            f"Please send only text. 📝"
-        )
     else:
         text = (
-            f"❌ <b>Oops! Unsupported format!</b>\n\n"
-            f"I need a simple text message as your note title.\n"
-            f"Please type and send the title again. 📝"
+            f"Hello {user.mention_html()}, "
+            "I just need text, "
+            "just send me text"
+            "So Please Send me normal Text or Emojies."
         )
 
     await msg.reply_html(text=text)
-
     return TITLE
 
 
@@ -670,85 +594,11 @@ async def bad_note_content_other_type(
             "🛠️ This is a command input! Oh sorry, please send "
             f"/cancel to stop this note-making..."
         )
-    elif msg.photo:
-        text = (
-            f"📸 <b>Oops! That's a photo!</b>\n\n"
-            f"Currently The Photo cannot be saved as note, stay for update."
-        )
-    elif msg.animation:
-        text = (
-            f"🎞️ <b>Oops! That's an animation (GIF)!</b>\n\n"
-            f"I need a text message for the note content.\n"
-            f"Please type and send your note content. 📝"
-        )
-    elif msg.document:
-        text = (
-            f"📄 <b>Oops! That's a document!</b>\n\n"
-            f"A file can't be used as note content.\n"
-            f"Please type and send the content as a text message. 📝"
-        )
-    elif msg.game:
-        text = (
-            f"🎮 <b>Oops! That's a game!</b>\n\n"
-            f"I can't use a game as note content.\n"
-            f"Please send only text. 📝"
-        )
-    elif msg.sticker:
-        text = (
-            f"🎭 <b>Oops! That's a sticker!</b>\n\n"
-            f"Stickers can't be used as note content.\n"
-            f"Please send text instead. 📝"
-        )
-    elif msg.story:
-        text = (
-            f"📖 <b>Oops! That's a story!</b>\n\n"
-            f"A story can't be used as note content.\n"
-            f"Please send only text. 📝"
-        )
-    elif msg.video:
-        text = (
-            f"🎥 <b>Oops! That's a video!</b>\n\n"
-            f"Videos aren't supported as note content.\n"
-            f"Please send text instead. 📝"
-        )
-    elif msg.voice:
-        text = (
-            f"🎙️ <b>Oops! That's a voice message!</b>\n\n"
-            f"Voice messages can't be used as note content.\n"
-            f"Please type and send your note content as text. 📝"
-        )
-    elif msg.video_note:
-        text = (
-            f"📹 <b>Oops! That's a video note!</b>\n\n"
-            f"A video note can't be used as note content.\n"
-            f"Please type and send your note content. 📝"
-        )
-    elif msg.audio:
-        text = (
-            f"🎵 <b>Oops! That's an audio file!</b>\n\n"
-            f"I need a text input for the note content.\n"
-            f"Please type and send it as a message. 📝"
-        )
-    elif msg.poll:
-        text = (
-            f"📊 <b>Oops! That's a poll!</b>\n\n"
-            f"A poll can't be used as note content.\n"
-            f"Please send only text. 📝"
-        )
-    elif msg.dice:
-        text = (
-            f"🎲 <b>Oops! That's a dice roll!</b>\n\n"
-            f"A dice roll can't be used as note content.\n"
-            f"Please send only text. 📝"
-        )
     else:
-        text = (
-            f"❌ <b>Oops! Unsupported format!</b>\n\n"
-            f"I need a simple text message as your note content.\n"
-            f"Please type and send the content again. 📝"
-        )
+        text = f"Hello {user.mention_html()}, I just need text, just send me text"
 
-    await msg.reply_html(text=text)
+    await msg.reply_html(text)
+
     return CONTENT
 
 
@@ -768,57 +618,6 @@ async def bad_note_confirmation(
     )
     await update.effective_message.reply_html(text)
     return CONFIRMATION
-
-
-# async def select_option_handler(
-#     update: Update, context: ContextTypes.DEFAULT_TYPE
-# ) -> int:
-#     query = update.callback_query
-#     await query.answer()  # acknowledge the callback
-#     option = query.data
-
-#     button = [
-#         [
-#             InlineKeyboardButton(
-#                 text=f"Save Current State",
-#                 callback_data="save_now",
-#             )
-#         ],
-#         [
-#             InlineKeyboardButton(
-#                 text=f"Cancel Now",
-#                 callback_data="cancel",
-#             )
-#         ],
-#     ]
-
-#     if option == "edit_title":
-#         await query.edit_message_text(
-#             text="✏️ Please send the new title:",
-#             reply_markup=InlineKeyboardMarkup(button),
-#         )
-#         return TITLE
-#     elif option == "edit_content":
-#         await query.edit_message_text(
-#             text="📝 Please send the new content:",
-#             reply_markup=InlineKeyboardMarkup(button),
-#         )
-#         return CONTENT
-#     elif option == "delete_note":
-#         await query.edit_message_text(
-#             text="🗑️ Confirm deletion of the note, please type 'YES' to proceed or 'NO' to cancel:"
-#         )
-#         return CONFIRMATION
-#     elif option == "export_note":
-#         await query.edit_message_text(text="📤 Preparing your note for export...")
-#         # Handle export logic here; you might then end the conversation or redirect the flow.
-#         return ConversationHandler.END
-#     elif option == "cancel_conv":
-#         await query.edit_message_text(text="❌ Note editing canceled.")
-#         return ConversationHandler.END
-#     else:
-#         await query.edit_message_text(text="❓ Unrecognized option. Please try again.")
-#         return SELECT_OPTION
 
 
 async def select_option_handler(
