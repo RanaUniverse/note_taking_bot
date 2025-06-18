@@ -13,6 +13,8 @@ Edit his own note.
 
 """
 
+import html
+
 from telegram import Update
 from telegram import (
     InlineKeyboardButton,
@@ -329,6 +331,7 @@ async def get_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     Handles the input when the user is in the 'Title' state.
     If a valid title is provided, it is saved in context.user_data.
     Rejects whnen long titles and guides the user accordingly.
+    I decided not to keep store any Formatting in title part.
     """
 
     user = update.effective_user
@@ -341,12 +344,13 @@ async def get_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
         return ConversationHandler.END
 
-    user_text = f"{msg.text}"
+    user_text = html.escape(f"{msg.text}")
 
     if len(user_text) > MAX_TITLE_LEN:
         text = (
             f"The New Note Title exceed {MAX_TITLE_LEN} characters. "
-            f"So i cannot take this note title, please resend me note title in the limit of "
+            f"So i cannot take this note title, please resend me "
+            f"note title in the limit of "
             f"{MAX_TITLE_LEN} Characters."
         )
         await msg.reply_html(text)
@@ -368,9 +372,10 @@ async def get_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     reply_text = (
         f"🙋‍♂️ Hello {user.mention_html()}, here's your note info:\n\n"
         f"📝 <b>Old Title:</b> <i>{old_title}</i>\n\n"
-        f"✨ <b>New Title:</b> <i>{user_text}</i>\n\n"
+        f"✨ <b>New Title:</b> {user_text}\n\n"
         f"Please choose what you'd like to do next using the buttons below.\n"
-        f"You can also send /cancel or press 'Cancel Now' to exit."
+        f"You can also send /cancel or press 'Cancel Now' to exit.\n"
+        f"👇👇👇👇👇"
     )
 
     button = inline_keyboard_buttons.EDIT_NOTE_CONV_KEYBOARD
@@ -382,7 +387,8 @@ async def get_note_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
-    This time user got a new message to save it as the note content
+    This time user got a new message to save it as the note content.
+    I will also not store full text with html formatting in the content.
     """
 
     msg = update.effective_message
@@ -395,20 +401,16 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         )
         return ConversationHandler.END
 
-    user_msg = msg.text
-    user_msg_html = msg.text_html
+    user_text = html.escape(f"{msg.text}")
 
-    if user_msg is None:
-        RanaLogger.warning(
-            "Content message should not be None. when get the note content value."
-        )
-        return ConversationHandler.END
-
-    if len(user_msg) > MAX_CONTENT_LEN:
+    if len(user_text) > MAX_CONTENT_LEN:
         text = (
-            f"⚠️ Your note content is too long! Please keep it within {MAX_CONTENT_LEN} characters."
-            f"Please resend your note's content properly in {MAX_TITLE_LEN} characters"
-            "Please send the new content again below."
+            f"⚠️ Your note content is too long! Please keep "
+            f"it within {MAX_CONTENT_LEN} characters."
+            f"Please resend your note's content properly "
+            f"in {MAX_CONTENT_LEN} characters "
+            f"Please send the new content again below.\n"
+            f"👇👇👇👇👇"
         )
 
         await msg.reply_html(text)
@@ -422,17 +424,19 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         return ConversationHandler.END
 
     old_content_preview = context.user_data.get(
-        "old_note_content_preview", "Old Note Content NOt Showing."
+        "old_note_content_preview",
+        "Unable To Fetch Old Content.",
     )
 
-    context.user_data["new_note_content"] = user_msg_html
+    context.user_data["new_note_content"] = user_text
 
     reply_text = (
         f"🙋‍♂️ Hello {user.mention_html()}, here's your note info:\n\n"
         f"📄 <b>OLD Note Content Preview:</b>\n<i>{old_content_preview}\n\n</i>"
-        f"New NOTE CONTENT: {user_msg_html}\n\n"
+        f"New NOTE CONTENT: {user_text}\n\n"
         f"Please choose what you'd like to do next using the buttons below.\n"
-        f"You can also send /cancel or press 'Cancel Now' to exit."
+        f"You can also send /cancel or press 'Cancel Now' to exit.\n"
+        f"👇👇👇👇👇"
     )
 
     button = inline_keyboard_buttons.EDIT_NOTE_CONV_KEYBOARD
