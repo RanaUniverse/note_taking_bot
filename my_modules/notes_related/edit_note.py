@@ -51,6 +51,7 @@ from my_modules.database_code.database_make import engine
 
 from my_modules.logger_related import RanaLogger
 
+from my_modules.some_inline_keyboards import note_del_confirmation_button
 
 SELECT_OPTION, TITLE, CONTENT, CONFIRMATION = range(4)
 
@@ -694,9 +695,37 @@ async def select_option_handler(
         return CONTENT
 
     elif callback_data == f"{DELETE_NOTE_BUTTON.callback_data}":
-        text = "You want to delete your note. Are you sure? Confirm or cancel."
-        await msg.reply_html(text=text, reply_markup=InlineKeyboardMarkup(button))
-        return CONFIRMATION
+
+        note_id = context.user_data.get("old_note_id", None)
+
+        if note_id is None:
+            text = (
+                "Here is Some Server Problem To find the Note Id to delete. "
+                "Please Restart."
+            )
+            RanaLogger.warning(text)
+            await msg.reply_html(text)
+            return ConversationHandler.END
+
+        title = context.user_data.get("old_note_title",)
+        content = context.user_data.get("old_note_content_preview",)
+
+        text = (
+            f"🆔 <b>Note ID:</b> <code>{note_id}</code>\n\n"
+            f"📝 <b>Note Details:</b>\n\n"
+            f"{'👇' * 10}\n"
+            f"📌 <b>Title:</b> \n{title}\n\n"
+            f"📖 <b>Content Preview:</b>\n{content}\n\n"
+        )
+
+        delete_buttons = note_del_confirmation_button(note_id=note_id)
+
+        await query.edit_message_text(
+            text=text,
+            reply_markup=InlineKeyboardMarkup(delete_buttons),
+            parse_mode=ParseMode.HTML,
+        )
+        return ConversationHandler.END
 
     elif callback_data == f"{CANCEL_EDIT_NOTE_CONV_BUTTON.callback_data}":
         text = "Note editing has been canceled."
