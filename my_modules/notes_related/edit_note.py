@@ -13,6 +13,7 @@ Edit his own note.
 
 """
 
+import datetime
 import html
 
 
@@ -63,6 +64,8 @@ SELECT_OPTION, TITLE, CONTENT, CONFIRMATION = range(4)
 MAX_TITLE_LEN = bot_config_settings.MAX_TITLE_LEN
 MAX_CONTENT_LEN = bot_config_settings.MAX_CONTENT_LEN
 NOTE_PREVIEW_CHAR_LIMIT = bot_config_settings.NOTE_PREVIEW_CHAR_LIMIT
+
+IST_TIMEZONE = bot_config_settings.IST_TIMEZONE
 
 
 def generate_content_preview(
@@ -479,9 +482,92 @@ async def note_edit_confirmation_yes(
         )
         return ConversationHandler.END
 
-    text = f"Your note has been edited successfully"
-    await msg.reply_html(text)
+    if context.user_data is None:
+        RanaLogger.warning(
+            "Context.user_data should be empty dict or some value "
+            "if the user has some edit beforehand when he confirm Yes."
+        )
+        return ConversationHandler.END
 
+    new_title = context.user_data.get("new_note_title", None)
+    new_content = context.user_data.get("new_note_content", None)
+
+    note_id = context.user_data.get("old_note_id", None)
+
+    if note_id is None:
+        RanaLogger.warning(
+            "As i think note_id will not None ever when "
+            "in converstaion if not the dict got cleared."
+        )
+        text = (
+            "Session Expired Maybe, Please Contact if "
+            "you beleive this is not your fault."
+        )
+        await msg.reply_html(text=text)
+        return ConversationHandler.END
+
+    # i am checking this at beginning so that i dont need to wait
+    # for db open to find the note object and it will save my cpu usage
+    if new_title is None and new_content is None:
+        text_info = (
+            "📝 No changes were detected in your note.\n"
+            "So, no updates have been made."
+        )
+        await msg.reply_html(text_info)
+        return ConversationHandler.END
+
+    note_row = db_functions.note_obj_from_note_id(
+        engine=engine,
+        note_id=note_id,
+    )
+
+    if note_row is None:
+        text = message_templates.generate_no_note_found_with_note_id(note_id)
+        await msg.reply_html(text=text)
+        return ConversationHandler.END
+
+    owner_id = note_row.user_id
+
+    # in most of the case this is unexpected, because of the start of
+    # the conversation the bot check if the note obj belongs to the user or not
+    if user.id != owner_id:
+        RanaLogger.warning(
+            "when confirm note edit Yes, the user id should match "
+            "with the note obj's user_id column"
+        )
+        text = message_templates.access_denied_messages(
+            user=user,
+            what_action=WhatMessageAction.EDIT,
+        )
+        await msg.reply_html(text=text)
+        return ConversationHandler.END
+
+    text_info = f"🙋‍♂️ Below is the information For Your Note.\n\n"
+
+    if new_title is not None:
+        text_info += f"📝 New Title: {new_title}\n\n"
+        note_row.note_title = new_title
+
+    if new_content is not None:
+        text_info += f"📄 New Content: {new_content}\n\n"
+        note_row.note_content = new_content
+
+    note_row.edited_time = datetime.datetime.now(IST_TIMEZONE)
+
+    updated_note_row = db_functions.edit_note_obj(engine=engine, note_obj=note_row)
+
+    if updated_note_row.edited_time is None:
+        RanaLogger.warning("Note edit done but edited_time column shows none")
+        return ConversationHandler.END
+
+    edited_at_str = updated_note_row.edited_time.strftime("%Y-%m-%d %H:%M:%S")
+    text_info += (
+        f"This new data has been saved to the note.\n"
+        f"🕒 Last Updated At: {edited_at_str}"
+    )
+
+    await msg.reply_html(text_info)
+    context.user_data.clear()
     return ConversationHandler.END
 
 
@@ -490,7 +576,6 @@ async def note_edit_confirmation_no(
     context: ContextTypes.DEFAULT_TYPE,
 ) -> int:
     """
-    Handles the user's "NO" response, indicating they do not want to save the edited note
     Handles the user's "NO" response, indicating they do not want to save the edited note,
     but still allows them to continue editing with preserved context.user_data.
     """
@@ -796,9 +881,15 @@ async def select_option_handler(
             parse_mode=ParseMode.HTML,
         )
 
-        new_title = context.user_data.get("new_note_title", "No New Title Provided")
+        new_title = context.user_data.get(
+            "new_note_title",
+            "No New Title Provided❌❌❌",
+        )
 
-        new_content = context.user_data.get("new_note_content", "Content Unavailable")
+        new_content = context.user_data.get(
+            "new_note_content",
+            "No New Content Provided❌❌❌",
+        )
 
         text_ask = (
             f"🙋‍♂️ <b>Here is your updated note:</b>\n\n"

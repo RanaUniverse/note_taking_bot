@@ -142,6 +142,19 @@ def add_one_note_and_update_the_user(
     return note_row
 
 
+def edit_note_obj(engine: Engine, note_obj: NotePart) -> NotePart:
+    """
+    Save updates to an existing NotePart object.
+    Commits any changes made to the object and refreshes it.
+    """
+    with Session(engine) as session:
+        session.add(note_obj)
+        session.commit()
+        session.refresh(note_obj)
+
+    return note_obj
+
+
 def add_new_user_to_user_table(engine: Engine, user_row: UserPart) -> UserPart:
     """
     I will pass a user_row obj and this function will try to add the user
