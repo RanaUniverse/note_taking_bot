@@ -18,8 +18,6 @@ import html
 
 from telegram import Update
 from telegram import (
-    KeyboardButton,
-    InlineKeyboardButton,
     InlineKeyboardMarkup,
     ReplyKeyboardMarkup,
 )
@@ -57,6 +55,7 @@ from my_modules.logger_related import RanaLogger
 from my_modules.message_templates import WhatMessageAction
 
 from my_modules.some_inline_keyboards import note_del_confirmation_button
+from my_modules.some_reply_keyboards import yes_no_reply_keyboard
 
 SELECT_OPTION, TITLE, CONTENT, CONFIRMATION = range(4)
 
@@ -68,7 +67,10 @@ MAX_CONTENT_LEN = bot_config_settings.MAX_CONTENT_LEN
 NOTE_PREVIEW_CHAR_LIMIT = 100
 
 
-def generate_content_preview(full_content: str, char_limit: int = 100) -> str:
+def generate_content_preview(
+    full_content: str,
+    char_limit: int = NOTE_PREVIEW_CHAR_LIMIT,
+) -> str:
     return (
         full_content
         if len(full_content) <= char_limit
@@ -95,7 +97,7 @@ async def edit_note_cmd_no_args(
 
     text = (
         f"⚠️ <b>Missing Note ID</b>\n\n"
-        f"Hello {user.mention_html()}, you didn’t specify <u>which note</u> "
+        f"Hello {user.mention_html()}, you didn't specify <u>which note</u> "
         f"you want to edit.\n\n"
         f"🛠️ To edit a note, please provide the note ID right after the command.\n\n"
         f"✅ Example usage:\n"
@@ -195,10 +197,6 @@ async def edit_note_cmd_one_arg(
     # i need to edit and what to do with this.
 
     content_full = f"{note_row.note_content}"
-    if len(content_full) <= 100:
-        content_preview = content_full
-    else:
-        content_preview = content_full[:100] + "..."
 
     content_preview = generate_content_preview(
         full_content=content_full,
@@ -467,11 +465,12 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 async def note_edit_confirmation_yes(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> int:
     """
-    when user will send "YES"
-    it will save the sended edited note's title & content
+    when user will send "YES" or press the button
+    it will save the current edited note.
     """
     msg = update.effective_message
     user = update.effective_user
@@ -482,21 +481,20 @@ async def note_edit_confirmation_yes(
         )
         return ConversationHandler.END
 
-    user_msg = msg.text
-
-    if user_msg == "YES":
-        text = f"Your note has been edited successfully"
-        await msg.reply_html(text)
-        return ConversationHandler.END
+    text = f"Your note has been edited successfully"
+    await msg.reply_html(text)
 
     return ConversationHandler.END
 
 
 async def note_edit_confirmation_no(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> int:
     """
-    Handles the user's "NO" response, indicating they do not want to save the edited note.
+    Handles the user's "NO" response, indicating they do not want to save the edited note
+    Handles the user's "NO" response, indicating they do not want to save the edited note,
+    but still allows them to continue editing with preserved context.user_data.
     """
     msg = update.effective_message
     user = update.effective_user
@@ -505,19 +503,51 @@ async def note_edit_confirmation_no(
         RanaLogger.warning("On NO response, both msg and user should be present.")
         return ConversationHandler.END
 
-    user_msg = msg.text
-
-    if user_msg == "NO":
-        text = "Your note edit has been canceled."
-        await msg.reply_html(text)
+    if context.user_data is None:
+        RanaLogger.warning(
+            "When user press No in save changes option. The context.user_data "
+            "should has some value or empty dict."
+        )
         return ConversationHandler.END
 
-    return ConversationHandler.END
+    text = (
+        f"❌ <b>Changes Not Saved</b>\n\n"
+        f"Hello {user.mention_html()}, your updated note was "
+        "<b>not saved</b> as per your choice.\n\n"
+        f"🛠️ You can now continue editing either the title "
+        "or content using the buttons below 👇"
+    )
+
+    button = inline_keyboard_buttons.EDIT_NOTE_CONV_KEYBOARD
+
+    await msg.reply_html(
+        text=text,
+        reply_markup=InlineKeyboardMarkup(button),
+    )
+
+    return SELECT_OPTION
+
+
+async def bad_note_confirmation(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> int:
+    """
+    user need yes or no from keyboard but user send different thigns
+    """
+    if update.effective_message is None:
+        RanaLogger.warning("when user need yes no it need good why wrng")
+        return ConversationHandler.END
+
+    text = f"Please Just send me 'Yes' or 'No', or /cancel. "
+    await update.effective_message.reply_html(text)
+    return CONFIRMATION
 
 
 async def bad_note_title_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
-    When user need text based titel but user send /command this will come
+    When bot is expect some text but user send some /command
+    this fun will executes and say user to send only text message just this
     """
     user = update.effective_user
     msg = update.effective_message
@@ -529,18 +559,27 @@ async def bad_note_title_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return ConversationHandler.END
 
     text = (
-        f"Hello {user.mention_html()}, you have only send me a command ({msg.text_html}) "
-        f"But i need a real text to save as title in {MAX_TITLE_LEN} characters."
+        f"⚠️ <b>Command Not Allowed</b>\n\n"
+        f"Hello {user.mention_html()}, you sent a command "
+        f"<code>{msg.text_html}</code> — but I was expecting a plain text input 📝\n\n"
+        f"🔤 Please send a valid title (within {MAX_TITLE_LEN} characters) "
+        f"to continue editing your note.\n\n"
+        f"⛔ Commands like <code>/start</code> or <code>/edit_note</code> "
+        f"are not allowed here."
     )
+
     await msg.reply_html(text=text)
     return TITLE
 
 
 async def bad_note_title_other_type(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> int:
     """
-    When user need title as text but user send anything else this will come
+    When user need a text to save as Note's Title,
+    But user send photo, video, file or any other type of design
+    This will trigger this fun, so i need to say user goodly.
     """
     user = update.effective_user
     msg = update.effective_message
@@ -551,15 +590,18 @@ async def bad_note_title_other_type(
 
     if msg.text:
         text = (
-            f"You Send a Text But this is not checking for now. "
-            "Some issue is here please contact admin or /help"
+            f"⚠️ <b>Something Went Wrong</b>\n\n"
+            f"Hello {user.mention_html()}, you did send text, "
+            f"but it seems there's a system issue 🤖\n\n"
+            f"Please try again or use /help to contact support."
         )
     else:
         text = (
-            f"Hello {user.mention_html()}, "
-            "I just need text, "
-            "just send me text"
-            "So Please Send me normal Text or Emojies."
+            f"⚠️ <b>Invalid Input</b>\n\n"
+            f"Hello {user.mention_html()}, I'm expecting <b>plain text</b> "
+            f"to use as the note title 📝\n\n"
+            f"❗ Please don't send images, stickers, voice or others.\n"
+            f"✅ Just send a normal text or emojis."
         )
 
     await msg.reply_html(text=text)
@@ -583,8 +625,11 @@ async def bad_note_content_cmd(
         return ConversationHandler.END
 
     text = (
-        f"Hello {user.mention_html()}, you have only send me a command ({msg.text_html}) "
-        f"But i need a real text to save as content in {MAX_CONTENT_LEN} characters."
+        f"⚠️ <b>Command Not Allowed</b>\n\n"
+        f"Hello {user.mention_html()}, you sent a command "
+        f"<code>{msg.text_html}</code> — but I was expecting <b>note content</b> 📝\n\n"
+        f"✏️ Please send your note content as plain text (within {MAX_CONTENT_LEN} characters).\n\n"
+        f"⛔ Commands like <code>/start</code> or <code>/edit_note</code> are not valid here."
     )
     await msg.reply_html(text=text)
     return TITLE
@@ -606,37 +651,22 @@ async def bad_note_content_other_type(
 
     if msg.text:
         text = (
-            f"You Send a Text But this is not checking for now. "
-            "Some issue is here please contact admin or /help"
+            f"⚠️ <b>Unexpected Text</b>\n\n"
+            f"Hello {user.mention_html()}, you did send text, "
+            f"but it couldn't be processed properly 🤖\n\n"
+            f"Please try again or contact support using /help."
         )
     else:
         text = (
-            f"Hello {user.mention_html()}, "
-            "I just need text, "
-            "just send me text"
-            "So Please Send me normal Text or Emojies."
+            f"⚠️ <b>Invalid Input</b>\n\n"
+            f"Hello {user.mention_html()}, I'm expecting <b>plain text</b> "
+            f"for your note content 📝\n\n"
+            f"❗ Please don't send images, files, stickers, or others.\n"
+            f"✅ Just type your note as normal text or emojis."
         )
     await msg.reply_html(text)
 
     return CONTENT
-
-
-async def bad_note_confirmation(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> int:
-    """
-    user need yes or no from keyboard but user send different thigns
-    """
-    if update.effective_message is None:
-        RanaLogger.warning("when user need yes no it need good why wrng")
-        return ConversationHandler.END
-
-    text = (
-        f"Please Just send me 'Yes' or 'No', or /cancel. "
-        f"Another Way Please try again with the buttons 👇🏽"
-    )
-    await update.effective_message.reply_html(text)
-    return CONFIRMATION
 
 
 async def select_option_handler(
@@ -671,21 +701,6 @@ async def select_option_handler(
             "context.user_data dictionary must need to present."
         )
         return ConversationHandler.END
-
-    button = [
-        [
-            InlineKeyboardButton(
-                text=f"Save Current State",
-                callback_data="save_now",
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                text=f"Cancel Now",
-                callback_data="cancel",
-            )
-        ],
-    ]
 
     if callback_data == f"{EDIT_TITLE_BUTTON.callback_data}":
         old_title = context.user_data.get("old_note_title", "Unknown Title")
@@ -725,18 +740,14 @@ async def select_option_handler(
             await msg.reply_html(text)
             return ConversationHandler.END
 
-        title = context.user_data.get(
-            "old_note_title",
-        )
-        content = context.user_data.get(
-            "old_note_content_preview",
-        )
-
+        title = context.user_data.get("old_note_title", None)
+        content = context.user_data.get("old_note_content_preview", None)
         text = (
+            f"🗑️ <b>Note Delete</b> :warning:\n\n"
             f"🆔 <b>Note ID:</b> <code>{note_id}</code>\n\n"
             f"📝 <b>Note Details:</b>\n\n"
             f"{'👇' * 10}\n\n"
-            f"📌 <b>Title:</b> \n{title}\n\n"
+            f"📌 <b>Title:</b>\n{title}\n\n"
             f"📖 <b>Content Preview:</b>\n{content}\n\n"
         )
 
@@ -773,22 +784,15 @@ async def select_option_handler(
             f"Or simply explore other options from the menu."
         )
 
-        await msg.reply_html(text=text, reply_markup=InlineKeyboardMarkup(button))
+        await msg.reply_html(
+            text=text,
+        )
         return ConversationHandler.END
 
     elif callback_data == f"{SAVE_CHANGES_BUTTON.callback_data}":
 
-        yes_no_reply_keyboard = [
-            [
-                KeyboardButton(text="Yes"),
-                KeyboardButton(text="No"),
-            ],
-            [
-                KeyboardButton(text="/cancel"),
-            ],
-        ]
-
         text_waiting = "Changes ready. Awaiting confirmation..."
+
         await query.edit_message_text(
             text=text_waiting,
             parse_mode=ParseMode.HTML,
@@ -822,7 +826,7 @@ async def select_option_handler(
 
     else:
         text = f"Not Valid Response For Now Please Contact Admin."
-        await msg.reply_html(text=text, reply_markup=InlineKeyboardMarkup(button))
+        await msg.reply_html(text=text)
         return ConversationHandler.END
 
 
@@ -876,6 +880,11 @@ edit_note_conv = ConversationHandler(
                 callback=select_option_handler,
                 pattern=f"{SAVE_CHANGES_BUTTON.callback_data}",
             ),
+            # Handler for canceling via a callback with cancel button
+            CallbackQueryHandler(
+                callback=cancel_fallbacks_by_button,
+                pattern=f"{CANCEL_EDIT_NOTE_CONV_BUTTON.callback_data}",
+            ),
             # Handler for canceling via the command "/cancel"
             CommandHandler(
                 command="cancel",
@@ -883,11 +892,6 @@ edit_note_conv = ConversationHandler(
                 filters=filters.COMMAND
                 & filters.ChatType.PRIVATE
                 & filters.UpdateType.MESSAGE,
-            ),
-            # Handler for canceling via a callback with cancel button
-            CallbackQueryHandler(
-                callback=cancel_fallbacks_by_button,
-                pattern=f"{CANCEL_EDIT_NOTE_CONV_BUTTON.callback_data}",
             ),
         ],
         TITLE: [
