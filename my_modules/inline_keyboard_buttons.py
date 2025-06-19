@@ -88,6 +88,13 @@ DELETE_NOTE_BUTTON = InlineKeyboardButton(
     text="🗑️ Delete Note",
     callback_data="delete_the_note",
 )
+
+SAVE_CHANGES_BUTTON = InlineKeyboardButton(
+    text="Save Current Change",
+    callback_data="save_current_changes",
+)
+
+
 # Below are some Varialbe for constant keyboards
 
 START_SIMPLE_KEYBOARD = [
@@ -110,6 +117,7 @@ EDIT_NOTE_CONV_KEYBOARD = [
     [EDIT_TITLE_BUTTON],
     [EDIT_CONTENT_BUTTON],
     [DELETE_NOTE_BUTTON],
+    [SAVE_CHANGES_BUTTON],
     [CANCEL_EDIT_NOTE_CONV_BUTTON],
 ]
 
