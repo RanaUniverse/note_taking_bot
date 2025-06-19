@@ -62,9 +62,7 @@ SELECT_OPTION, TITLE, CONTENT, CONFIRMATION = range(4)
 
 MAX_TITLE_LEN = bot_config_settings.MAX_TITLE_LEN
 MAX_CONTENT_LEN = bot_config_settings.MAX_CONTENT_LEN
-
-# i will insert this to bot config settings value
-NOTE_PREVIEW_CHAR_LIMIT = 100
+NOTE_PREVIEW_CHAR_LIMIT = bot_config_settings.NOTE_PREVIEW_CHAR_LIMIT
 
 
 def generate_content_preview(
