@@ -54,7 +54,7 @@ from my_modules.notes_related import delete_note
 from my_modules.notes_related import edit_note
 from my_modules.notes_related import export_note
 from my_modules.notes_related import fake_note_make
-from my_modules.notes_related import search_notes
+from my_modules.notes_related import view_notes
 
 from my_modules.some_constants import PrivateValue
 
@@ -221,36 +221,37 @@ def main() -> None:
     application.add_handler(
         CommandHandler(
             command="my_notes",
-            callback=search_notes.my_notes_cmd,
+            callback=view_notes.my_notes_cmd,
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
             block=False,
         )
     )
+    from my_modules.inline_keyboard_buttons import VIEW_ALL_NOTE_BUTTON
 
     application.add_handler(
         CallbackQueryHandler(
-            search_notes.handle_my_all_notes_callback,
-            pattern="my_all_notes",
+            view_notes.handle_my_all_notes_callback,
+            pattern=rf"{VIEW_ALL_NOTE_BUTTON.callback_data}*",
         )
     )
 
     application.add_handler(
         CallbackQueryHandler(
-            callback=search_notes.button_for_search_notes,
+            callback=view_notes.button_for_search_notes,
             pattern=r"^view_note_.*$",
         )
     )
 
     application.add_handler(
         CallbackQueryHandler(
-            callback=search_notes.button_for_next_page,
+            callback=view_notes.button_for_next_page,
             pattern=r"^next_page_.*",
         )
     )
 
     application.add_handler(
         CallbackQueryHandler(
-            callback=search_notes.button_for_no_more_notes,
+            callback=view_notes.button_for_no_more_notes,
             pattern=r"^no_more_notes_\d+$",
         )
     )
@@ -368,7 +369,7 @@ def main() -> None:
 
     application.add_handler(
         CallbackQueryHandler(
-            callback=search_notes.handle_edit_note_button,
+            callback=view_notes.handle_edit_note_button,
             pattern=r"^edit_note_.*$",
         )
     )
@@ -382,14 +383,14 @@ def main() -> None:
 
     application.add_handler(
         CallbackQueryHandler(
-            callback=search_notes.handle_transfer_note_button,
+            callback=view_notes.handle_transfer_note_button,
             pattern=r"^transfer_note_.*$",
         )
     )
 
     application.add_handler(
         CallbackQueryHandler(
-            callback=search_notes.handle_duplicate_note_button,
+            callback=view_notes.handle_duplicate_note_button,
             pattern=r"^duplicate_note_.*$",
         )
     )
