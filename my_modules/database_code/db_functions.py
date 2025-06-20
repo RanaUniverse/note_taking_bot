@@ -93,7 +93,7 @@ def count_user_notes(
         return all_note_count
 
 
-def get_user_notes(
+def get_some_note_rows(
     engine: Engine,
     offset_value: int,
     limit_value: int,

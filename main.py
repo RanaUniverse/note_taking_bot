@@ -237,7 +237,7 @@ def main() -> None:
 
     application.add_handler(
         CallbackQueryHandler(
-            callback=view_notes.button_for_search_notes,
+            callback=view_notes.button_for_view_one_note,
             pattern=r"^view_note_.*$",
         )
     )

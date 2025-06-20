@@ -357,25 +357,37 @@ def invalid_int_value_in_add_points(
 
 
 class WhatMessageAction(Enum):
-    EDIT = "edit"
-    DELETE = "delete"
-    SHARE = "share"
+    VIEW = "👁️ view"
+    EDIT = "✏️ edit"
+    DELETE = "🗑️ delete"
+    SHARE = "📤 share"
 
 
 def access_denied_messages(user: User, what_action: WhatMessageAction) -> str:
     """
     This is say the text based on
+    View
     Edit
     Delete
     Share
     """
 
-    text = (
+    text_old = (  # type: ignore
         f"🚫 <b>Access Denied</b>\n\n"
         f"Dear {user.mention_html()}, you are not the owner of this note and therefore "
-        f"cannot {what_action} it. 😢\n\n"
+        f"cannot {what_action.value} it. 😢\n\n"
         f"If you believe this is an error or need assistance, "
         f"please contact support via /help."
+    )
+    
+    text = (
+        f"🚫 <b>Access Denied</b>\n\n"
+        f"Hi <b>{user.full_name}</b>, it seems this note isn't yours.\n\n"
+        f"Only the person who created it can <b>{what_action.value}</b> it.\n\n"
+        f"If you think this is a mistake — for example, if you’re logged in from a different device "
+        f"or had created it earlier — feel free to contact support.\n\n"
+        f"🛠 Use /help or message an admin directly.\n\n"
+        f"💡 You can also create a new note anytime with /new_note."
     )
 
     return text
