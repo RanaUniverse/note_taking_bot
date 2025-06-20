@@ -17,8 +17,7 @@ from telegram.ext import ContextTypes
 
 from my_modules import bot_config_settings
 from my_modules import message_templates
-
-from my_modules.inline_keyboards_enum_values import start_cmd_button
+from my_modules import inline_keyboard_buttons
 
 from my_modules.logger_related import RanaLogger
 
@@ -40,11 +39,12 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     reply_text = message_templates.start_text_for_private(user=user)
 
+    start_button = inline_keyboard_buttons.START_SIMPLE_KEYBOARD
     await context.bot.send_message(
         chat_id=user.id,
         text=reply_text,
         parse_mode=ParseMode.HTML,
-        reply_markup=InlineKeyboardMarkup(start_cmd_button),
+        reply_markup=InlineKeyboardMarkup(start_button),
     )
 
 

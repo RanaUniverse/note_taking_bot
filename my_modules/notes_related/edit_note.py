@@ -2,6 +2,9 @@
 This will a edit note features, where user can
 Edit his own note.
 
+    /edit_note <note_id>
+
+    callback_data = "edit_note_<note_id>"
 
     context.user_data["old_note_id"] = note_id
     context.user_data["old_note_title"] = note_row.note_title

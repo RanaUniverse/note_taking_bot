@@ -84,8 +84,6 @@ def deeplink_simple_group_start_text(group_id: int | str) -> str:
         "Currently, this bot works only in private messages. "
         "Please continue using it here for now. "
         "Group support will be added in a future update. 🚧\n\n"
-        "If you used a deep link like <code>/start</code>, that's totally fine "
-        "— just follow the instructions below. 👇"
     )
 
     return text

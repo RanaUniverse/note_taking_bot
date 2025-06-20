@@ -11,6 +11,10 @@ from telegram import (
 )
 
 
+# === Individual Buttons ===
+
+# Note Related Buttons
+
 NEW_NOTE_BUTTON = InlineKeyboardButton(
     text="✚ New Note",
     callback_data="new_note_making",
@@ -21,21 +25,23 @@ VIEW_ALL_NOTE_BUTTON = InlineKeyboardButton(
     callback_data="my_all_notes",
 )
 
+EXPORT_ALL_NOTE_BUTTON = InlineKeyboardButton(
+    text="Export Your Notes",
+    callback_data="export_all_notes",
+)
+
+
+# Account Related Buttons
+
 
 ACCOUNT_DETAILS_BUTTON = InlineKeyboardButton(
     text="📊 View Account Details",
     callback_data="account_details",
 )
 
-
 UPGRADE_PRO_BUTTON = InlineKeyboardButton(
     text="💎 Upgrade to Pro Plan",
     callback_data="upgrade_pro",
-)
-
-EXPORT_ALL_NOTE_BUTTON = InlineKeyboardButton(
-    text="Export Your Notes",
-    callback_data="export_all_notes",
 )
 
 ADD_EMAIL_BUTTON = InlineKeyboardButton(
@@ -53,6 +59,10 @@ ADD_REFERREL_BUTTON = InlineKeyboardButton(
     callback_data="add_referral",
 )
 
+
+# Misc some buttons
+
+
 SETTINGS_BUTTON = InlineKeyboardButton(
     text="⚙️ Settings",
     callback_data="open_settings",
@@ -69,10 +79,8 @@ HELP_BUTTON = InlineKeyboardButton(
 )
 
 
-CANCEL_EDIT_NOTE_CONV_BUTTON = InlineKeyboardButton(
-    text="🚫 Cancel Editing",
-    callback_data="cancel_edit_note_conv",
-)
+# Edit Note & its conversation related mainly
+
 
 EDIT_TITLE_BUTTON = InlineKeyboardButton(
     text="📝 Edit Title",
@@ -94,8 +102,14 @@ SAVE_CHANGES_BUTTON = InlineKeyboardButton(
     callback_data="save_current_changes",
 )
 
+CANCEL_EDIT_NOTE_CONV_BUTTON = InlineKeyboardButton(
+    text="🚫 Cancel Editing",
+    callback_data="cancel_edit_note_conv",
+)
 
-# Below are some Varialbe for constant keyboards
+
+# === Keyboard Layouts Below ===
+
 
 START_SIMPLE_KEYBOARD = [
     [NEW_NOTE_BUTTON, VIEW_ALL_NOTE_BUTTON],
@@ -120,6 +134,7 @@ EDIT_NOTE_CONV_KEYBOARD = [
     [SAVE_CHANGES_BUTTON],
     [CANCEL_EDIT_NOTE_CONV_BUTTON],
 ]
+
 
 if __name__ == "__main__":
 
