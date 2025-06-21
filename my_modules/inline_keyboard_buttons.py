@@ -124,7 +124,7 @@ DELETE_ALL_NOTE_BUTTON = InlineKeyboardButton(
     callback_data="delete_my_all_notes",
 )
 
-
+# currently this delete button is not in use i am using normal str value.
 DELETE_ONE_NOTE_DYNAMIC_BUTTON = InlineKeyboardButton(
     text="Delete This Note",
     callback_data="delete_note_",

@@ -320,7 +320,7 @@ def main() -> None:
     application.add_handler(
         CallbackQueryHandler(
             callback=delete_note.confirm_note_del_button,
-            pattern="^note_del_confirm_.*",
+            pattern=r"^note_del_confirm_.*",
         )
     )
 
@@ -336,6 +336,13 @@ def main() -> None:
         CallbackQueryHandler(
             callback=delete_note.note_deleted_already_button,
             pattern="note_deleted_already",
+        )
+    )
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=delete_note.note_delete_failed_button,
+            pattern="note_delete_failed",
         )
     )
 

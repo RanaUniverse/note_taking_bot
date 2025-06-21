@@ -4,7 +4,6 @@ i not think fully should i will delete the notes or i will keep those and mark a
 
 """
 
-import asyncio
 import html
 
 from telegram import Update
@@ -198,13 +197,9 @@ async def handle_delete_note_button(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """
-    As This button can be attached with Simple Text
-    Or maybe it attached with a file + caption.
-    So For This two i keep this logic check.
-
-    When delete_note_ note_id come in callback button value
-    This function will executes and this will ask user to del or not.
-        pattern=r"^delete_note_.*$",
+        pattern = "delete_note_<note_id>"
+    On this type of case i will use this function which will execute.
+    It will ask The user for one confirmation to delete note.
     """
     user = update.effective_user
     msg = update.effective_message
@@ -249,31 +244,8 @@ async def handle_delete_note_button(
         text="🗑️ Please Read all carefully must ⏳",
         show_alert=True,
     )
-
-    title = f"{note_row.note_title or 'Untitled Note'}"
-
-    created_info = (
-        f"📅 <b>Created On:</b> <code>{note_row.created_time.strftime('%d %b %Y, %I:%M %p')}</code>\n"
-        if note_row.created_time
-        else "📅 <b>Created On:</b> <code>Unknown</code>\n"
-    )
-
-    edited_info = (
-        f"✏️ <b>Last Edited:</b> <code>{note_row.edited_time.strftime('%d %b %Y, %I:%M %p')}</code>\n"
-        if note_row.edited_time
-        else ""
-    )
-
-    text = (
-        f"⚠️ <b>Delete Confirmation</b>\n"
-        f"━━━━━━━━━━━━━━━━━━━\n"
-        f"<b>📝 Title:</b> <code>{html.escape(title)}</code>\n"
-        f"<b>📅 Created On:</b> <code>{created_info}</code>\n"
-        f"{edited_info}"
-        f"━━━━━━━━━━━━━━━━━━━\n"
-        f"🚫 <i>This action is <b>permanent</b> and cannot be undone!</i>\n"
-        f"Are you absolutely sure you want to <b>delete</b> this note?\n\n"
-        f"👇 Please confirm your choice:"
+    reply_text = message_templates.generate_delete_confirmation_with_note_info_text(
+        note_row=note_row,
     )
 
     buttons = inline_keyboard_buttons.generate_delete_note_confirmation_buttons(
@@ -282,24 +254,25 @@ async def handle_delete_note_button(
 
     if msg.text:
         await query.edit_message_text(
-            text=text,
+            text=reply_text,
             reply_markup=InlineKeyboardMarkup(buttons),
             parse_mode=ParseMode.HTML,
         )
 
     elif msg.caption:
         await query.edit_message_caption(
-            caption=text,
+            caption=reply_text,
             reply_markup=InlineKeyboardMarkup(buttons),
             parse_mode=ParseMode.HTML,
         )
 
 
 async def confirm_note_del_button(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """
-    `note_del_confirm_ note_id` :- This is callback data
+    `note_del_confirm_ <note_id>` :- This is callback data
     When user press the delete the note button for a note
     it will execute and del the note completely.
     """
@@ -341,8 +314,6 @@ async def confirm_note_del_button(
         engine=engine,
         note_id=note_id,
     )
-
-    await asyncio.sleep(1)
 
     if note_row is None:
         RanaLogger.warning(f"Note id should be present when del confirm callback.")
@@ -502,6 +473,27 @@ async def note_deleted_already_button(
     text = f"Note Already Deleted 😁😁😁"
     await query.answer(
         text=text,
+        show_alert=True,
+    )
+
+
+async def note_delete_failed_button(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    Callback Data: note_delete_failed
+    When user presses the button, it shows a failure message.
+    """
+    query = update.callback_query
+
+    if query is None or query.data is None:
+        RanaLogger.warning(
+            "Note delete failed button pressed but no callback data found."
+        )
+        return
+
+    await query.answer(
+        text="Note Delete Failed 😢 Please try again Freshly!",
         show_alert=True,
     )
 

@@ -470,3 +470,32 @@ def user_complete_details_text(tg_user_obj: User, user_row: UserPart) -> str:
         )
 
     return account_text
+
+
+def generate_delete_confirmation_with_note_info_text(note_row: NotePart) -> str:
+    title = f"{note_row.note_title or 'Untitled Note'}"
+
+    created_info = (
+        f"{note_row.created_time.strftime('%d %b %Y, %I:%M %p')}"
+        if note_row.created_time
+        else "Unknown"
+    )
+
+    edited_info = (
+        f"✏️ <b>Last Edited:</b> <code>{note_row.edited_time.strftime('%d %b %Y, %I:%M %p')}</code>\n"
+        if note_row.edited_time
+        else ""
+    )
+
+    text = (
+        f"⚠️ <b>Delete Confirmation</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━\n"
+        f"<b>📝 Title:</b> <code>{html.escape(title)}</code>\n"
+        f"<b>📅 Created On:</b> <code>{created_info}</code>\n"
+        f"{edited_info}"
+        f"━━━━━━━━━━━━━━━━━━━\n"
+        f"🚫 <i>This action is <b>permanent</b> and cannot be undone!</i>\n"
+        f"Are you absolutely sure you want to <b>delete</b> this note?\n\n"
+        f"👇 Please confirm your choice:"
+    )
+    return text
