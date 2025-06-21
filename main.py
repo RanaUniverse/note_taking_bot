@@ -52,6 +52,7 @@ from my_modules.notes_related import view_notes
 
 
 ACCOUNT_DETAILS_BUTTON = inline_keyboard_buttons.ACCOUNT_DETAILS_BUTTON
+UPGRADE_PRO_BUTTON = inline_keyboard_buttons.UPGRADE_PRO_BUTTON
 
 
 def main() -> None:
@@ -135,6 +136,13 @@ def main() -> None:
             callback=zzz_extra_things.my_account_details_cmd,
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
             block=False,
+        )
+    )
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=some_buttons.upgrade_to_pro_member_button_handler,
+            pattern=f"{UPGRADE_PRO_BUTTON.callback_data}",
         )
     )
 

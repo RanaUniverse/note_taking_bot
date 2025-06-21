@@ -41,7 +41,7 @@ ACCOUNT_DETAILS_BUTTON = InlineKeyboardButton(
 
 UPGRADE_PRO_BUTTON = InlineKeyboardButton(
     text="💎 Upgrade to Pro Plan",
-    callback_data="upgrade_pro",
+    callback_data="upgrade_to_pro_user",
 )
 
 ADD_EMAIL_BUTTON = InlineKeyboardButton(

@@ -10,6 +10,7 @@ from telegram.ext import ContextTypes
 
 from my_modules import inline_keyboard_buttons
 from my_modules import message_templates
+from my_modules import bot_config_settings
 
 from my_modules.database_code import db_functions
 from my_modules.database_code.database_make import engine
@@ -17,6 +18,7 @@ from my_modules.logger_related import RanaLogger
 
 
 ACCOUNT_DETAILS_BUTTON = inline_keyboard_buttons.ACCOUNT_DETAILS_BUTTON
+UPGRADE_ACCOUNT_PRO_WEBSITE = bot_config_settings.UPGRADE_ACCOUNT_PRO_WEBSITE
 
 
 async def update_profile_button(
@@ -123,3 +125,45 @@ async def account_details_of_user_button_handler(
         user_row=user_row,
     )
     await msg.reply_html(text=user_info_text)
+
+
+async def upgrade_to_pro_member_button_handler(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    When user will press the upgrade to pro button this will handle this function
+
+        UPGRADE_PRO_BUTTON = InlineKeyboardButton(
+            text="💎 Upgrade to Pro Plan",
+            callback_data="upgrade_to_pro_user",
+        )
+    """
+    user = update.effective_user
+    msg = update.effective_message
+
+    if msg is None or user is None:
+        RanaLogger.warning(f"user msg should be present when account upgrade to Pro")
+        return None
+
+    query = update.callback_query
+    if query is None:
+        RanaLogger.warning(
+            f"Query should be present of press button of 'upgrade_to_pro_user'"
+        )
+        return None
+
+    await query.answer(text="🚧 Pro Features Coming Soon!", show_alert=True)
+
+    reply_text = (
+        f"💎 <b>Upgrade to Pro Plan</b>\n\n"
+        f"Hey {user.mention_html()}! Ready to unlock more power? 🚀\n\n"
+        f"✅ <b>Pro Benefits Include:</b>\n"
+        f"• More note storage 📦\n"
+        f"• Priority support 🛠️\n"
+        f"• Special Pro-only features ✨\n\n"
+        f"🌐 Visit our website to learn more:\n"
+        f"<a href='{UPGRADE_ACCOUNT_PRO_WEBSITE}'>🔗 Upgrade to Pro</a>\n\n"
+        f"📞 Or contact the admin anytime if you’d like early access."
+    )
+
+    await msg.reply_html(text=reply_text)

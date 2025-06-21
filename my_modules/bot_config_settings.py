@@ -60,6 +60,7 @@ DATABASE_FILE_NAME = "DATABASE.db"
 
 # This below is the link of about the bot and how to use this
 BOT_INFORMATION_WEBSITE = "https://telegra.ph/How-To-Use-Note-Taking-Bot-06-20"
+UPGRADE_ACCOUNT_PRO_WEBSITE = "https://telegra.ph/Pro-Members-Features-06-21"
 
 ADD_POINT_WAIT_TIME = 3
 REGISTER_ACCOUNT_WAIT_TIME = 3
