@@ -55,6 +55,8 @@ ACCOUNT_DETAILS_BUTTON = inline_keyboard_buttons.ACCOUNT_DETAILS_BUTTON
 UPGRADE_PRO_BUTTON = inline_keyboard_buttons.UPGRADE_PRO_BUTTON
 SETTINGS_BUTTON = inline_keyboard_buttons.SETTINGS_BUTTON
 FEEDBACK_BUTTON = inline_keyboard_buttons.FEEDBACK_BUTTON
+VIEW_ALL_NOTE_BUTTON = inline_keyboard_buttons.VIEW_ALL_NOTE_BUTTON
+VIEW_ONE_NOTE_DYNAMIC_BUTTON = inline_keyboard_buttons.VIEW_ONE_NOTE_DYNAMIC_BUTTON
 
 
 def main() -> None:
@@ -278,8 +280,6 @@ def main() -> None:
         )
     )
 
-    from my_modules.inline_keyboard_buttons import VIEW_ALL_NOTE_BUTTON
-
     application.add_handler(
         CallbackQueryHandler(
             view_notes.handle_my_all_notes_callback,
@@ -290,7 +290,8 @@ def main() -> None:
     application.add_handler(
         CallbackQueryHandler(
             callback=view_notes.button_for_view_one_note,
-            pattern=r"^view_note_.*$",
+            # pattern=r"^view_note_.*$",
+            pattern=rf"^{VIEW_ONE_NOTE_DYNAMIC_BUTTON.callback_data}.*$",
         )
     )
 

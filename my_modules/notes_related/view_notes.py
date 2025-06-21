@@ -39,6 +39,7 @@ OFFSET_VALUE = bot_config_settings.OFFSET_VALUE
 DISLIKE_EFFECT = bot_config_settings.MessageEffectEmojies.DISLIKE.value
 
 USER_HAS_NO_NOTE_KEYBOARD = inline_keyboard_buttons.USER_HAS_NO_NOTE_KEYBOARD
+VIEW_ONE_NOTE_DYNAMIC_BUTTON = inline_keyboard_buttons.VIEW_ONE_NOTE_DYNAMIC_BUTTON
 
 
 async def reply_user_has_no_notes(msg: Message, user: User):
@@ -93,7 +94,10 @@ def make_some_view_notes_button(
 
     for i, note_row in enumerate(iterable=some_notes, start=1):
         title_view = f"{i}. {note_row.note_title}"[0:100]
-        callback_data_value = f"view_note_{note_row.note_id}"
+        # callback_data_value = f"view_note_{note_row.note_id}"
+        callback_data_value = (
+            f"{VIEW_ONE_NOTE_DYNAMIC_BUTTON.callback_data}{note_row.note_id}"
+        )
 
         one_button_row = [
             InlineKeyboardButton(
@@ -205,7 +209,7 @@ async def handle_my_all_notes_callback(
         RanaLogger.warning(f"Query should be present of press button of 'all_my_notes'")
         return None
 
-    await query.answer(text="You Can See All Your Notes Below ⬇️⬇️⬇️")
+    await query.answer(text="I am checking your Notes Now.")
 
     how_many_notes_user_has = db_functions.count_user_notes(
         engine=engine,

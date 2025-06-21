@@ -65,7 +65,8 @@ ADD_REFERREL_BUTTON = InlineKeyboardButton(
 )
 
 DELETE_ACCOUNT_BUTTON = InlineKeyboardButton(
-    text="❌ Delete Account", callback_data="delete_account"
+    text="❌ Delete Account",
+    callback_data="delete_account",
 )
 
 # Misc some buttons
@@ -121,6 +122,17 @@ CANCEL_EDIT_NOTE_CONV_BUTTON = InlineKeyboardButton(
 DELETE_ALL_NOTE_BUTTON = InlineKeyboardButton(
     text="🗑️ Delete My All Notes",
     callback_data="delete_my_all_notes",
+)
+
+
+DELETE_ONE_NOTE_DYNAMIC_BUTTON = InlineKeyboardButton(
+    text="Delete This Note",
+    callback_data="delete_note_",
+)
+
+VIEW_ONE_NOTE_DYNAMIC_BUTTON = InlineKeyboardButton(
+    text="View This Note",
+    callback_data="view_note_",
 )
 
 
