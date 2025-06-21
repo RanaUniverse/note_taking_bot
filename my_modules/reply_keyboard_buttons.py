@@ -17,7 +17,7 @@ YES_NO_REPLY_KEYBOARD = [
     [
         KeyboardButton(text="/cancel"),
     ],
-    [
-        KeyboardButton(text="Save As Draft"),
-    ],
+    # [
+    #     KeyboardButton(text="Save As Draft"),
+    # ],
 ]

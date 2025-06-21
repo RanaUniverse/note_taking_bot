@@ -745,6 +745,7 @@ new_note_conv = ConversationHandler(
                 callback=note_confirmation_no,
                 block=False,
             ),
+            # Save as draft is now in not use i am thinking to use this.
             MessageHandler(
                 filters=filters.Text(["Save As Draft", "/draft_note"]),
                 callback=note_confirmation_as_draft,
