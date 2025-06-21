@@ -96,6 +96,13 @@ def main() -> None:
             block=False,
         )
     )
+    application.add_handler(
+        CommandHandler(
+            command=["get_logger_file"],
+            callback=admin_related_code.get_logger_file,
+            block=False,
+        )
+    )
 
     # Below rana checking is just a concepts for checking my logics
     application.add_handler(

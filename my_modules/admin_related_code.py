@@ -4,13 +4,20 @@ set_my_commands()
 Now is in Development
 """
 
+from pathlib import Path
+
+
 from telegram import Update
 from telegram import BotCommand
 from telegram.ext import ContextTypes
 
 from my_modules import bot_config_settings
+from my_modules.logger_related import RanaLogger
+
 
 ADMIN_ID = bot_config_settings.ADMIN_ID_1
+LOG_FILE_NAME = bot_config_settings.LOG_FILE_NAME
+
 
 cmds_list: list[BotCommand] = [
     BotCommand(command="start", description="🚀 Just Start This Bot"),
@@ -117,3 +124,37 @@ async def rana_checking(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     text = f"Please send me a texts"
 
     await update.message.reply_text(text=text, do_quote=True)
+
+
+async def get_logger_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    This is for my use when i want to get the logger file in tg directly
+    This i have some extra plan to add some others featurs to get some text or
+    Something like slicing features, but i dont plan till now.
+    """
+    msg = update.effective_message
+    user = update.effective_user
+
+    if msg is None or user is None:
+        RanaLogger.info(
+            "When request for logger file the msg and user need to present."
+        )
+        return None
+
+    if user.id != ADMIN_ID:
+        text = "❌ You are not authorized to access the log file."
+        await msg.reply_html(text)
+        return None
+
+    file_path = Path() / LOG_FILE_NAME
+
+    if not file_path.exists():
+        await msg.reply_html("⚠️ Logger file does not exist.")
+        return
+
+    timestamp = msg.date.strftime("%Y%m%d_%H%M%S")
+    filename = f"LoggerFile_{timestamp}.txt"
+
+    await msg.reply_document(
+        document=file_path, filename=filename, caption="📝 Logger file as requested."
+    )
