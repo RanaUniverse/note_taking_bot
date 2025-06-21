@@ -19,6 +19,7 @@ from my_modules.logger_related import RanaLogger
 
 ACCOUNT_DETAILS_BUTTON = inline_keyboard_buttons.ACCOUNT_DETAILS_BUTTON
 UPGRADE_ACCOUNT_PRO_WEBSITE = bot_config_settings.UPGRADE_ACCOUNT_PRO_WEBSITE
+FEEDBACK_EMAIL_ID = bot_config_settings.FEEDBACK_EMAIL_ID
 
 
 async def update_profile_button(
@@ -167,3 +168,70 @@ async def upgrade_to_pro_member_button_handler(
     )
 
     await msg.reply_html(text=reply_text)
+
+
+async def settings_button_pressed_handler(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    wehn the settings button is presed this will executes for now this is
+    just a demo just kept as a things to keep
+        SETTINGS_BUTTON = InlineKeyboardButton(
+        text="⚙️ Settings",
+        callback_data="open_settings",
+    )
+
+    """
+
+    user = update.effective_user
+    msg = update.effective_message
+
+    if msg is None or user is None:
+        RanaLogger.warning(f"user msg should be present when account upgrade to Pro")
+        return None
+
+    query = update.callback_query
+    if query is None:
+        RanaLogger.warning(
+            f"Query should be present of press button of 'upgrade_to_pro_user'"
+        )
+        return None
+
+    await query.answer(
+        text="⚙️ Settings are not available yet. "
+        "Please stay tuned for the next update! 🔄",
+        show_alert=True,
+    )
+
+
+async def feedback_button_pressed_handler(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    This handler is triggered when the Feedback button is pressed.
+    Currently, direct feedback through chat is not supported.
+    Users are advised to use /help or send feedback via email.
+
+        FEEDBACK_BUTTON = InlineKeyboardButton(
+            text="💬 Feedback",
+            callback_data="send_feedback",
+        )
+    """
+    user = update.effective_user
+    msg = update.effective_message
+
+    if msg is None or user is None:
+        RanaLogger.warning("User or message missing when pressing Feedback button")
+        return None
+
+    query = update.callback_query
+    if query is None:
+        RanaLogger.warning("Query missing for Feedback button press")
+        return None
+    await query.answer()
+    text = (
+        "💬 Feedback feature is not available directly in chat for now.\n\n"
+        "👉 If you need help, use the /help command.\n"
+        "📧 Or send your feedback to: " + FEEDBACK_EMAIL_ID
+    )
+    await msg.reply_html(text=text)

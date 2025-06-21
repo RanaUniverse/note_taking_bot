@@ -53,6 +53,8 @@ from my_modules.notes_related import view_notes
 
 ACCOUNT_DETAILS_BUTTON = inline_keyboard_buttons.ACCOUNT_DETAILS_BUTTON
 UPGRADE_PRO_BUTTON = inline_keyboard_buttons.UPGRADE_PRO_BUTTON
+SETTINGS_BUTTON = inline_keyboard_buttons.SETTINGS_BUTTON
+FEEDBACK_BUTTON = inline_keyboard_buttons.FEEDBACK_BUTTON
 
 
 def main() -> None:
@@ -143,6 +145,18 @@ def main() -> None:
         CallbackQueryHandler(
             callback=some_buttons.upgrade_to_pro_member_button_handler,
             pattern=f"{UPGRADE_PRO_BUTTON.callback_data}",
+        )
+    )
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=some_buttons.settings_button_pressed_handler,
+            pattern=f"{SETTINGS_BUTTON.callback_data}",
+        )
+    )
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=some_buttons.feedback_button_pressed_handler,
+            pattern=f"{FEEDBACK_BUTTON.callback_data}",
         )
     )
 
