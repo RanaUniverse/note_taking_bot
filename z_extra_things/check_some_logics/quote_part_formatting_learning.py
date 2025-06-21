@@ -1,7 +1,9 @@
-'''
+"""
+No Use Of This Module ❌❌❌
+
 i tried to make a quote from the original message using the same formatiing
 but till now i am not able to achieve this
-'''
+"""
 
 import os
 from telegram.constants import ParseMode
@@ -77,11 +79,6 @@ async def reply_to_email(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             email_end = email_start + entity.length
             user_email = user_msg[email_start:email_end]
             break
-
-
-
-
-
 
     if not user_email:
         return

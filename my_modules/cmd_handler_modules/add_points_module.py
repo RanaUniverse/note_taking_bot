@@ -14,10 +14,9 @@ for now i will make it as demo so that use can by himself add notes.
 import asyncio
 import random
 
-from sqlmodel import Session
 
 from telegram import Update
-from telegram.constants import ParseMode, ChatAction
+from telegram.constants import ChatAction
 from telegram.ext import ContextTypes
 
 
@@ -25,179 +24,23 @@ from my_modules import bot_config_settings
 from my_modules import message_templates
 
 from my_modules.database_code.database_make import engine
-from my_modules.database_code.db_functions import (
-    user_obj_from_user_id,
-    add_point_to_user_obj,
-)
-from my_modules.logger_related import logger, RanaLogger
+from my_modules.database_code import db_functions
+from my_modules.logger_related import RanaLogger
 
-
-MAX_ADD_POINT = bot_config_settings.MAX_ADD_POINT
 
 ADD_POINT_WAIT_TIME = bot_config_settings.ADD_POINT_WAIT_TIME
-
-
-async def add_points_cmd_old(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
-    """
-    Currently This will not work as i dont need to use this logic
-    i separate this in below differetn functions.
-    When user will send /add_points
-
-    if user dont send any value after the command it will ask him to send right
-    """
-
-    if update.message is None or update.message.from_user is None:
-        print("I used this to prevent the type hint of pyright. in add_points_cmd")
-        return
-
-    user = update.message.from_user
-
-    if context.args is None:
-        print("This is unexpected 🍌🍌🍌")
-        return
-
-    if len(context.args) == 0:
-
-        text = (
-            f"You haven't pass any argument after this command."
-            f"You need to send how many points you want to add.\n"
-            f"Example: Suppose You want to get 10 points, then send this below to bot.\n"
-            f"<blockquote><code>/add_points 10</code></blockquote>"
-        )
-
-        await context.bot.send_message(
-            chat_id=user.id,
-            text=text,
-            parse_mode=ParseMode.HTML,
-        )
-
-        return None
-
-    if len(context.args) > 1:
-        text = (
-            f"⚠️ You have entered multiple values!\n"
-            f"Please provide only one number. Example:\n"
-            f"<blockquote><code>/add_points 10</code></blockquote>"
-        )
-
-        await context.bot.send_message(
-            chat_id=user.id,
-            text=text,
-            parse_mode=ParseMode.HTML,
-        )
-        return None
-
-    if len(context.args) == 1:
-        try:
-            points_to_add = int(context.args[0])
-            text = (
-                f"You have requested to add <b>{points_to_add}</b> points! 🎉\n"
-                f"⏳ Please wait <b>3 seconds</b> for confirmation..."
-            )
-
-            await context.bot.send_message(
-                chat_id=user.id,
-                text=text,
-                parse_mode=ParseMode.HTML,
-            )
-
-        except ValueError:
-            text = (
-                f"⚠️ Invalid input!\n"
-                f"Please send a valid number. Example:\n"
-                f"<blockquote><code>/add_points 10</code></blockquote>"
-            )
-            await context.bot.send_message(
-                chat_id=user.id,
-                text=text,
-                parse_mode=ParseMode.HTML,
-            )
-            return None
-
-        await context.bot.send_chat_action(user.id, ChatAction.TYPING)
-
-        # here i will check if the points value is 0 or less than this, means if negative
-        # it will exit this fun by sayuing to provide a positive goo value
-
-        if points_to_add <= 0:
-            text = (
-                f"⚠️ Invalid points amount!\n"
-                f"Please enter a positive number greater than 0.\n"
-                f"Example:\n<blockquote><code>/add_points 10</code></blockquote>"
-            )
-            await context.bot.send_message(
-                chat_id=user.id,
-                text=text,
-                parse_mode=ParseMode.HTML,
-            )
-            return None
-
-        if points_to_add > MAX_ADD_POINT:
-            text = (
-                f"⚠️ You are requesting too many points ({points_to_add})!\n"
-                f"🔹 The maximum allowed per request is <b>{MAX_ADD_POINT}</b> points.\n"
-                f"Please enter a smaller value.\n"
-                f"Example:\n<blockquote><code>/add_points 20</code></blockquote>\n"
-                f"If you want to add many points pls contact admin (/admin)."
-            )
-            await context.bot.send_message(
-                chat_id=user.id,
-                text=text,
-                parse_mode=ParseMode.HTML,
-            )
-            return
-
-        # i made at last as i want to open the database and check only when the condition
-        # all got satisfied.
-
-        user_row = user_obj_from_user_id(engine, user.id)
-
-        if user_row is None:
-            logger.warning(
-                f"{user.full_name} is not register but trying to add points."
-            )
-            text = (
-                f"Sorry, {user.full_name} 😢\n"
-                "You are not register in the database first go to Bot and send"
-                f"/register or /register_me then come back."
-            )
-            await context.bot.send_message(
-                chat_id=user.id,
-                text=text,
-                parse_mode=ParseMode.HTML,
-            )
-            return None
-
-        with Session(engine) as session:
-
-            user_row.points += points_to_add
-            session.add(user_row)
-            session.commit()
-            session.refresh(user_row)
-
-        logger.info(f"{user.full_name} has added {points_to_add} point.")
-        await asyncio.sleep(1)
-
-        text = (
-            f"✅ {points_to_add} Points have been successfully added! 🎉\n"
-            f"🏆 Your Current Points is: <b>{user_row.points}</b>"
-        )
-        await context.bot.send_message(
-            chat_id=user.id,
-            text=text,
-            parse_mode=ParseMode.HTML,
-        )
+MAX_ADD_POINT = bot_config_settings.MAX_ADD_POINT
 
 
 async def add_points_cmd_no_arg(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """
     When user will only send
     '/add_points'
     it will executes and say user to send this in correct format
+    on how many point user want to add to his account
     """
     user = update.effective_user
     msg = update.effective_message
@@ -224,7 +67,8 @@ async def add_points_cmd_no_arg(
 
 
 async def add_points_cmd_many_args(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """
     When user will send /add_points int and more than 1 words
@@ -266,15 +110,15 @@ async def add_points_cmd_many_args(
         return None
 
 
-# This is the special main things to add points to user
 async def add_points_cmd_one_arg(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """
     This is the main add point logic function
     /add_points int_value
     This case when will be this will execute when
-    len(context.args) == 1
+        len(context.args) == 1
     """
 
     user = update.effective_user
@@ -284,6 +128,7 @@ async def add_points_cmd_one_arg(
             f"On /add_points int of 1 args the user and msg will be present must"
         )
         return None
+
     random_point_value = random.randint(1, MAX_ADD_POINT)
 
     # Below lines execute means the real thigns come i need to check the value of the
@@ -299,15 +144,15 @@ async def add_points_cmd_one_arg(
         points_to_add = int(arg_value)
         text_real_int = (
             f"👋 Hello {user.mention_html()},\n\n"
-            f"🧾 You’ve requested to add <b>{points_to_add}</b> point(s) "
-            "to your account.\n"
-            f"⏳ Please wait <b>{ADD_POINT_WAIT_TIME}</b> seconds while "
-            "we verify your account.\n\n"
-            f"✅ We appreciate your patience!"
+            f"🧾 You've requested to add <b>{points_to_add}</b> point(s) to your account.\n"
+            f"⏳ Please wait <b>{ADD_POINT_WAIT_TIME}</b> seconds "
+            f"while we verify your request.\n\n"
+            f"🚫 Kindly avoid sending any messages to the bot during "
+            f"this time to ensure smooth processing.\n\n"
+            f"✅ Thank you for your patience!"
         )
 
         await msg.reply_html(text=text_real_int)
-        # i want after this try will successful then the main db logic will come
         await msg.reply_chat_action(action=ChatAction.TYPING)
 
         await asyncio.sleep(ADD_POINT_WAIT_TIME)
@@ -353,7 +198,7 @@ async def add_points_cmd_one_arg(
     # if user not exists it will say user to first register
     # if user exists then it will add the points in the obj and say the information
 
-    user_row = user_obj_from_user_id(engine=engine, user_id=user.id)
+    user_row = db_functions.user_obj_from_user_id(engine=engine, user_id=user.id)
 
     if user_row is None:
         text_no_user = message_templates.prompt_user_to_register(user=user)
@@ -364,7 +209,9 @@ async def add_points_cmd_one_arg(
     # i use try except here because i didn't use try except in the function.
 
     try:
-        new_user_row = add_point_to_user_obj(engine, user_row, points_to_add)
+        new_user_row = db_functions.add_point_to_user_obj(
+            engine, user_row, points_to_add
+        )
 
         text = (
             f"👋 Hello {user.mention_html()},\n"
@@ -373,7 +220,11 @@ async def add_points_cmd_one_arg(
         )
 
     except Exception as e:
-        RanaLogger.warning("Some Error happens here." "\n" f"{e}")
+        RanaLogger.warning(
+            "Some Error happens here, when points is adding to the user account column."
+            "\n"
+            f"{e}"
+        )
         text = f"Here is some problem in our Side. Please Report to Admin."
 
     await msg.reply_html(text)

@@ -2,7 +2,10 @@
 # pylint: disable=unused-argument
 # This program is dedicated to the public domain under the CC0 license.
 
-"""Simple inline keyboard bot with multiple CallbackQueryHandlers.
+"""
+No Use Of This Module ❌❌❌
+
+Simple inline keyboard bot with multiple CallbackQueryHandlers.
 
 This Bot uses the Application class to handle the bot.
 First, a few callback functions are defined as callback query handler. Then, those functions are

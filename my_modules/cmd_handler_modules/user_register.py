@@ -11,15 +11,18 @@ import random
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.exc import OperationalError
+
 from sqlmodel import Session, select
 
 from telegram import Update
 from telegram import InlineKeyboardMarkup
+
 from telegram.constants import ChatAction, ParseMode
 from telegram.ext import ContextTypes
 
 
 from my_modules import bot_config_settings
+from my_modules import inline_keyboard_buttons
 from my_modules import message_templates
 
 from my_modules.logger_related import RanaLogger
@@ -28,9 +31,8 @@ from my_modules.database_code import db_functions
 from my_modules.database_code.database_make import engine
 from my_modules.database_code.models_table import UserPart
 
-from my_modules.some_constants import MessageEffectEmojies
 
-from my_modules.some_inline_keyboards import MyInlineKeyboard
+MessageEffectEmojies = bot_config_settings.MessageEffectEmojies
 
 
 GOOD_EFFECTS = [
@@ -48,6 +50,7 @@ async def register_me_cmd_old(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """
+    ❌❌❌ Not for using
     /register_me :- For now it will just save.
     I want this will just register the user directly, without asking anythings extra
     as this is for now will just register now...
@@ -83,12 +86,12 @@ async def register_me_cmd_old(
 
         text_success = message_templates.user_register_success_text(
             tg_user_obj=user,
-            db_user_obj=user_obj,
+            db_user_row=user_obj,
         )
         await msg.reply_html(
             text=text_success,
             reply_markup=InlineKeyboardMarkup(
-                MyInlineKeyboard.ACCOUNT_NEW_REGISTER.value
+                inline_keyboard_buttons.USER_NEW_REGISTER_KEYBOARD
             ),
             message_effect_id=random.choice(GOOD_EFFECTS),
         )
@@ -111,13 +114,13 @@ async def register_me_cmd_old(
         # and i will fetch data from the user row below.
         text_user_exists = message_templates.user_already_register_text(
             tg_user_obj=user,
-            db_user_obj=user_row,
+            db_user_row=user_row,
             msg_obj=msg,
         )
         await msg.reply_html(
             text=text_user_exists,
             reply_markup=InlineKeyboardMarkup(
-                MyInlineKeyboard.ACCOUNT_ALREADY_REGISTER.value
+                inline_keyboard_buttons.USER_ALREADY_REGISTER_KEYBOARD
             ),
         )
 
@@ -141,6 +144,7 @@ async def register_me_cmd_confused_old_2(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """
+    ❌❌❌ Not Using Now
     I Got Confused To Use This functions, so i am making new fun for this
     This is just a practise register me to check how to handle database
     insert of user row in my table.
@@ -178,7 +182,7 @@ async def register_me_cmd_confused_old_2(
                 session.commit()
                 text = message_templates.user_register_success_text(
                     tg_user_obj=user,
-                    db_user_obj=user_obj,
+                    db_user_row=user_obj,
                 )
                 await msg.reply_html(text)
 
@@ -198,7 +202,7 @@ async def register_me_cmd_confused_old_2(
             # Means existing_user is note equal's to None, it is must UserPart Row value present
             text = message_templates.user_already_register_text(
                 tg_user_obj=user,
-                db_user_obj=existing_user,
+                db_user_row=existing_user,
                 msg_obj=msg,
             )
             await msg.reply_html(text)
@@ -207,7 +211,8 @@ async def register_me_cmd_confused_old_2(
 async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     /register_me
-    This function will execute
+    This function will execute,i though this register will run
+    always user start my bot i will think about this later time.
     """
     msg = update.effective_message
     user = update.effective_user
@@ -216,12 +221,15 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         RanaLogger.warning("On /register_me The msg and user must present")
         return None
 
-    user_present = db_functions.user_obj_from_user_id(engine=engine, user_id=user.id)
+    user_present = db_functions.user_obj_from_user_id(
+        engine=engine,
+        user_id=user.id,
+    )
 
     if user_present:
         text_user_already = message_templates.user_already_register_text(
             tg_user_obj=user,
-            db_user_obj=user_present,
+            db_user_row=user_present,
             msg_obj=msg,
         )
         await msg.reply_html(text_user_already)
@@ -230,7 +238,6 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # It means user is not present so i need to add him in database
     text = f"I am Registering You in our system. please wait."
     response_msg = await msg.reply_html(text)
-
     await msg.reply_chat_action(action=ChatAction.TYPING)
     await asyncio.sleep(REGISTER_ACCOUNT_WAIT_TIME)
 
@@ -240,14 +247,13 @@ async def register_me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         first_name=user.first_name,
         last_name=user.last_name,
         points=DEFAULT_REGISTER_TOKEN,
-        account_creation_time=msg.date.astimezone(IST_TIMEZONE),
     )
 
     after_insert_user_obj = db_functions.add_new_user_to_user_table(engine, user_obj)
 
     text_new_user_create = message_templates.user_register_success_text(
         tg_user_obj=user,
-        db_user_obj=after_insert_user_obj,
+        db_user_row=after_insert_user_obj,
     )
 
     await response_msg.edit_text(text_new_user_create, parse_mode=ParseMode.HTML)

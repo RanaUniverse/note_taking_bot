@@ -38,16 +38,14 @@ from telegram.ext import (
 
 from my_modules import bot_config_settings
 from my_modules import message_templates
+from my_modules import inline_keyboard_buttons
+from my_modules import reply_keyboard_buttons
 
 from my_modules.database_code.database_make import engine
 from my_modules.database_code.models_table import NotePart
 from my_modules.database_code import db_functions
 
 from my_modules.logger_related import RanaLogger
-
-from my_modules.some_inline_keyboards import generate_view_note_buttons
-
-from my_modules.some_reply_keyboards import yes_no_reply_keyboard
 
 
 # From Below My Code Logic will start Soon.
@@ -245,7 +243,7 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     ask_for_note_save = message_templates.new_note_save_ask()
 
     in_keyboard_button = ReplyKeyboardMarkup(
-        keyboard=yes_no_reply_keyboard,
+        keyboard=reply_keyboard_buttons.YES_NO_REPLY_KEYBOARD,
         resize_keyboard=True,
         one_time_keyboard=True,
         input_field_placeholder="Press Any Button Quickly",
@@ -304,7 +302,9 @@ async def note_confirmation_yes(
         user_balance=user_row.points,
     )
 
-    buttons_successfull_note = generate_view_note_buttons(note_row.note_id)
+    buttons_successfull_note = inline_keyboard_buttons.generate_buttons_with_note_view(
+        note_id=note_row.note_id
+    )
 
     await msg.reply_html(
         text=note_maked_text,
@@ -394,8 +394,9 @@ async def note_confirmation_as_draft(
         note_obj=note_row,
     )
 
-    buttons_successfull_note = generate_view_note_buttons(note_row.note_id)
-
+    buttons_successfull_note = inline_keyboard_buttons.generate_buttons_with_note_view(
+        note_id=note_row.note_id
+    )
     await msg.reply_html(
         text=note_maked_text,
         do_quote=True,

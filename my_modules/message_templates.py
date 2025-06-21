@@ -4,16 +4,17 @@ Text which i can reuse in different places.
 """
 
 from enum import Enum
-
 import html
-
 import random
 
 
 from telegram import Chat, Message, User
 
+
 from my_modules import bot_config_settings
 from my_modules.database_code.models_table import NotePart, UserPart
+
+BOT_INFORMATION_WEBSITE = bot_config_settings.BOT_INFORMATION_WEBSITE
 
 
 MAX_ADD_POINT = bot_config_settings.MAX_ADD_POINT
@@ -106,7 +107,9 @@ def help_cmd_text() -> str:
         "• Try typing commands in the chat to explore more features.\n"
         "• You can interact with buttons (if available) for quicker access.\n\n"
         "📢 <i>More commands and features coming soon. Stay connected!</i>\n\n"
-        "<b>Thank you for using the bot 💙</b>"
+        "<b>Thank you for using the bot 💙</b>\n"
+        f"Please Visit The Website to know more about how to use this bot.\n"
+        f"{BOT_INFORMATION_WEBSITE}"
     )
     return help_text
 
@@ -272,7 +275,7 @@ def new_note_making_confirmation_as_draft(note_obj: NotePart) -> str:
     return text
 
 
-def user_register_success_text(tg_user_obj: User, db_user_obj: UserPart) -> str:
+def user_register_success_text(tg_user_obj: User, db_user_row: UserPart) -> str:
     """
     When user register to database got success this text will show
     """
@@ -280,7 +283,7 @@ def user_register_success_text(tg_user_obj: User, db_user_obj: UserPart) -> str:
     text_success = (
         f"🎉 Welcome, <b>{tg_user_obj.mention_html()}</b>! 🎉\n\n"
         f"✅ You are now successfully registered!\n"
-        f"🪙 You have received <b>{db_user_obj.points} Welcome Tokens</b>.\n\n"
+        f"🪙 You have received <b>{db_user_row.points} Welcome Tokens</b>.\n\n"
         f"📋 You can add more details later using:\n"
         f"   🔹 Buttons below (coming soon!) ⬇️\n"
         f"   🔹 Or use manual commands ⌨️\n\n"
@@ -290,7 +293,9 @@ def user_register_success_text(tg_user_obj: User, db_user_obj: UserPart) -> str:
 
 
 def user_already_register_text(
-    tg_user_obj: User, db_user_obj: UserPart, msg_obj: Message
+    tg_user_obj: User,
+    db_user_row: UserPart,
+    msg_obj: Message,
 ) -> str:
     """
     When user is already present in database it will execute and
@@ -299,7 +304,7 @@ def user_already_register_text(
 
     time_formatting = f"Date:%Y-%m-%d, Time:%H-%M-%S"
 
-    old_register_time = db_user_obj.account_creation_time
+    old_register_time = db_user_row.account_creation_time
     now = msg_obj.date.astimezone(IST_TIMEZONE).replace(tzinfo=None)
     delta = now - old_register_time
 
@@ -307,12 +312,12 @@ def user_already_register_text(
         f"⚠️ Hello <b>{tg_user_obj.mention_html()}, you're already registered!</b>\n\n"
         f"<b>🗓️ Account created:</b> {old_register_time.strftime(time_formatting)}"
         f" ({delta} ago)\n"
-        f"<b>📝 Notes created:</b> {db_user_obj.note_count}\n"
-        f"<b>💰 Token balance:</b> {db_user_obj.points}\n"
+        f"<b>📝 Notes created:</b> {db_user_row.note_count}\n"
+        f"<b>💰 Token balance:</b> {db_user_row.points}\n"
         f"<b>🔗 Referral Code:</b> "
-        f"{db_user_obj.referral_code if db_user_obj.referral_code else 'No Refer'}\n"
+        f"{db_user_row.referral_code if db_user_row.referral_code else 'No Refer'}\n"
         f"<b>📧 Email ID:</b> "
-        f"{db_user_obj.email_id if db_user_obj.email_id else 'No Email'}\n"
+        f"{db_user_row.email_id if db_user_row.email_id else 'No Email'}\n"
     )
 
     return text_user_exists
@@ -345,11 +350,10 @@ def invalid_int_value_in_add_points(
     This error message will be send to user.
     """
     text_int_not = (
-        f"👋 Hello {user_obj.mention_html()}, you sent 👇🏻\n\n"
-        f"<code>{html.escape(arg_value)}</code> — "
-        f"but this is not a valid number of points.\n\n"
-        f"As a example "
-        f"to add {random_point_value} points, please send this command:\n"
+        f"👋 Hello {user_obj.mention_html()}, it looks like you sent:\n\n"
+        f"<code>{html.escape(arg_value)}</code>\n\n"
+        f"Unfortunately, that's not a valid number of points. ❌\n\n"
+        f"For example, to add {random_point_value} points, please use the command:\n"
         f"<code>/add_points {random_point_value}</code> ✅"
     )
 
@@ -379,7 +383,7 @@ def access_denied_messages(user: User, what_action: WhatMessageAction) -> str:
         f"If you believe this is an error or need assistance, "
         f"please contact support via /help."
     )
-    
+
     text = (
         f"🚫 <b>Access Denied</b>\n\n"
         f"Hi <b>{user.full_name}</b>, it seems this note isn't yours.\n\n"

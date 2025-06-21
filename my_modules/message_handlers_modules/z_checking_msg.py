@@ -1,4 +1,6 @@
 """
+No Use Of This Module ❌❌❌
+
 This module is for checking my differetn logic
 """
 
@@ -62,10 +64,7 @@ async def filters_all(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     this fun will execute when filters.ALL is used"
     """
 
-    if (
-        update.message is None
-        or update.message.from_user is None
-    ):
+    if update.message is None or update.message.from_user is None:
         print("I used this to prevent the type hint of pyright. for all filters.all")
         return
 

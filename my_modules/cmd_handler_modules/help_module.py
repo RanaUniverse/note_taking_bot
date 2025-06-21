@@ -8,10 +8,12 @@ from telegram.ext import ContextTypes
 
 from my_modules import bot_config_settings
 from my_modules import message_templates
+
 from my_modules.logger_related import RanaLogger
 
 
 GROUP_LINK = bot_config_settings.GROUP_LINK
+BOT_INFORMATION_WEBSITE = bot_config_settings.BOT_INFORMATION_WEBSITE
 
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

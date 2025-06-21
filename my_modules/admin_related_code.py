@@ -8,11 +8,9 @@ from telegram import Update
 from telegram import BotCommand
 from telegram.ext import ContextTypes
 
-from my_modules.some_constants import BotSettingsValue
+from my_modules import bot_config_settings
 
-
-ADMIN_ID_1 = BotSettingsValue.ADMIN_ID_1.value
-ADMIN_ID = ADMIN_ID_1
+ADMIN_ID = bot_config_settings.ADMIN_ID_1
 
 
 cmds_list: list[BotCommand] = [
@@ -111,3 +109,18 @@ async def show_bot_commands(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         response = "⚠️ No commands have been set for this bot."
 
     await update.message.reply_text(response)
+
+
+async def rana_checking(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    This is for checking purpose only
+    /rana
+    """
+
+    if update.message is None:
+        print("just to warning remove of the below pylance")
+        return
+
+    text = f"Please send me a texts"
+
+    await update.message.reply_text(text=text, do_quote=True)

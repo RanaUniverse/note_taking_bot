@@ -49,7 +49,9 @@ from my_modules.inline_keyboard_buttons import (
     SAVE_CHANGES_BUTTON,
 )
 
+from my_modules import inline_keyboard_buttons
 from my_modules import message_templates
+from my_modules import reply_keyboard_buttons
 
 from my_modules.database_code import db_functions
 from my_modules.database_code.database_make import engine
@@ -57,9 +59,6 @@ from my_modules.database_code.database_make import engine
 from my_modules.logger_related import RanaLogger
 
 from my_modules.message_templates import WhatMessageAction
-
-from my_modules.some_inline_keyboards import note_del_confirmation_button
-from my_modules.some_reply_keyboards import yes_no_reply_keyboard
 
 SELECT_OPTION, TITLE, CONTENT, CONFIRMATION = range(4)
 
@@ -837,7 +836,7 @@ async def select_option_handler(
             f"📖 <b>Content Preview:</b>\n{content}\n\n"
         )
 
-        delete_buttons = note_del_confirmation_button(note_id=note_id)
+        delete_buttons = inline_keyboard_buttons.NOTE_DELETE_KEYBOARD
 
         await query.edit_message_text(
             text=text,
@@ -908,7 +907,7 @@ async def select_option_handler(
         await msg.reply_html(
             text=text_ask,
             reply_markup=ReplyKeyboardMarkup(
-                yes_no_reply_keyboard,
+                keyboard=reply_keyboard_buttons.YES_NO_REPLY_KEYBOARD,
                 resize_keyboard=True,
                 one_time_keyboard=True,
             ),

@@ -15,6 +15,7 @@ from telegram.constants import ChatAction, ParseMode
 from telegram.ext import ContextTypes
 
 from my_modules import message_templates
+from my_modules import inline_keyboard_buttons
 
 from my_modules.message_templates import WhatMessageAction
 
@@ -23,11 +24,6 @@ from my_modules.logger_related import RanaLogger
 from my_modules.database_code.database_make import engine
 
 from my_modules.database_code import db_functions
-
-from my_modules.some_inline_keyboards import (
-    keyboard_for_del_note,
-    note_del_confirmation_button,
-)
 
 
 async def delete_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -61,7 +57,9 @@ async def delete_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
         await msg.reply_html(
             text=reply_text,
-            reply_markup=InlineKeyboardMarkup(keyboard_for_del_note),
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard_buttons.NOTE_DELETE_KEYBOARD
+            ),
         )
 
     else:
@@ -190,7 +188,9 @@ async def delete_note_many_args(
 
     await msg.reply_html(
         text=text_many_args,
-        reply_markup=InlineKeyboardMarkup(keyboard_for_del_note),
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard_buttons.NOTE_DELETE_KEYBOARD,
+        ),
     )
 
 
@@ -276,7 +276,9 @@ async def handle_delete_note_button(
         f"👇 Please confirm your choice:"
     )
 
-    buttons = note_del_confirmation_button(note_id=note_id)
+    buttons = inline_keyboard_buttons.generate_delete_note_confirmation_buttons(
+        note_id=note_id
+    )
 
     if msg.text:
         await query.edit_message_text(

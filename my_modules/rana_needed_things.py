@@ -1,4 +1,6 @@
 """
+I have kept some useful things here, which i don't
+Understand where i will use those things.
 Here i will keep some reusable code for now i dont think
 where i can replace those things, this is just for now here
 """
@@ -6,7 +8,9 @@ where i can replace those things, this is just for now here
 import datetime
 from pathlib import Path
 
-from telegram import Message, User
+
+from telegram import User
+
 
 from my_modules import bot_config_settings
 
@@ -22,55 +26,6 @@ def get_current_indian_time() -> datetime.datetime:
     now_time_gmt = datetime.datetime.now(tz=datetime.timezone.utc)
     now_time_ind = now_time_gmt + datetime.timedelta(hours=5, minutes=30)
     return now_time_ind
-
-
-def make_footer_text_old_1(
-    user: User,
-    msg: Message | None = None,
-    use_current_time: bool = False,
-) -> str:
-    """
-    i though to make a footer where it will give me
-    user some informaiton and the time
-    """
-
-    username = f"@{user.username}" if user.username else "Not Available ❌"
-
-    breaking_str = f"\n\n\n\n\n" f"----------" f"\n"
-
-    user_info = (
-        f"Full Name: {user.full_name}\n"
-        f"UserID: {user.id}\n"
-        f"Username: {username}\n"
-    )
-    if msg is None:
-        time_str = (
-            f"\n\n\n\n\n"
-            f"----------"
-            f"\n"
-            f"Note Export Time: \n"
-            f"No Time Information ❌❌❌"
-            f"\n\n\n\n\n"
-            f"----------"
-            f"\n"
-        )
-
-    else:
-        utc_time = msg.date.replace(tzinfo=None)
-
-        current_ind_time = utc_time + datetime.timedelta(hours=5, minutes=30)
-        time_str = (
-            f"\n\n\n\n\n"
-            f"----------"
-            f"\n"
-            f"Note Export Time: \n{current_ind_time}"
-            f"\n\n\n\n\n"
-            f"----------"
-            f"\n"
-        )
-    output_txt = breaking_str + user_info + time_str
-
-    return output_txt
 
 
 def make_footer_text(
@@ -96,7 +51,7 @@ def make_footer_text(
     else:
         time_info = "No Time Information ❌❌❌"
 
-    time_str = "\n----------\n" "Note Export Time:\n" f"{time_info}\n" "----------"
+    time_str = f"\n----------\n" f"Note Export Time:\n" f"{time_info}\n" "----------"
 
     breaking_str = f"\n\n\n\n\n" f"----------" f"\n"
 

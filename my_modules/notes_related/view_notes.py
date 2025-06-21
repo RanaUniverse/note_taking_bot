@@ -10,6 +10,7 @@ When user will press the buttons and it will handle the callback data.
 
 from typing import Sequence
 
+
 from telegram import (
     Message,
     User,
@@ -19,7 +20,9 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 from telegram.ext import ContextTypes
 
+
 from my_modules import bot_config_settings
+from my_modules import inline_keyboard_buttons
 from my_modules import message_templates
 
 from my_modules.logger_related import RanaLogger
@@ -27,11 +30,8 @@ from my_modules.logger_related import RanaLogger
 from my_modules.message_templates import WhatMessageAction
 
 from my_modules.database_code import db_functions
-
 from my_modules.database_code.database_make import engine
 from my_modules.database_code.models_table import NotePart
-
-from my_modules.some_inline_keyboards import generate_view_note_buttons
 
 
 NOTES_PER_PAGE = bot_config_settings.NOTES_PER_PAGE
@@ -332,7 +332,9 @@ async def button_for_view_one_note(
         f"Below BUttons is in Development will not work maybe"
     )
 
-    keyboard_view_note = generate_view_note_buttons(note_id=note_row.note_id)
+    keyboard_view_note = inline_keyboard_buttons.generate_buttons_with_note_view(
+        note_id=note_row.note_id
+    )
 
     # 🔍 Check if text exceeds Telegram's 4000-character limit
     if len(text) > 4000:
@@ -489,7 +491,8 @@ async def button_for_no_more_notes(
 
 
 async def handle_edit_note_button(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
 
     query = update.callback_query

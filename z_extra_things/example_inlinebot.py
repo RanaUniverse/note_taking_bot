@@ -3,6 +3,7 @@
 # This program is dedicated to the public domain under the CC0 license.
 
 """
+No Use Of This Module ❌❌❌
 Don't forget to enable inline mode with @BotFather
 
 First, a few handler functions are defined. Then, those functions are passed to

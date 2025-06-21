@@ -1,4 +1,5 @@
 """
+No Use Of This Module ❌❌❌
 Here i will make the codes which will help to setup new note
 edit note,
 delte note and so on
@@ -20,12 +21,9 @@ from telegram.ext import (
 
 
 from sqlmodel import Session, select
-
+from my_modules import reply_keyboard_buttons
 from my_modules.database_code.models_table import UserPart, NotePart
 from my_modules.database_code.database_make import engine
-
-
-from my_modules.some_reply_keyboards import yes_no_reply_keyboard
 
 
 TITLE, CONTENT, CONFIRMATION = range(3)
@@ -196,7 +194,7 @@ async def get_note_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         text=text,
         parse_mode=ParseMode.HTML,
         reply_markup=ReplyKeyboardMarkup(
-            yes_no_reply_keyboard,
+            reply_keyboard_buttons.YES_NO_REPLY_KEYBOARD,
             one_time_keyboard=True,
             input_field_placeholder="yes not button here.",
         ),

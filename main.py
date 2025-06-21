@@ -2,11 +2,6 @@
 i just need to run this
 """
 
-from my_modules.cmd_handler_modules.zzz_extra_things import rana_checking
-
-# This upper is just for checking different logics only.
-
-
 from telegram import Update
 
 from telegram.constants import MessageEntityType
@@ -20,7 +15,8 @@ from telegram.ext import (
     filters,
 )
 
-from my_modules.admin_related_code import update_commands_cmd, show_bot_commands
+from my_modules import admin_related_code
+from my_modules import bot_config_settings
 
 from my_modules.callback_modules.start_cmd_buttons import button_for_start
 from my_modules.callback_modules.some_buttons import (
@@ -56,14 +52,12 @@ from my_modules.notes_related import export_note
 from my_modules.notes_related import fake_note_make
 from my_modules.notes_related import view_notes
 
-from my_modules.some_constants import PrivateValue
-
 
 def main() -> None:
     """Start the bot."""
     # Create the Application and pass it your bot's token.
 
-    BOT_TOKEN = PrivateValue.BOT_TOKEN.value
+    BOT_TOKEN = bot_config_settings.BOT_TOKEN
 
     application = Application.builder().token(BOT_TOKEN).build()
 
@@ -91,14 +85,14 @@ def main() -> None:
     application.add_handler(
         CommandHandler(
             command=["update_commands"],
-            callback=update_commands_cmd,
+            callback=admin_related_code.update_commands_cmd,
             block=False,
         )
     )
     application.add_handler(
         CommandHandler(
             command=["show_commands"],
-            callback=show_bot_commands,
+            callback=admin_related_code.show_bot_commands,
             block=False,
         )
     )
@@ -107,7 +101,7 @@ def main() -> None:
     application.add_handler(
         CommandHandler(
             command="rana",
-            callback=rana_checking,
+            callback=admin_related_code.rana_checking,
         )
     )
 
@@ -226,6 +220,7 @@ def main() -> None:
             block=False,
         )
     )
+
     from my_modules.inline_keyboard_buttons import VIEW_ALL_NOTE_BUTTON
 
     application.add_handler(

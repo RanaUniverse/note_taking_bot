@@ -1,4 +1,6 @@
 """
+No Use Of This Module ❌❌❌
+
 this will help me to check some logics
 """
 
@@ -13,8 +15,6 @@ async def rana_checking_old(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     if update.message is None or update.message.from_user is None:
         print("I used this to prevent the type hint of pyright. in ranachecking")
         return
-    from telegram import ReplyKeyboardMarkup
-    from my_modules.some_reply_keyboards import yes_no_reply_keyboard
 
     user = update.message.from_user
     text = f"Please send me a text now,"
@@ -22,11 +22,6 @@ async def rana_checking_old(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         chat_id=user.id,
         text=text,
         parse_mode=ParseMode.HTML,
-        reply_markup=ReplyKeyboardMarkup(
-            yes_no_reply_keyboard,
-            one_time_keyboard=True,
-            input_field_placeholder="yes not button here.",
-        ),
     )
 
 

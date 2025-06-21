@@ -1,10 +1,7 @@
 """
-This will make a fake note and insert in the database
+This will make a fake note and insert in the database.
 
 """
-
-import asyncio
-
 
 from faker import Faker
 
@@ -17,20 +14,18 @@ from telegram.ext import ContextTypes
 
 from my_modules import bot_config_settings
 from my_modules import message_templates
+from my_modules import inline_keyboard_buttons
 
 from my_modules.database_code.database_make import engine
 from my_modules.database_code import db_functions
 from my_modules.database_code.models_table import NotePart
 
 from my_modules.logger_related import RanaLogger
-
 from my_modules.notes_related import export_note
 
-from my_modules.some_inline_keyboards import generate_view_note_buttons
 
-
-MAX_TITLE_LEN = bot_config_settings.MAX_TITLE_LEN
 MAX_CONTENT_LEN = bot_config_settings.MAX_CONTENT_LEN
+MAX_TITLE_LEN = bot_config_settings.MAX_TITLE_LEN
 MAX_FAKE_NOTE_COUNT = bot_config_settings.MAX_FAKE_NOTE_COUNT
 WILL_TEM_NOTE_DELETE = bot_config_settings.WILL_TEM_NOTE_DELETE
 
@@ -41,19 +36,14 @@ fake = Faker()
 async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     /fake_note
-    And this function will executes when user will send it and it will save this
-    for now it will make a random one note and save it.
+    This Fun will Execute and it will add one fake note to user.
     """
 
     user = update.effective_user
     msg = update.effective_message
 
-    if user is None:
-        RanaLogger.warning("User not found when user send /fake_note.")
-        return None
-
-    if msg is None:
-        RanaLogger.warning("No message object found when user send /fake_note.")
+    if user is None or msg is None:
+        RanaLogger.warning("User & msg not found when user send /fake_note.")
         return None
 
     user_row = db_functions.user_obj_from_user_id(engine, user.id)
@@ -103,7 +93,9 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         note_obj=note_row, user=user, msg=msg
     )
 
-    buttons_successfull_note = generate_view_note_buttons(note_row.note_id)
+    buttons_successfull_note = inline_keyboard_buttons.generate_buttons_with_note_view(
+        note_row.note_id
+    )
 
     await msg.reply_document(
         document=file_path,
@@ -114,19 +106,14 @@ async def fake_note_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     )
 
     if WILL_TEM_NOTE_DELETE:
-        print("Temp file willd elete now")
         file_path.unlink(missing_ok=True)
         return None
 
 
 async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    This is for when user want to make many fake note for his own
-    This will be a simple things this is when user will send
-    '/fake_note 5'
-    this fun will only execute when it will has only 1 args.
-    And it will make 5 notes and save in the database.
-
+    /fake_note some_int_value
+    It will make some notes and then save those notes in the database.
     """
 
     msg = update.effective_message
@@ -144,13 +131,19 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     # Below first i will check if user send correct format or not if not it will return
 
-    try:
-        how_many_note = int(context.args[0])
-        text = (
-            f"Hello <b>{user.mention_html()}</b>, You want to add "
-            f"{how_many_note} notes in your account.\n\n"
+    first_arg_value = context.args[0]
+
+    if not first_arg_value.isdigit():
+        await msg.reply_html(
+            "⚠️ Invalid input!\n"
+            "Please provide a valid number. Example:\n"
+            "<blockquote><code>/fake_note 10</code></blockquote>"
         )
-        new_msg = await msg.reply_html(text)
+        return
+
+    try:
+        how_many_note = int(first_arg_value)
+        ...
 
     except ValueError:
         text = (
@@ -163,37 +156,40 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     except Exception as e:
         RanaLogger.warning(
-            f"I dont know how it can work, when user send /fake_note some value {e}"
+            f"When user will pass some arg value to the /fake_note command"
+            f"the Value need to be converted as i found there "
+            f"is no more possible for this error for now\n"
+            f"{e}"
         )
-        text = f"Somethings wrong here, please contact /help"
+        text = f"⚠️ Something went wrong. Please use /help or contact support."
         await msg.reply_html(text)
         return None
 
     await context.bot.send_chat_action(user.id, ChatAction.TYPING)
-    await asyncio.sleep(1)
 
     if how_many_note <= 0:
-        text += (
+        text = (
             f"⚠️ Please provide a <b>positive number</b> of notes to create.\n\n"
             f"📌 Example: <code>/fake_note 5</code>"
         )
-        await new_msg.edit_text(
+        await msg.reply_html(
             text=text,
-            parse_mode=ParseMode.HTML,
         )
         return None
 
     if how_many_note > MAX_FAKE_NOTE_COUNT:
 
-        text += (
-            f"🚫 Please don't send too many notes at once. "
-            f"<b>Maximum allowed is {MAX_FAKE_NOTE_COUNT}.</b>\n\n"
-            "📌 Example: <code>/fake_note 10</code>"
+        text = (
+            f"🚫 Sorry, I can't create that many notes at the moment.\n"
+            f"The maximum allowed is <b>{MAX_FAKE_NOTE_COUNT}</b>.\n\n"
+            f"Please consider upgrading your account to Pro for Higher Limit.\n"
+            f"If you believe this is a mistake or need assistance, "
+            f"feel free to contact the admin.\n\n"
+            f"📌 Example usage: <code>/fake_note 10</code>"
         )
 
-        await new_msg.edit_text(
+        await msg.reply_html(
             text=text,
-            parse_mode=ParseMode.HTML,
         )
         return None
 
@@ -206,13 +202,18 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     user_points = user_row.points
 
     if how_many_note > user_points:
+
+        required_points = how_many_note
+        missing_points = required_points - user_points
         text = (
             f"🚫 <b>Not Enough Points!</b>\n\n"
-            f"👤 You currently have <b>{user_points} points</b>, "
-            f"but you want to create <b>{how_many_note} notes</b>.\n\n"
-            f"💡 Each note requires 1 point.\n"
-            f"➡️ Please reduce the number or earn more points to continue."
-            f"You can use the command /add_points to add points."
+            f"👤 You currently have <b>{user_points} point(s)</b>, "
+            f"but you're trying to create <b>{how_many_note} fake notes</b>.\n\n"
+            f"💡 Each note costs 1 point, so you need at least "
+            f"<b>{required_points} points</b>.\n"
+            f"❗ You are missing <b>{missing_points} point(s)</b>.\n\n"
+            f"➡️ To continue, please reduce the number or add more points using:\n"
+            f"<code>/add_points {missing_points}</code>"
         )
         await msg.reply_html(text)
         return None
@@ -258,7 +259,10 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         )
 
     file_path = export_note.txt_file_making_for_many_fake_note(
-        note_text=note_info_text, user=user, msg=msg, use_corrent_time=True
+        note_text=note_info_text,
+        user=user,
+        msg=msg,
+        use_corrent_time=True,
     )
 
     await msg.reply_document(

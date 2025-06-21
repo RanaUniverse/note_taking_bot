@@ -2,7 +2,8 @@ import logging
 
 from my_modules import bot_config_settings
 
-# 🌟 1️⃣ Global logging for backend this need by the PTB
+# This Below logging i copy paste from teh PTB docs,
+# This are used by ptb backend so i dont think to touch this below
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -18,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 # Below Logics are for making the log for my own beheaviour
 # which includes use the my log file name from bot_config_settings module
-
 
 LOG_FILE_NAME = bot_config_settings.LOG_FILE_NAME
 

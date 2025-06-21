@@ -1,4 +1,7 @@
 """
+Currenlty This module is no use, i make it for little understand past
+Now for now i kept this ideas as stopped.
+
 For now it will just register user without any question.
 
 This module has the conversation part for asking user about his information
@@ -12,7 +15,6 @@ information and then their account will be activated.
 
 """
 
-import datetime
 import random
 
 from sqlalchemy.exc import IntegrityError
@@ -33,6 +35,8 @@ from telegram.ext import (
     MessageHandler,
 )
 
+from my_modules import bot_config_settings
+from my_modules import inline_keyboard_buttons
 
 from my_modules.database_code import db_functions
 from my_modules.database_code.database_make import engine
@@ -40,15 +44,11 @@ from my_modules.database_code.models_table import UserPart
 
 from my_modules.logger_related import logger, RanaLogger
 
-from my_modules.some_constants import BotSettingsValue
-from my_modules.some_constants import MessageEffectEmojies
 
-from my_modules.some_inline_keyboards import MyInlineKeyboard
+DEFAULT_REG_TOKEN = bot_config_settings.DEFAULT_REGISTER_TOKEN
+IST_TIMEZONE = bot_config_settings.IST_TIMEZONE
 
-
-IST_TIMEZONE = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
-
-DEFAULT_REG_TOKEN = BotSettingsValue.DEFAULT_REGISTER_TOKEN.value
+MessageEffectEmojies = bot_config_settings.MessageEffectEmojies
 
 GOOD_EFFECTS = [
     MessageEffectEmojies.LIKE.value,
@@ -113,7 +113,7 @@ async def user_register_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             text=text,
             parse_mode=ParseMode.HTML,
             reply_markup=InlineKeyboardMarkup(
-                MyInlineKeyboard.ACCOUNT_NEW_REGISTER.value
+                inline_keyboard_buttons.USER_NEW_REGISTER_KEYBOARD
             ),
             message_effect_id=random.choice(GOOD_EFFECTS),
         )
@@ -145,7 +145,7 @@ async def user_register_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             text=text,
             parse_mode=ParseMode.HTML,
             reply_markup=InlineKeyboardMarkup(
-                MyInlineKeyboard.ACCOUNT_ALREADY_REGISTER.value,
+                inline_keyboard_buttons.USER_ALREADY_REGISTER_KEYBOARD,
             ),
         )
 

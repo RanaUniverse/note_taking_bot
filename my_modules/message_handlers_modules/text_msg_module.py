@@ -13,9 +13,9 @@ from telegram.constants import ParseMode
 from my_modules import bot_config_settings
 
 from my_modules.rana_needed_things import make_footer_text
-
 from my_modules.rana_needed_things import create_txt_file_from_string
 
+from my_modules.logger_related import RanaLogger
 
 WILL_TEM_NOTE_DELETE = bot_config_settings.WILL_TEM_NOTE_DELETE
 
@@ -89,6 +89,6 @@ async def text_msg_to_txt_file(
     await file_send.edit_caption(caption=new_caption, parse_mode=ParseMode.HTML)
 
     if WILL_TEM_NOTE_DELETE:
-        print("Temp file will Delete now")
+        RanaLogger.info(f"Temporary File has been remoed from ssd.")
         file_path.unlink(missing_ok=True)
         return None

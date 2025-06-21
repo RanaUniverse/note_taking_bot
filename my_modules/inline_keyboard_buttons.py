@@ -59,6 +59,9 @@ ADD_REFERREL_BUTTON = InlineKeyboardButton(
     callback_data="add_referral",
 )
 
+DELETE_ACCOUNT_BUTTON = InlineKeyboardButton(
+    text="❌ Delete Account", callback_data="delete_account"
+)
 
 # Misc some buttons
 
@@ -108,6 +111,14 @@ CANCEL_EDIT_NOTE_CONV_BUTTON = InlineKeyboardButton(
 )
 
 
+# Below is some buttons related to notes
+
+DELETE_ALL_NOTE_BUTTON = InlineKeyboardButton(
+    text="🗑️ Delete My All Notes",
+    callback_data="delete_my_all_notes",
+)
+
+
 # === Keyboard Layouts Below ===
 
 
@@ -136,32 +147,141 @@ EDIT_NOTE_CONV_KEYBOARD = [
 ]
 
 
-if __name__ == "__main__":
+USER_NEW_REGISTER_KEYBOARD = [
+    [NEW_NOTE_BUTTON],
+    [UPGRADE_PRO_BUTTON],
+    [DELETE_ACCOUNT_BUTTON],
+]
 
-    print("Below is The example of how the buttons to use.")
+
+USER_ALREADY_REGISTER_KEYBOARD = [
+    [NEW_NOTE_BUTTON],
+    [ACCOUNT_DETAILS_BUTTON],
+    [ADD_EMAIL_BUTTON],
+    [ADD_PHONE_NO_BUTTON],
+    [ADD_REFERREL_BUTTON],
+    [UPGRADE_PRO_BUTTON],
+    [SETTINGS_BUTTON, HELP_BUTTON],
+]
+
+
+# Below are some keyboard buttons related to delete note command like this
+
+
+# when /del_note come it will just a demo keyboard to shows
+NOTE_DELETE_KEYBOARD = [
+    [VIEW_ALL_NOTE_BUTTON],
+    [DELETE_ALL_NOTE_BUTTON],
+    [HELP_BUTTON],
+]
+
+
+# Below are somes functions which generate the buttons in a fun as
+# i need some dynamic content in the callback data
+
+
+def generate_buttons_with_note_view(note_id: str) -> list[list[InlineKeyboardButton]]:
+    """
+    When user is viewing a note, i want these buttons will be
+    there present for some simple things.
+    """
 
     buttons = [
         [
             InlineKeyboardButton(
-                text="Find From All Notes To Edit ✅",
-                callback_data="my_all_notes",
+                text="✏️ Edit Note 🟩",
+                callback_data=f"edit_note_{note_id}",
             ),
             InlineKeyboardButton(
-                text="New Note Make Now ✅",
-                callback_data="new_note",
+                text="🗑️ Delete Note 🟥",
+                callback_data=f"delete_note_{note_id}",
             ),
         ],
         [
             InlineKeyboardButton(
-                text="Need Help",
-                callback_data="customer_care",
+                text="🔗 Share Note 📤",
+                callback_data=f"share_note_{note_id}",
             ),
             InlineKeyboardButton(
-                text="Cancel Now ✅",
-                callback_data="cancel_conv",
+                text="📋 Duplicate Note 🧬",
+                callback_data=f"duplicate_note_{note_id}",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="📄 Export as TXT 🗒️",
+                callback_data=f"export_note_txt_{note_id}",
+            ),
+            InlineKeyboardButton(
+                text="📤 Export as PDF 🧾",
+                callback_data=f"export_note_pdf_{note_id}",
             ),
         ],
     ]
+    return buttons
+
+
+# Below is one more buttons keyboard which will be there when shows confirmation to del note
+
+
+def note_del_confirmation_button(note_id: str) -> list[list[InlineKeyboardButton]]:
+
+    buttons: list[list[InlineKeyboardButton]] = [
+        [
+            InlineKeyboardButton(
+                text="✅ Yes, Delete", callback_data=f"note_del_confirm_{note_id}"
+            ),
+            InlineKeyboardButton(text="❌ No Skip", callback_data="note_del_cancel"),
+        ]
+    ]
+    return buttons
+
+
+def generate_delete_note_confirmation_buttons(
+    note_id: str,
+) -> list[list[InlineKeyboardButton]]:
+
+    confirmation_buttons = [
+        [
+            InlineKeyboardButton(
+                text="✅ Yes, Delete This Note",
+                callback_data=f"note_del_confirm_{note_id}",
+            )
+        ]
+    ]
+    return confirmation_buttons
+
+
+# Below is a example of how to make the inline buttons
+
+demo_buttons = [
+    [
+        InlineKeyboardButton(
+            text="Find From All Notes To Edit ✅",
+            callback_data="my_all_notes",
+        ),
+        InlineKeyboardButton(
+            text="New Note Make Now ✅",
+            callback_data="new_note",
+        ),
+    ],
+    [
+        InlineKeyboardButton(
+            text="Need Help",
+            callback_data="customer_care",
+        ),
+        InlineKeyboardButton(
+            text="Cancel Now ✅",
+            callback_data="cancel_conv",
+        ),
+    ],
+]
+
+
+if __name__ == "__main__":
+
+    print("Below is The example of how the buttons to use.")
+    print(demo_buttons)
 
     """
     

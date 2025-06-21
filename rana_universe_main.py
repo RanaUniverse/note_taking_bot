@@ -1,4 +1,10 @@
+"""
+This will say how many functions are there
+and their line numbers.
+"""
+
 import ast
+
 
 def get_function_info(filename):
     with open(filename, "r") as file:
@@ -9,13 +15,12 @@ def get_function_info(filename):
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             func_type = "async def" if isinstance(node, ast.AsyncFunctionDef) else "def"
-            functions.append({
-                "name": node.name,
-                "type": func_type,
-                "line": node.lineno
-            })
+            functions.append(
+                {"name": node.name, "type": func_type, "line": node.lineno}
+            )
 
     return functions
+
 
 # Example usage
 file_location = "my_modules/database_code/db_functions.py"
