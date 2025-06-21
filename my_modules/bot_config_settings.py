@@ -10,6 +10,11 @@ import os
 import sys
 
 
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
 BOT_TOKEN_GET = os.environ.get("BOT_TOKEN")
 if BOT_TOKEN_GET is None:
     print(
