@@ -137,11 +137,12 @@ def prompt_user_to_register(user: User) -> str:
     it will say user to register and then user this bot
     """
     text = (
-        f"Hi <b>{user.mention_html()}</b>! 👋\n\n"
-        f"It looks like you're not registered yet 😢\n"
-        f"To get started, please send the /register_me command.\n"
-        f"Once you're registered, you can come back and use this bot.\n\n"
-        f"If you need help, feel free to reach out using /help. 💬"
+        f"Hey there, <b>{user.mention_html()}</b>! 🎉👋\n\n"
+        f"Oh no! 😢 It looks like you're not registered yet.\n"
+        f"Don't worry — it's super easy to fix! 🚀\n\n"
+        f"👉 Just send the /register_me command to get started.\n"
+        f"Once you're all set, you can come back and start using this awesome bot! 🤖✨\n\n"
+        f"Need a hand? 🛠️ No problem! Just type /help and I’ve got you covered. 💬😊"
     )
 
     return text
@@ -438,3 +439,34 @@ def generate_no_note_found_with_note_id(wrong_note: str) -> str:
     )
 
     return text
+
+
+def user_complete_details_text(tg_user_obj: User, user_row: UserPart) -> str:
+    """
+    When Bot will say some information about the user completely this demo
+    Templates of the text can be say to user back.
+    """
+
+    created_at = user_row.account_creation_time.strftime("%d %b %Y, %I:%M %p")
+    full_name = tg_user_obj.mention_html()
+
+    account_text = (
+        f"👤 <b>Account Details</b>\n\n"
+        f"📛 <b>Name:</b> {full_name or 'N/A'}\n"
+        f"🔗 <b>Username:</b> @{user_row.username or 'N/A'}\n"
+        f"🆔 <b>User ID:</b> <code>{user_row.user_id}</code>\n\n"
+        f"📝 <b>Total Notes:</b> {user_row.note_count}\n"
+        f"💎 <b>Points:</b> {user_row.points}\n"
+        f"🕰️ <b>Joined On:</b> {created_at}\n"
+    )
+
+    if user_row.email_id:
+        account_text += f"📧 <b>Email:</b> {user_row.email_id}\n"
+    if user_row.phone_no:
+        account_text += f"📱 <b>Phone:</b> {user_row.phone_no}\n"
+    if user_row.referral_code:
+        account_text += (
+            f"🎁 <b>Referral Code:</b> " "<code>{user_row.referral_code}</code>\n"
+        )
+
+    return account_text

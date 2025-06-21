@@ -36,7 +36,7 @@ EXPORT_ALL_NOTE_BUTTON = InlineKeyboardButton(
 
 ACCOUNT_DETAILS_BUTTON = InlineKeyboardButton(
     text="📊 View Account Details",
-    callback_data="account_details",
+    callback_data="my_account_details",
 )
 
 UPGRADE_PRO_BUTTON = InlineKeyboardButton(

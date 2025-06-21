@@ -17,12 +17,10 @@ from telegram.ext import (
 
 from my_modules import admin_related_code
 from my_modules import bot_config_settings
+from my_modules import inline_keyboard_buttons
 
 from my_modules.callback_modules.start_cmd_buttons import button_for_start
-from my_modules.callback_modules.some_buttons import (
-    update_profile_button,
-    new_note_button_handler,
-)
+from my_modules.callback_modules import some_buttons
 
 from my_modules.cmd_handler_modules import add_points_module
 from my_modules.cmd_handler_modules import help_module
@@ -45,12 +43,14 @@ from my_modules.message_handlers_modules.z_text_related_module import email_find
 
 # This upper two is just for checking string logics
 
-
 from my_modules.notes_related import delete_note
 from my_modules.notes_related import edit_note
 from my_modules.notes_related import export_note
 from my_modules.notes_related import fake_note_make
 from my_modules.notes_related import view_notes
+
+
+ACCOUNT_DETAILS_BUTTON = inline_keyboard_buttons.ACCOUNT_DETAILS_BUTTON
 
 
 def main() -> None:
@@ -116,6 +116,15 @@ def main() -> None:
         CommandHandler(
             command="rana",
             callback=admin_related_code.rana_checking,
+        )
+    )
+
+    # Below Handler i am just doing checkin now later i will replaced those in good places
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=some_buttons.account_details_of_user_button_handler,
+            pattern=f"{ACCOUNT_DETAILS_BUTTON.callback_data}",
         )
     )
 
@@ -371,7 +380,7 @@ def main() -> None:
 
     application.add_handler(
         CallbackQueryHandler(
-            callback=new_note_button_handler,
+            callback=some_buttons.new_note_button_handler,
             pattern=r"^(view|export|delete|share)_",
         )
     )
@@ -407,7 +416,7 @@ def main() -> None:
     # i have separate this one button for now just for checking
     application.add_handler(
         CallbackQueryHandler(
-            callback=update_profile_button,
+            callback=some_buttons.update_profile_button,
             pattern="^update_profile$",
         )
     )

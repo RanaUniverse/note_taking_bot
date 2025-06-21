@@ -191,7 +191,7 @@ async def handle_my_all_notes_callback(
     msg = update.effective_message
     if msg is None or user is None:
         RanaLogger.warning(f"user msg should be present on the button pressed")
-        return
+        return None
 
     query = update.callback_query
     if query is None:

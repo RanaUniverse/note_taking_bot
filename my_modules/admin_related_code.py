@@ -153,7 +153,7 @@ async def get_logger_file(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return
 
     timestamp = msg.date.strftime("%Y%m%d_%H%M%S")
-    filename = f"LoggerFile_{timestamp}.txt"
+    filename = f"LoggerFile_{timestamp}_{LOG_FILE_NAME}"
 
     await msg.reply_document(
         document=file_path,
