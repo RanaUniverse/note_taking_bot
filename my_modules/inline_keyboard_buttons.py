@@ -26,8 +26,13 @@ VIEW_ALL_NOTE_BUTTON = InlineKeyboardButton(
 )
 
 EXPORT_ALL_NOTE_BUTTON = InlineKeyboardButton(
-    text="Export Your Notes",
+    text="📤 Export Your Notes",
     callback_data="export_all_notes",
+)
+
+FAKE_NOTE_MAKING_BUTTON = InlineKeyboardButton(
+    text="🌀 Make A Fake Note",
+    callback_data="make_fake_note",
 )
 
 
@@ -162,6 +167,13 @@ USER_ALREADY_REGISTER_KEYBOARD = [
     [ADD_REFERREL_BUTTON],
     [UPGRADE_PRO_BUTTON],
     [SETTINGS_BUTTON, HELP_BUTTON],
+]
+
+
+USER_HAS_NO_NOTE_KEYBOARD = [
+    [NEW_NOTE_BUTTON],
+    [FAKE_NOTE_MAKING_BUTTON],
+    [HELP_BUTTON],
 ]
 
 

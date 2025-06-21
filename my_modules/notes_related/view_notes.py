@@ -38,6 +38,8 @@ NOTES_PER_PAGE = bot_config_settings.NOTES_PER_PAGE
 OFFSET_VALUE = bot_config_settings.OFFSET_VALUE
 DISLIKE_EFFECT = bot_config_settings.MessageEffectEmojies.DISLIKE.value
 
+USER_HAS_NO_NOTE_KEYBOARD = inline_keyboard_buttons.USER_HAS_NO_NOTE_KEYBOARD
+
 
 async def reply_user_has_no_notes(msg: Message, user: User):
     """
@@ -53,7 +55,11 @@ async def reply_user_has_no_notes(msg: Message, user: User):
         f"<code>/fake_note 3</code> for some fun sample notes!"
     )
 
-    await msg.reply_html(text_no_note, message_effect_id=DISLIKE_EFFECT)
+    await msg.reply_html(
+        text_no_note,
+        message_effect_id=DISLIKE_EFFECT,
+        reply_markup=InlineKeyboardMarkup(USER_HAS_NO_NOTE_KEYBOARD),
+    )
 
 
 def text_upper_of_view_notes(how_many_note: int, user: User) -> str:
