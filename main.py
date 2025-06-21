@@ -26,6 +26,7 @@ from my_modules.cmd_handler_modules import add_points_module
 from my_modules.cmd_handler_modules import help_module
 from my_modules.cmd_handler_modules import start_module
 from my_modules.cmd_handler_modules import user_register
+from my_modules.cmd_handler_modules import zzz_extra_things
 from my_modules.cmd_handler_modules.all_edited_command import handle_edited_command
 
 from my_modules.conv_handlers_modules import account_register
@@ -125,6 +126,15 @@ def main() -> None:
         CallbackQueryHandler(
             callback=some_buttons.account_details_of_user_button_handler,
             pattern=f"{ACCOUNT_DETAILS_BUTTON.callback_data}",
+        )
+    )
+
+    application.add_handler(
+        CommandHandler(
+            command="my_account_details",
+            callback=zzz_extra_things.my_account_details_cmd,
+            filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
+            block=False,
         )
     )
 

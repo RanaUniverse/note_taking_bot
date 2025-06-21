@@ -20,23 +20,57 @@ LOG_FILE_NAME = bot_config_settings.LOG_FILE_NAME
 DATABASE_FILE_NAME = bot_config_settings.DATABASE_FILE_NAME
 
 cmds_list: list[BotCommand] = [
-    BotCommand(command="start", description="🚀 Just Start This Bot"),
-    BotCommand(command="help", description="❓ Get help about available commands"),
-    BotCommand(command="settings", description="⚙️ Adjust your bot settings"),
-    BotCommand(command="register_me", description="📝 Register yourself in the bot"),
     BotCommand(
-        command="update_commands", description="🔄 Changes all the commands of this bot"
-    ),
-    BotCommand(command="new_note", description="🆕 Make a new note and store it"),
-    BotCommand(command="edit_note", description="✏️ Edit a note you created"),
-    BotCommand(command="fake_note", description="📝 Create a fake note for testing"),
-    BotCommand(command="my_notes", description="📒 Show all your saved notes"),
-    BotCommand(command="delete_note", description="❌ Delete a specific note"),
-    BotCommand(
-        command="delete_me", description="🗑 Remove your registration and all your notes"
+        command="start",
+        description="🚀 Just Start This Bot",
     ),
     BotCommand(
-        command="add_points", description="💰 Add points to your account for new notes"
+        command="help",
+        description="❓ Get help about available commands",
+    ),
+    BotCommand(
+        command="settings",
+        description="⚙️ Adjust your bot settings",
+    ),
+    BotCommand(
+        command="register_me",
+        description="📝 Register yourself in the bot",
+    ),
+    BotCommand(
+        command="update_commands",
+        description="🔄 Changes all the commands of this bot",
+    ),
+    BotCommand(
+        command="new_note",
+        description="🆕 Make a new note and store it",
+    ),
+    BotCommand(
+        command="edit_note",
+        description="✏️ Edit a note you created",
+    ),
+    BotCommand(
+        command="fake_note",
+        description="📝 Create a fake note for testing",
+    ),
+    BotCommand(
+        command="my_notes",
+        description="📒 Show all your saved notes",
+    ),
+    BotCommand(
+        command="delete_note",
+        description="❌ Delete a specific note",
+    ),
+    BotCommand(
+        command="delete_me",
+        description="🗑 Remove your registration and all your notes",
+    ),
+    BotCommand(
+        command="add_points",
+        description="💰 Add points to your account for new notes",
+    ),
+    BotCommand(
+        command="my_account_details",
+        description="See Your Account Informations",
     ),
 ]
 
