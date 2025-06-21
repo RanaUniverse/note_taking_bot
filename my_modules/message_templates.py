@@ -261,9 +261,7 @@ def new_note_making_confirmation_as_draft(note_obj: NotePart) -> str:
     """
     text = (
         "✅ <b>Note saved as draft.</b> ✍️\n\n"
-        f"{"Note Not Available To See"}\n"
-        f"{"Note Not Available To See"}\n"
-        f"{"Note Not Available To See"}\n\n"
+        f"Note Not Available To See\n"
         f"Title: {note_obj.note_title}\n"
         f"Note Title: <u>{note_obj.note_title}\n</u>"
         f"Your Note Id is: <code>{note_obj.note_id}</code>.\n"
