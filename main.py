@@ -327,7 +327,7 @@ def main() -> None:
     application.add_handler(
         CallbackQueryHandler(
             callback=delete_note.note_del_cancel_button,
-            pattern="note_del_cancel",
+            pattern="note_delete_cancel",
         )
     )
 

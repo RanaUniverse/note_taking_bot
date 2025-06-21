@@ -136,6 +136,11 @@ VIEW_ONE_NOTE_DYNAMIC_BUTTON = InlineKeyboardButton(
 )
 
 
+CANCEL_NOTE_DELETE_BUTTON = InlineKeyboardButton(
+    text="Note Deletion Cancel 🚫",
+    callback_data="note_delete_cancel",
+)
+
 # === Keyboard Layouts Below ===
 
 
@@ -248,19 +253,6 @@ def generate_buttons_with_note_view(note_id: str) -> list[list[InlineKeyboardBut
 # Below is one more buttons keyboard which will be there when shows confirmation to del note
 
 
-def note_del_confirmation_button(note_id: str) -> list[list[InlineKeyboardButton]]:
-
-    buttons: list[list[InlineKeyboardButton]] = [
-        [
-            InlineKeyboardButton(
-                text="✅ Yes, Delete", callback_data=f"note_del_confirm_{note_id}"
-            ),
-            InlineKeyboardButton(text="❌ No Skip", callback_data="note_del_cancel"),
-        ]
-    ]
-    return buttons
-
-
 def generate_delete_note_confirmation_buttons(
     note_id: str,
 ) -> list[list[InlineKeyboardButton]]:
@@ -271,7 +263,8 @@ def generate_delete_note_confirmation_buttons(
                 text="✅ Yes, Delete This Note",
                 callback_data=f"note_del_confirm_{note_id}",
             )
-        ]
+        ],
+        [CANCEL_NOTE_DELETE_BUTTON],
     ]
     return confirmation_buttons
 

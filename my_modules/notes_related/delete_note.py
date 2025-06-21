@@ -396,7 +396,7 @@ async def confirm_note_del_button(
 
 async def note_del_cancel_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    Callback Data: `note_del_cancel`
+    Callback Data: `note_delete_cancel`
     When user choose he dont want to delete his note this callback
     data will come and it will just say nothing now.
     """
@@ -406,7 +406,7 @@ async def note_del_cancel_button(update: Update, context: ContextTypes.DEFAULT_T
     if msg is None or user is None:
         RanaLogger.warning(
             f"When user choose not to delte his note in a button "
-            "The note_del_cancel data will should has the information of msg and user"
+            "The note_delete_cancel data will should has the information of msg and user"
         )
         return None
 
@@ -415,7 +415,7 @@ async def note_del_cancel_button(update: Update, context: ContextTypes.DEFAULT_T
     if query is None or query.data is None:
         RanaLogger.warning(
             f"When user choose not to delte his note by "
-            "note_del_cancel callback data must be present"
+            "note_delete_cancel callback data must be present"
         )
         return None
 
@@ -433,7 +433,8 @@ async def note_del_cancel_button(update: Update, context: ContextTypes.DEFAULT_T
 
 
 async def note_deletion_stopped_button(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """
     Callback Data: note_delete_stopped
