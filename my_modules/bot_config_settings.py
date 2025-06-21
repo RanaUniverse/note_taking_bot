@@ -55,6 +55,8 @@ WILL_TEM_NOTE_DELETE: bool = True
 
 GROUP_LINK = "RanaUniverse"
 LOG_FILE_NAME = "RanaUniverse_Log_File.log"
+DATABASE_FILE_NAME = "DATABASE.db"
+
 
 # This below is the link of about the bot and how to use this
 BOT_INFORMATION_WEBSITE = "https://telegra.ph/How-To-Use-Note-Taking-Bot-06-20"

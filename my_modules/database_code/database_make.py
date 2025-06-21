@@ -6,14 +6,21 @@ i need to import `create_db_and_engine()`
 
 from pathlib import Path
 
+
 from sqlmodel import (
     create_engine,
     SQLModel,
 )
 
 
-# sqlite_file_name = Path("my_files") / "database.db"
-sqlite_file_name = Path.cwd() / "DATABASE.db"
+from my_modules import bot_config_settings
+
+
+DATABASE_FILE_NAME = bot_config_settings.DATABASE_FILE_NAME
+
+
+sqlite_file_name = Path.cwd() / DATABASE_FILE_NAME
+
 
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 

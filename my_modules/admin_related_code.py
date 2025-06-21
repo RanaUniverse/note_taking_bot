@@ -17,7 +17,7 @@ from my_modules.logger_related import RanaLogger
 
 ADMIN_ID = bot_config_settings.ADMIN_ID_1
 LOG_FILE_NAME = bot_config_settings.LOG_FILE_NAME
-
+DATABASE_FILE_NAME = bot_config_settings.DATABASE_FILE_NAME
 
 cmds_list: list[BotCommand] = [
     BotCommand(command="start", description="🚀 Just Start This Bot"),
@@ -156,5 +156,50 @@ async def get_logger_file(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     filename = f"LoggerFile_{timestamp}.txt"
 
     await msg.reply_document(
-        document=file_path, filename=filename, caption="📝 Logger file as requested."
+        document=file_path,
+        filename=filename,
+        caption=(
+            "📝 Logger file as requested.\n"
+            f"Below is when you requested for the database file.\n"
+            f"Time: {timestamp}"
+        ),
+    )
+
+
+async def get_database_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    This is for my use when I want to get the database file in TG directly.
+    """
+    msg = update.effective_message
+    user = update.effective_user
+
+    if msg is None or user is None:
+        RanaLogger.info(
+            "When request for database file the msg and user need to present."
+        )
+        return None
+
+    if user.id != ADMIN_ID:
+        text = "❌ You are not authorized to access the database file."
+        await msg.reply_html(text)
+        return None
+
+    file_path = Path() / DATABASE_FILE_NAME
+
+    if not file_path.exists():
+        await msg.reply_html("⚠️ Database file does not exist.")
+        return
+
+    timestamp = msg.date.strftime("%Y%m%d_%H%M%S")
+
+    filename = f"Database_File_{timestamp}_{DATABASE_FILE_NAME}"
+
+    await msg.reply_document(
+        document=file_path,
+        filename=filename,
+        caption=(
+            f"🗃️ Database file as requested.\n\n\n"
+            f"Below is when you requested for the database file.\n"
+            f"Time: {timestamp}"
+        ),
     )
