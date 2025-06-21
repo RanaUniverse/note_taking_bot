@@ -57,6 +57,7 @@ SETTINGS_BUTTON = inline_keyboard_buttons.SETTINGS_BUTTON
 FEEDBACK_BUTTON = inline_keyboard_buttons.FEEDBACK_BUTTON
 VIEW_ALL_NOTE_BUTTON = inline_keyboard_buttons.VIEW_ALL_NOTE_BUTTON
 VIEW_ONE_NOTE_DYNAMIC_BUTTON = inline_keyboard_buttons.VIEW_ONE_NOTE_DYNAMIC_BUTTON
+FAKE_NOTE_MAKING_BUTTON = inline_keyboard_buttons.FAKE_NOTE_MAKING_BUTTON
 
 
 def main() -> None:
@@ -278,6 +279,13 @@ def main() -> None:
             callback=view_notes.my_notes_cmd,
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
             block=False,
+        )
+    )
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=fake_note_make.fake_note_making_by_button,
+            pattern=rf"{FAKE_NOTE_MAKING_BUTTON.callback_data}",
         )
     )
 

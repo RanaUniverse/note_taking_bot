@@ -28,7 +28,7 @@ MAX_CONTENT_LEN = bot_config_settings.MAX_CONTENT_LEN
 MAX_TITLE_LEN = bot_config_settings.MAX_TITLE_LEN
 MAX_FAKE_NOTE_COUNT = bot_config_settings.MAX_FAKE_NOTE_COUNT
 WILL_TEM_NOTE_DELETE = bot_config_settings.WILL_TEM_NOTE_DELETE
-
+FAKE_NOTE_MAKING_BUTTON = inline_keyboard_buttons.FAKE_NOTE_MAKING_BUTTON
 
 fake = Faker()
 
@@ -275,3 +275,27 @@ async def fake_notes_many(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if WILL_TEM_NOTE_DELETE:
         file_path.unlink(missing_ok=True)
         return None
+
+
+async def fake_note_making_by_button(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    When user will want to make one note just pressing the button
+
+        FAKE_NOTE_MAKING_BUTTON = InlineKeyboardButton(
+        text="🌀 Make A Fake Note",
+        callback_data="make_fake_note",
+    )
+    """
+    query = update.callback_query
+
+    if query is None or query.data is None:
+        RanaLogger.warning(
+            f"When making fake note button is pressed "
+            "callback query data should exists"
+        )
+        return None
+    await query.answer("One Fake Note is Trying To Make Against You.")
+
+    await fake_note_cmd(update=update, context=context)
