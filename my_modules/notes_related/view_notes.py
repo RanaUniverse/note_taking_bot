@@ -501,39 +501,6 @@ async def button_for_no_more_notes(
     await query.answer(text, show_alert=True)
 
 
-async def handle_edit_note_button(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-) -> None:
-
-    query = update.callback_query
-
-    if query is None or query.data is None:
-        RanaLogger.warning("Edit Note button pressed but no callback data found.")
-        return
-
-    await query.answer(
-        text="✏️Not come yet, but you can send the below command now to edit.! 🚧",
-        show_alert=True,
-    )
-    msg = update.effective_message
-    if msg is None:
-        RanaLogger.warning(
-            f"When the edit button is pressed on note seen, the msg should be here"
-        )
-        return None
-
-    note_id = query.data.replace("edit_note_", "")
-
-    text = (
-        f"📝 To edit this note, please send the following command:\n\n"
-        f"<code>/edit_note {note_id}</code>\n\n"
-        f"Once you send this, I'll guide you through editing the note. ✨"
-    )
-
-    await msg.reply_html(text)
-
-
 async def handle_transfer_note_button(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:

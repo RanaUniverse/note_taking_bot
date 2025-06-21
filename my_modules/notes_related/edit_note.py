@@ -16,7 +16,6 @@ Edit his own note.
 
 """
 
-import datetime
 import html
 
 
@@ -174,6 +173,97 @@ async def edit_note_cmd_one_arg(
         return ConversationHandler.END
 
     note_id = context.args[0]
+    note_row = db_functions.note_obj_from_note_id(
+        engine=engine,
+        note_id=note_id,
+    )
+
+    if note_row is None:
+        text = message_templates.generate_no_note_found_with_note_id(note_id)
+        await msg.reply_html(text=text)
+        return ConversationHandler.END
+
+    # Below is execute when note_row is present
+    owner_id = note_row.user_id
+
+    if user.id != owner_id:
+        text = message_templates.access_denied_messages(
+            user=user,
+            what_action=WhatMessageAction.EDIT,
+        )
+        await msg.reply_html(text=text)
+        return ConversationHandler.END
+
+    # Below part is the greatest part which is my main logic to do the note edit
+    # i am thinking to keep the note's id to be in the dict so that i can know which note
+    # i need to edit and what to do with this.
+
+    content_full = f"{note_row.note_content}"
+
+    content_preview = generate_content_preview(
+        full_content=content_full,
+        char_limit=NOTE_PREVIEW_CHAR_LIMIT,
+    )
+    if context.user_data is None:
+        RanaLogger.warning(
+            f"User Data Must be a empty list atleast not none when "
+            f"editing note, Because this edit converstaion has now start only"
+        )
+        return ConversationHandler.END
+
+    context.user_data["old_note_id"] = note_id
+    context.user_data["old_note_title"] = note_row.note_title
+    context.user_data["old_note_content_preview"] = content_preview
+
+    reply_text = (
+        f"Hello {user.mention_html()}, "
+        f"Below is Your Old Note Content 🙋\n\n"
+        f"<u>TITLE</u>: {note_row.note_title}\n\n"
+        f"<u>CONTENT</u>: {content_preview}\n\n"
+        f"Please select one of the buttons below to edit your note.\n"
+        f"You can also send /cancel or press the 'Cancel Now' button to Exit Note Editing."
+    )
+
+    button = inline_keyboard_buttons.EDIT_NOTE_CONV_KEYBOARD
+
+    await msg.reply_html(
+        text=reply_text,
+        reply_markup=InlineKeyboardMarkup(button),
+    )
+    return SELECT_OPTION
+
+
+async def handle_edit_note_button(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> int:
+    """
+    When bot will get the callback to edit note
+    with the note id it will try to run the /edit_note <note_id>
+    Like this same concept.
+    """
+
+    query = update.callback_query
+
+    if query is None or query.data is None:
+        RanaLogger.warning("Edit Note button pressed but no callback data found.")
+        return ConversationHandler.END
+
+    await query.answer(
+        text="✏️Not come yet, but you can send the below command now to edit.! 🚧",
+        show_alert=True,
+    )
+    msg = update.effective_message
+    user = update.effective_user
+
+    if msg is None or user is None:
+        RanaLogger.warning(
+            f"When the edit button is pressed on note seen, the msg & user should be here"
+        )
+        return ConversationHandler.END
+
+    note_id = query.data.replace("edit_note_", "")
+
     note_row = db_functions.note_obj_from_note_id(
         engine=engine,
         note_id=note_id,
@@ -553,8 +643,6 @@ async def note_edit_confirmation_yes(
     if new_content is not None:
         text_info += f"📄 New Content: {new_content}\n\n"
         note_row.note_content = new_content
-
-    note_row.edited_time = datetime.datetime.now(IST_TIMEZONE)
 
     updated_note_row = db_functions.edit_note_obj(engine=engine, note_obj=note_row)
 
@@ -943,6 +1031,10 @@ edit_note_conv = ConversationHandler(
             filters=filters.ChatType.PRIVATE & filters.UpdateType.MESSAGE,
             block=False,
             has_args=None,
+        ),
+        CallbackQueryHandler(
+            callback=handle_edit_note_button,
+            pattern=r"^edit_note_.*$",
         ),
         CallbackQueryHandler(
             callback=cancel_fallbacks_by_button,

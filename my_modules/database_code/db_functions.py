@@ -7,14 +7,22 @@ and it will work in my main places.
 
 """
 
+import datetime
+
 from typing import Sequence
+
 
 from sqlalchemy import Engine
 from sqlmodel import func
 from sqlmodel import Session, select
 
+
+from my_modules import bot_config_settings
 from my_modules.database_code.models_table import NotePart, UserPart
 from my_modules.logger_related import RanaLogger
+
+
+IST_TIMEZONE = bot_config_settings.IST_TIMEZONE
 
 
 def note_obj_from_note_id(
@@ -148,6 +156,8 @@ def edit_note_obj(engine: Engine, note_obj: NotePart) -> NotePart:
     Commits any changes made to the object and refreshes it.
     """
     with Session(engine) as session:
+
+        note_obj.edited_time = datetime.datetime.now(IST_TIMEZONE)
         session.add(note_obj)
         session.commit()
         session.refresh(note_obj)

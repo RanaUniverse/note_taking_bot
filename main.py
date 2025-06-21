@@ -75,7 +75,8 @@ def main() -> None:
     # keep like first so that other handler don't override those.
     application.add_handler(new_note.new_note_conv)
 
-    # Edit Note conv, a button or /edit_note
+    # Edit Note conv, a button or /edit_note, also edit note attached
+    # button which are attacged with the view note will now be come here.
     application.add_handler(edit_note.edit_note_conv)
 
     # Below is for all the edited command
@@ -424,13 +425,6 @@ def main() -> None:
         CallbackQueryHandler(
             callback=some_buttons.new_note_button_handler,
             pattern=r"^(view|export|delete|share)_",
-        )
-    )
-
-    application.add_handler(
-        CallbackQueryHandler(
-            callback=view_notes.handle_edit_note_button,
-            pattern=r"^edit_note_.*$",
         )
     )
 
