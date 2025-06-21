@@ -4,21 +4,11 @@ it will ask for note title and content, and it will save those in the database
 
 ** Ideas for making new note **
 
-1st: How this can start thie note making idea,
-    1. When user will send /new_note command
-    2. button having the callback_data = "new_note_making"
-    3. /make_a_random_note :- This is for user make random note in his acccount
-
-
-2nd: After 1,2 it will return to a state's obj which is found for Note's Title,
-    Here i also need to keep the fallsback's /cancel and filters.ALL need to keep
-    kept which return to the same state. And also Title need to be fixed length.
-
-
-3rd: After This Title, it will also ask for Content of the note, also same logic applied as 2nd.
-
-4th: Confirmation, It will have buttons which will show if user want to save the note or not/
-    Then it will also have a wrong input checking logic also need to established.
+    NEW_NOTE_BUTTON = InlineKeyboardButton(
+        text="✚ New Note",
+        callback_data="new_note_making",
+    )
+When Upper Button is pressed this will also start the conversation.
 
 """
 
@@ -27,7 +17,6 @@ from telegram import InlineKeyboardMarkup
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 from telegram.ext import ContextTypes, filters
-
 
 from telegram.ext import (
     CallbackQueryHandler,
@@ -50,6 +39,7 @@ from my_modules.logger_related import RanaLogger
 
 # From Below My Code Logic will start Soon.
 
+NEW_NOTE_BUTTON = inline_keyboard_buttons.NEW_NOTE_BUTTON
 
 MAX_TITLE_LEN = bot_config_settings.MAX_TITLE_LEN
 MAX_CONTENT_LEN = bot_config_settings.MAX_CONTENT_LEN
@@ -109,7 +99,7 @@ async def new_note_button_press(
 ) -> int:
     """
     When User Want to make new note by pressing the button.
-        InlineKeyboardButton("📝 New Note ✅", callback_data="new_note_making"),
+        InlineKeyboardButton
     """
 
     user = update.effective_user
@@ -684,7 +674,7 @@ new_note_conv = ConversationHandler(
         # because also pressing the button which data to make new note conversation
         CallbackQueryHandler(
             callback=new_note_button_press,
-            pattern="new_note_making",
+            pattern=f"{NEW_NOTE_BUTTON.callback_data}",
             block=False,
         ),
     ],

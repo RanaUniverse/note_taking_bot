@@ -36,6 +36,7 @@ from my_modules.database_code.models_table import NotePart
 
 NOTES_PER_PAGE = bot_config_settings.NOTES_PER_PAGE
 OFFSET_VALUE = bot_config_settings.OFFSET_VALUE
+DISLIKE_EFFECT = bot_config_settings.MessageEffectEmojies.DISLIKE.value
 
 
 async def reply_user_has_no_notes(msg: Message, user: User):
@@ -52,7 +53,7 @@ async def reply_user_has_no_notes(msg: Message, user: User):
         f"<code>/fake_note 3</code> for some fun sample notes!"
     )
 
-    await msg.reply_html(text_no_note)
+    await msg.reply_html(text_no_note, message_effect_id=DISLIKE_EFFECT)
 
 
 def text_upper_of_view_notes(how_many_note: int, user: User) -> str:

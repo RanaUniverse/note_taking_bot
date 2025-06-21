@@ -69,6 +69,8 @@ def main() -> None:
     application.add_handler(account_register.new_acc_conv)
 
     # New Note Making conv with button or /new_note will be below
+    # The new note making button is also in others places so it should be
+    # keep like first so that other handler don't override those.
     application.add_handler(new_note.new_note_conv)
 
     # Edit Note conv, a button or /edit_note
