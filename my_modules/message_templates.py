@@ -235,10 +235,11 @@ def new_note_making_confirmation_yes(note_obj: NotePart, user_balance: int) -> s
     After user choose Yes to save Note in the database.
     This will say about the note with little information
     """
+    safe_note_title = html.escape(f"{note_obj.note_title}")
     text = (
         "✅ <b>Your note has been saved successfully!</b>\n\n"
-        f"📝 <b>Note Title</b>: <u>{note_obj.note_title}</u>\n"
-        f"🆔 <b>Note ID</b>: <code>{note_obj.note_id}</code>\n"
+        f"📝 <b>Note Title</b>: <u>{safe_note_title}</u>\n"
+        f"🆔 <b>Note ID</b>: <code>{html.escape(note_obj.note_id)}</code>\n"
         f"💰 <b>Available Points</b>: {user_balance}\n"
     )
     return text
@@ -364,6 +365,7 @@ class WhatMessageAction(Enum):
     EDIT = "✏️ edit"
     DELETE = "🗑️ delete"
     SHARE = "📤 share"
+    EXPORT = "📦 Export"
 
 
 def access_denied_messages(user: User, what_action: WhatMessageAction) -> str:

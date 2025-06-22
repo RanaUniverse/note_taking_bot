@@ -21,7 +21,8 @@ from my_modules.database_code.models_table import NotePart
 
 
 from my_modules import bot_config_settings
-
+from my_modules import message_templates
+from my_modules.message_templates import WhatMessageAction
 from my_modules.logger_related import RanaLogger
 
 from my_modules.rana_needed_things import make_footer_text
@@ -60,7 +61,10 @@ def make_txt_file_from_note(
     timestamp = datetime.now() if use_current_time else msg.date
     readable_time = timestamp.strftime("%Y-%m-%d_%H_%M_%S")
 
-    filename = f"time_{readable_time}.txt"
+    short_title = f"{note_obj.note_title}".strip()[:50]
+
+    filename = f"export_note_{short_title}_{readable_time}.txt"
+
     file_dir = Path.cwd() / TEM_FOLDER_NOTE_STORE
     file_dir.mkdir(parents=True, exist_ok=True)
     file_path = file_dir / filename
@@ -97,7 +101,7 @@ async def export_note_as_txt_file(update: Update, context: ContextTypes.DEFAULT_
     """
     When User will press the button for export his note as txt
     This will execute.
-    Callback Data:- `export_note_txt_`
+        Callback Data:- `export_note_txt_`
     """
 
     msg = update.effective_message
@@ -138,6 +142,12 @@ async def export_note_as_txt_file(update: Update, context: ContextTypes.DEFAULT_
             "his user id is not own the note owner, "
             "maybe this is a issue as i cannot think properly."
         )
+        await query.answer("Note Export Failed")
+        text = message_templates.access_denied_messages(
+            user=user,
+            what_action=WhatMessageAction.EXPORT,
+        )
+        await msg.reply_html(text=text)
         return None
 
     file_path = make_txt_file_from_note(
