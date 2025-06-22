@@ -35,16 +35,9 @@ def start_text_for_private(user: User) -> str:
         f"Use the buttons below to manage your notes, or use commands if needed! 🔒🗂️\n\n"
         f"<b>🔹 Available Commands:</b>\n"
         f"📝 /new_note - Create a new note(use button)\n"
-        f"📂 /view_notes - View all your notes\n"
         f"✏️ /edit_note - Edit an existing note\n"
-        f"🔍 /search_note - Search notes by title\n"
         f"❌ /delete_note - Delete a note\n"
-        f"📤 /export_notes - Export all notes\n"
-        f"⚙️ /update_profile - Update your profile\n"
         f"❓ /help - Get help and usage instructions\n\n"
-        f"⚠️ <b>Note:</b> If buttons don't work, use the above commands manually."
-        f"⚠️ <b>WARNING:</b> The buttons below are still in development. "
-        f"Please use the commands above for now. 🚧🔄"
     )
 
     return text
