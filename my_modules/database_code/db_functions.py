@@ -242,8 +242,11 @@ def delete_note_obj(
             note_row = results.first()
 
             if note_row:
+                print(note_row.user)
+                note_row.user.note_count -= 1
                 session.delete(note_row)
                 session.commit()
+                print(note_row.user)
                 return True
 
             RanaLogger.warning(
@@ -277,6 +280,9 @@ def add_point_to_user_obj(
         return user_row
 
 
+# This function need to change a very big, as on failed in database it will retunr the 0
+
+
 def delete_all_notes_of_user(engine: Engine, user_id: int) -> int:
     """
     By returning the 0 or the integer value i can know if the note has delted
@@ -285,18 +291,33 @@ def delete_all_notes_of_user(engine: Engine, user_id: int) -> int:
     try:
         with Session(engine) as session:
             stmt = select(NotePart).where(NotePart.user_id == user_id)
-            results = session.exec(stmt).all()
+            results_for_notes = session.exec(stmt).all()
 
-            if not results:
+            statement = select(UserPart).where(UserPart.user_id == user_id)
+            result_for_user = session.exec(statement).first()
+
+            if result_for_user is None:
+                RanaLogger.warning(
+                    "User note id deleting but user not exists a big problem"
+                )
+                return 0
+
+            if not results_for_notes:
                 RanaLogger.info(f"No notes found for user_id={user_id}.")
                 return 0
 
-            for note in results:
+            for note in results_for_notes:
                 session.delete(note)
 
+            result_for_user.note_count -= len(results_for_notes)
+
             session.commit()
-            RanaLogger.info(f"Deleted {len(results)} notes for user_id={user_id}.")
-            return len(results)
+
+            RanaLogger.info(
+                f"Deleted {len(results_for_notes)} notes for user_id={user_id}."
+            )
+
+            return len(results_for_notes)
 
     except Exception as e:
         RanaLogger.warning(f"Error deleting notes for user_id={user_id}: {e}")

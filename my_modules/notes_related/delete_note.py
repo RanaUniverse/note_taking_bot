@@ -524,11 +524,11 @@ async def all_note_delete_button(
         return None
 
     await query.answer(
-        "All Note Del in same time is in Development...",
+        "I am trying to delete all of your notes.",
         show_alert=True,
     )
 
-    await query.edit_message_reply_markup()
+    # await query.edit_message_reply_markup()
 
     how_many_note_delete = db_functions.delete_all_notes_of_user(
         engine=engine,
@@ -536,17 +536,20 @@ async def all_note_delete_button(
     )
 
     if how_many_note_delete == 0:
-        text = (
-            f"No note has been deleted or maybe you have "
-            "no note, or maybe there is database "
-            "related problem in our server side"
+        no_note_text = (
+            "⚠️ No notes were deleted.\n\n"
+            "👉 This could be because:\n"
+            "- You have no notes.\n"
+            "- Or there was a database issue on our server.\n\n"
+            "Please try again later or contact support if the issue persists."
         )
-        await msg.reply_html(text=text, do_quote=True)
+        await query.edit_message_text(text=no_note_text)
         return None
 
     elif how_many_note_delete >= 1:
-        text = (
-            f"YOur {how_many_note_delete} Has been deleted, no more note left to delete"
+        some_note_deleted_text = (
+            f"🗑️ Successfully deleted **{how_many_note_delete}** of your notes.\n"
+            "✅ No more notes left to delete!"
         )
-        await msg.reply_html(text=text, do_quote=True)
+        await query.edit_message_text(text=some_note_deleted_text)
         return None
