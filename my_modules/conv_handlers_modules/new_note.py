@@ -253,15 +253,17 @@ async def note_confirmation_yes(
     user = update.effective_user
     msg = update.effective_message
 
-    if user is None:
+    if msg is None or user is None:
         RanaLogger.warning(
-            "Here a user should stay when sending yes confirmation on note saving."
+            f"on note make confirmation Yes, the msg and user should present."
         )
         return ConversationHandler.END
 
-    if msg is None:
-        RanaLogger.warning(f"This must have a message")
-        return ConversationHandler.END
+    text = "📝 Let's try adding this note to the database..."
+    await msg.reply_html(
+        text=text,
+        reply_markup=ReplyKeyboardRemove(),
+    )
 
     user_row = db_functions.user_obj_from_user_id(engine, user.id)
 
@@ -652,7 +654,10 @@ async def cancel_fallbacks(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         f"If you want to start again, send /new_note."
     )
 
-    await msg.reply_html(text=text)
+    await msg.reply_html(
+        text=text,
+        reply_markup=ReplyKeyboardRemove(),
+    )
     return ConversationHandler.END
 
 

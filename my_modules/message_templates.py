@@ -236,10 +236,10 @@ def new_note_making_confirmation_yes(note_obj: NotePart, user_balance: int) -> s
     This will say about the note with little information
     """
     text = (
-        f"Your Note Has Been saved Successfully.\n\n"
-        f"<b>Note Title</b>: <u>{note_obj.note_title}</u>\n\n"
-        f"Your Note Id is: <code>{note_obj.note_id}</code>.\n"
-        f"Current Available Point is: {user_balance}\n"
+        "✅ <b>Your note has been saved successfully!</b>\n\n"
+        f"📝 <b>Note Title</b>: <u>{note_obj.note_title}</u>\n"
+        f"🆔 <b>Note ID</b>: <code>{note_obj.note_id}</code>\n"
+        f"💰 <b>Available Points</b>: {user_balance}\n"
     )
     return text
 
@@ -249,8 +249,8 @@ def new_note_making_confirmation_no(user: User) -> str:
     Informs the user that the note was not saved
     """
     text = (
-        f"Hello {user.mention_html()}, your note has not been saved.\n"
-        f"If you want to make a new note, please use /new_note."
+        f"❌ Hello {user.mention_html()}, your note was <b>not saved</b>.\n\n"
+        f"📝 If you'd like to create a new one, please use /new_note."
     )
     return text
 
