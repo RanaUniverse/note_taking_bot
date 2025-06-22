@@ -20,10 +20,7 @@ import html
 
 
 from telegram import Update
-from telegram import (
-    InlineKeyboardMarkup,
-    ReplyKeyboardMarkup,
-)
+from telegram import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 from telegram.constants import ParseMode
 
@@ -233,7 +230,7 @@ async def edit_note_cmd_one_arg(
     return SELECT_OPTION
 
 
-async def handle_edit_note_button(
+async def handle_edit_one_note_button(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> int:
@@ -249,32 +246,32 @@ async def handle_edit_note_button(
         RanaLogger.warning("Edit Note button pressed but no callback data found.")
         return ConversationHandler.END
 
-    await query.answer(
-        text="✏️Not come yet, but you can send the below command now to edit.! 🚧",
-        show_alert=True,
-    )
+    await query.answer()
+
     msg = update.effective_message
     user = update.effective_user
 
     if msg is None or user is None:
         RanaLogger.warning(
-            f"When the edit button is pressed on note seen, the msg & user should be here"
+            f"When the edit button is pressed on note seen, "
+            "the msg & user should be here"
         )
         return ConversationHandler.END
 
-    note_id = query.data.replace("edit_note_", "")
+    note_id_from_callback = query.data.replace("edit_note_", "")
 
     note_row = db_functions.note_obj_from_note_id(
         engine=engine,
-        note_id=note_id,
+        note_id=note_id_from_callback,
     )
 
     if note_row is None:
-        text = message_templates.generate_no_note_found_with_note_id(note_id)
+        text = message_templates.generate_no_note_found_with_note_id(
+            note_id_from_callback
+        )
         await msg.reply_html(text=text)
         return ConversationHandler.END
 
-    # Below is execute when note_row is present
     owner_id = note_row.user_id
 
     if user.id != owner_id:
@@ -302,12 +299,12 @@ async def handle_edit_note_button(
         )
         return ConversationHandler.END
 
-    context.user_data["old_note_id"] = note_id
+    context.user_data["old_note_id"] = note_id_from_callback
     context.user_data["old_note_title"] = note_row.note_title
     context.user_data["old_note_content_preview"] = content_preview
 
-    reply_text = (
-        f"Hello {user.mention_html()}, "
+    how_to_edit_text = (
+        f"Hello {user.mention_html()},\n"
         f"Below is Your Old Note Content 🙋\n\n"
         f"<u>TITLE</u>: {note_row.note_title}\n\n"
         f"<u>CONTENT</u>: {content_preview}\n\n"
@@ -317,10 +314,25 @@ async def handle_edit_note_button(
 
     button = inline_keyboard_buttons.EDIT_NOTE_CONV_KEYBOARD
 
-    await msg.reply_html(
-        text=reply_text,
-        reply_markup=InlineKeyboardMarkup(button),
-    )
+    if msg.text:
+        await query.edit_message_text(
+            text=how_to_edit_text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup(button),
+        )
+
+    elif msg.caption:
+        new_msg_text = f"This is the old note. Please see below to edit this note."
+        await query.edit_message_caption(
+            caption=new_msg_text,
+            parse_mode=ParseMode.HTML,
+        )
+
+        await msg.reply_html(
+            text=how_to_edit_text,
+            reply_markup=InlineKeyboardMarkup(button),
+        )
+
     return SELECT_OPTION
 
 
@@ -361,7 +373,10 @@ async def cancel_fallbacks_by_cmd(
         f"Your current editing data has been safely cleared 🧹"
     )
 
-    await msg.reply_html(text=text)
+    await msg.reply_html(
+        text=text,
+        reply_markup=ReplyKeyboardRemove(),
+    )
     return ConversationHandler.END
 
 
@@ -574,6 +589,12 @@ async def note_edit_confirmation_yes(
         )
         return ConversationHandler.END
 
+    text = "📝 Let's trying to this Note to the database..."
+    await msg.reply_html(
+        text=text,
+        reply_markup=ReplyKeyboardRemove(),
+    )
+
     if context.user_data is None:
         RanaLogger.warning(
             "Context.user_data should be empty dict or some value "
@@ -675,6 +696,12 @@ async def note_edit_confirmation_no(
     if msg is None or user is None:
         RanaLogger.warning("On NO response, both msg and user should be present.")
         return ConversationHandler.END
+
+    text = "📝 Let's Cancel This Note Editing Processs..."
+    await msg.reply_html(
+        text=text,
+        reply_markup=ReplyKeyboardRemove(),
+    )
 
     if context.user_data is None:
         RanaLogger.warning(
@@ -865,8 +892,7 @@ async def select_option_handler(
 
     callback_data = query.data
 
-    # This Need to Remove.
-    await query.answer(f"'{callback_data}' is the value of callback data.")
+    await query.answer()
 
     if context.user_data is None:
         RanaLogger.warning(
@@ -1033,7 +1059,7 @@ edit_note_conv = ConversationHandler(
             has_args=None,
         ),
         CallbackQueryHandler(
-            callback=handle_edit_note_button,
+            callback=handle_edit_one_note_button,
             pattern=r"^edit_note_.*$",
         ),
         CallbackQueryHandler(
