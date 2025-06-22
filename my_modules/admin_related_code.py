@@ -5,11 +5,14 @@ Now is in Development
 """
 
 from pathlib import Path
+import random
 
 
 from telegram import Update
 from telegram import BotCommand
 from telegram.ext import ContextTypes
+
+from telegram.constants import ReactionEmoji
 
 from my_modules import bot_config_settings
 from my_modules.logger_related import RanaLogger
@@ -151,13 +154,26 @@ async def rana_checking(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     /rana
     """
 
-    if update.message is None:
-        print("just to warning remove of the below pylance")
-        return
+    msg = update.effective_message
+    user = update.effective_user
 
-    text = f"Please send me a texts"
+    if msg is None or user is None:
+        RanaLogger.info(
+            "When request for logger file the msg and user need to present."
+        )
+        return None
 
-    await update.message.reply_text(text=text, do_quote=True)
+    text = f"I will send you two random emoji reaction"
+
+    await msg.reply_html(text=text, do_quote=True)
+
+    emoji1 = random.choice(list(ReactionEmoji))
+    emoji2 = random.choice(list(ReactionEmoji))
+
+    print(emoji1, emoji2)
+
+    await context.bot.setMessageReaction(user.id, msg.id, reaction=emoji1, is_big=True)
+    await context.bot.setMessageReaction(user.id, msg.id + 1, reaction=emoji2)
 
 
 async def get_logger_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
