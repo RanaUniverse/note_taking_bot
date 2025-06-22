@@ -141,6 +141,11 @@ CANCEL_NOTE_DELETE_BUTTON = InlineKeyboardButton(
     callback_data="note_delete_cancel",
 )
 
+REFRESH_ACCOUNT_DETAILS = InlineKeyboardButton(
+    text="🔄 Refresh Your Details",
+    callback_data="refresh_account_details",
+)
+
 # === Keyboard Layouts Below ===
 
 

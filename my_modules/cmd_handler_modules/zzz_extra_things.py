@@ -4,16 +4,19 @@ No Use Of This Module ❌❌❌
 this will help me to check some logics
 """
 
-from telegram import Update
+from telegram import Update, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
 
 from my_modules import message_templates
+from my_modules import inline_keyboard_buttons
 
 from my_modules.database_code import db_functions
 from my_modules.database_code.database_make import engine
 from my_modules.logger_related import RanaLogger
+
+REFRESH_ACCOUNT_DETAILS = inline_keyboard_buttons.REFRESH_ACCOUNT_DETAILS
 
 
 async def rana_checking_old(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -87,4 +90,7 @@ async def my_account_details_cmd(
         tg_user_obj=user,
         user_row=user_row,
     )
-    await msg.reply_html(text=user_info_text)
+    await msg.reply_html(
+        text=user_info_text,
+        reply_markup=InlineKeyboardMarkup([[REFRESH_ACCOUNT_DETAILS]]),
+    )

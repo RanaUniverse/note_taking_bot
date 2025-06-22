@@ -242,11 +242,9 @@ def delete_note_obj(
             note_row = results.first()
 
             if note_row:
-                print(note_row.user)
                 note_row.user.note_count -= 1
                 session.delete(note_row)
                 session.commit()
-                print(note_row.user)
                 return True
 
             RanaLogger.warning(

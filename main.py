@@ -52,6 +52,7 @@ from my_modules.notes_related import view_notes
 
 
 ACCOUNT_DETAILS_BUTTON = inline_keyboard_buttons.ACCOUNT_DETAILS_BUTTON
+REFRESH_ACCOUNT_DETAILS = inline_keyboard_buttons.REFRESH_ACCOUNT_DETAILS
 UPGRADE_PRO_BUTTON = inline_keyboard_buttons.UPGRADE_PRO_BUTTON
 SETTINGS_BUTTON = inline_keyboard_buttons.SETTINGS_BUTTON
 FEEDBACK_BUTTON = inline_keyboard_buttons.FEEDBACK_BUTTON
@@ -135,6 +136,13 @@ def main() -> None:
         CallbackQueryHandler(
             callback=some_buttons.account_details_of_user_button_handler,
             pattern=f"{ACCOUNT_DETAILS_BUTTON.callback_data}",
+        )
+    )
+
+    application.add_handler(
+        CallbackQueryHandler(
+            callback=some_buttons.refresh_account_details_button_handler,
+            pattern=f"{REFRESH_ACCOUNT_DETAILS.callback_data}",
         )
     )
 

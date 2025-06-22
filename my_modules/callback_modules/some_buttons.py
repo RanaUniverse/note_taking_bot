@@ -3,7 +3,7 @@ some buttons will be separated in this file
 i will kept them for easy editable and easy to separate the logics
 """
 
-from telegram import Update
+from telegram import Update, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
@@ -11,6 +11,8 @@ from telegram.ext import ContextTypes
 from my_modules import inline_keyboard_buttons
 from my_modules import message_templates
 from my_modules import bot_config_settings
+from my_modules import rana_needed_things
+
 
 from my_modules.database_code import db_functions
 from my_modules.database_code.database_make import engine
@@ -18,6 +20,7 @@ from my_modules.logger_related import RanaLogger
 
 
 ACCOUNT_DETAILS_BUTTON = inline_keyboard_buttons.ACCOUNT_DETAILS_BUTTON
+REFRESH_ACCOUNT_DETAILS = inline_keyboard_buttons.REFRESH_ACCOUNT_DETAILS
 UPGRADE_ACCOUNT_PRO_WEBSITE = bot_config_settings.UPGRADE_ACCOUNT_PRO_WEBSITE
 FEEDBACK_EMAIL_ID = bot_config_settings.FEEDBACK_EMAIL_ID
 
@@ -125,7 +128,10 @@ async def account_details_of_user_button_handler(
         tg_user_obj=user,
         user_row=user_row,
     )
-    await msg.reply_html(text=user_info_text)
+    await msg.reply_html(
+        text=user_info_text,
+        reply_markup=InlineKeyboardMarkup([[REFRESH_ACCOUNT_DETAILS]]),
+    )
 
 
 async def upgrade_to_pro_member_button_handler(
@@ -235,3 +241,63 @@ async def feedback_button_pressed_handler(
         "📧 Or send your feedback to: " + FEEDBACK_EMAIL_ID
     )
     await msg.reply_html(text=text)
+
+
+async def refresh_account_details_button_handler(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    when user want to get his account details this will work same
+    Button also exists in the /start
+
+        REFRESH_ACCOUNT_DETAILS = InlineKeyboardButton(
+            text="Refresh Your Details",
+            callback_data="refresh_account_details",
+        )
+    """
+
+    user = update.effective_user
+    msg = update.effective_message
+    if msg is None or user is None:
+        RanaLogger.warning(
+            f"user msg should be present when account details refresh button pressed"
+        )
+        return None
+
+    query = update.callback_query
+    if query is None:
+        RanaLogger.warning(
+            f"Query should be present of press button of 'my_account_details'"
+        )
+        return None
+
+    await query.answer(text="We Are Refreshing Your Details...")
+
+    user_row = db_functions.user_obj_from_user_id(engine, user.id)
+
+    if user_row is None:
+        no_register_text = message_templates.prompt_user_to_register(user)
+        await msg.reply_html(text=no_register_text)
+        return None
+
+    user_info_text = message_templates.user_complete_details_text(
+        tg_user_obj=user,
+        user_row=user_row,
+    )
+    time_design = "%d/%m/%Y, %H:%M:%S"
+
+    CURRENT_INDIAN_TIME = rana_needed_things.get_current_indian_time().strftime(
+        time_design
+    )
+
+    # Final message text
+    full_text = (
+        f"{user_info_text}\n\n"
+        f"<b>🕒 Last Refreshed:</b> {CURRENT_INDIAN_TIME}\n"
+        f"🔁 Tap the button below to refresh again."
+    )
+    await query.edit_message_text(
+        text=full_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=InlineKeyboardMarkup([[REFRESH_ACCOUNT_DETAILS]]),
+    )
