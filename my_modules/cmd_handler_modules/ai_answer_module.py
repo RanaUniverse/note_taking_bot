@@ -63,9 +63,8 @@ async def ai_response_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return None
 
     user_question = (
-        f"{' '.join(context.args)}"  # type: ignore
-        f"\n"
-        f"Please Wait i am sending you answer..."
+        f"{' '.join(context.args)}\n\n"  # type: ignore
+        f"⏳ Please wait... I am generating your answer!"
     )
 
     await msg.reply_html(text=user_question)
