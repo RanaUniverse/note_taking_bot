@@ -227,13 +227,21 @@ def main() -> None:
     application.add_handler(
         CommandHandler(
             command="ai",
+            callback=ai_answer_module.ai_cmd_but_no_args,
+            filters=filters.ChatType.PRIVATE,
+            block=False,
+            has_args=0,
+        )
+    )
+
+    application.add_handler(
+        CommandHandler(
+            command="ai",
             callback=ai_answer_module.ai_response_cmd,
             filters=filters.ChatType.PRIVATE,
             block=False,
         )
     )
-
-
 
     application.add_handler(
         CommandHandler(

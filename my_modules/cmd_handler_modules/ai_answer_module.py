@@ -15,6 +15,33 @@ from my_modules.logger_related import RanaLogger
 from gemini_api_modules.gemini_api import answer_question_from_ai
 
 
+async def ai_cmd_but_no_args(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    when user send only /ai it will worn user and say how to usethis
+    """
+    user = update.effective_user
+    msg = update.effective_message
+
+    if user is None:
+        RanaLogger.warning("This user need to be there")
+        return None
+
+    if msg is None:
+        RanaLogger.warning(f"Message need to be there.")
+        return None
+
+    text_reply = (
+        f"⚠️ <b>Oops!</b> You need to provide a question after <code>/ai</code>.\n\n"
+        f"💡 <b>How to use:</b>\n"
+        f"Just type your question like this:\n"
+        f"Ask Like This👉👉👉 '<code>/ai Say me some special countries' names</code>'\n\n"
+        f"🧠 Our AI is ready to help you — just ask!"
+    )
+    await msg.reply_html(text=text_reply)
+
+
 async def ai_response_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     When user send /ai command in private chat
