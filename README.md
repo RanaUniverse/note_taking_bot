@@ -9,6 +9,11 @@ uv sync
 After this i will do the open in vs code or anything and start doing something.
 
 
+# New Features
+
+1. In this branch i want to add the gemini api in my bot so that bot will response as ai.
+
+
 This project will main intention to make and learn python backend logic to manage and use things.
 
 ```
