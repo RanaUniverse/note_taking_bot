@@ -23,6 +23,7 @@ from my_modules.callback_modules.start_cmd_buttons import button_for_start
 from my_modules.callback_modules import some_buttons
 
 from my_modules.cmd_handler_modules import add_points_module
+from my_modules.cmd_handler_modules import ai_answer_module
 from my_modules.cmd_handler_modules import help_module
 from my_modules.cmd_handler_modules import start_module
 from my_modules.cmd_handler_modules import user_register
@@ -222,6 +223,17 @@ def main() -> None:
             block=False,
         )
     )
+
+    application.add_handler(
+        CommandHandler(
+            command="ai",
+            callback=ai_answer_module.ai_response_cmd,
+            filters=filters.ChatType.PRIVATE,
+            block=False,
+        )
+    )
+
+
 
     application.add_handler(
         CommandHandler(
