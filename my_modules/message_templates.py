@@ -38,6 +38,11 @@ def start_text_for_private(user: User) -> str:
         f"✏️ /edit_note - Edit an existing note\n"
         f"❌ /delete_note - Delete a note\n"
         f"❓ /help - Get help and usage instructions\n\n"
+        f"🚀 <b>New AI Feature:</b>\n"
+        f"Ask any question to our smart AI assistant!\n"
+        f"💡 Just type like this:\n"
+        f"Ask Me Question with /ai like this i send: ⏭⏭⏭"
+        f"'<code>/ai What is Artificial Intelligence?</code>' Like This ask."
     )
 
     return text

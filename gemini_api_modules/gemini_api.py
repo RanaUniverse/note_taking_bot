@@ -3,17 +3,13 @@ This is my module where i will keep the code realted to
 gemini api which i will import later
 """
 
-import os
-
-from dotenv import load_dotenv
-
 from google import genai
 
-load_dotenv()
+from my_modules import bot_config_settings
 
-private_api_key = os.environ.get("GEMINI_API_KEY")
-client = genai.Client(api_key=private_api_key)
-GEMINI_MODEL_NAME = "gemini-2.5-flash"
+
+GEMINI_MODEL_NAME = bot_config_settings.GEMINI_MODEL_NAME
+GEMINI_API_KEY = bot_config_settings.GEMINI_API_KEY
 
 
 # prompt = "state pythogorus themorem in math in 15 word"
@@ -22,6 +18,9 @@ GEMINI_MODEL_NAME = "gemini-2.5-flash"
 #     contents=prompt,
 # )
 # print(response.text)
+
+
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 
 def answer_question_from_ai(question: str) -> str | None:

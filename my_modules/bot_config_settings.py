@@ -76,6 +76,17 @@ GMT_TIMEZONE = datetime.timezone(datetime.timedelta(hours=0, minutes=0))
 IST_TIMEZONE = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 
 
+# below is teh gemini api part
+gemini_api_key = os.environ.get("GEMINI_API_KEY")
+
+if not gemini_api_key:
+    raise ValueError("The Google Gemini Api Not Present in the .env")
+
+GEMINI_API_KEY = gemini_api_key
+
+GEMINI_MODEL_NAME = "gemini-2.5-flash"
+
+
 # This below values is working for me, so before run the script
 # Make sure to check the values and use it properly
 class MessageEffectEmojies(Enum):
