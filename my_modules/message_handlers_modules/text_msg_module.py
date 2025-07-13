@@ -8,12 +8,15 @@ import asyncio
 from telegram import ReplyParameters
 from telegram import Update
 from telegram.ext import ContextTypes
-from telegram.constants import ParseMode
+from telegram.constants import ParseMode, ChatAction
 
 from my_modules import bot_config_settings
 
+from my_modules.logger_related import RanaLogger
+
 from my_modules.rana_needed_things import make_footer_text
 from my_modules.rana_needed_things import create_txt_file_from_string
+from gemini_api_modules.gemini_api import answer_question_from_ai
 
 # from my_modules.logger_related import RanaLogger
 
@@ -92,3 +95,46 @@ async def text_msg_to_txt_file(
         # RanaLogger.info(f"Temporary File has been remoed from ssd.")
         file_path.unlink(missing_ok=True)
         return None
+
+
+async def text_msg_come_from_private(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """
+    When a text message will come what to do it will decide
+    For now i want it will ask the gemini ai to send the question's answer.
+    """
+
+    user = update.effective_user
+    msg = update.effective_message
+
+    if user is None:
+        RanaLogger.warning("This user need to be there")
+        return None
+
+    if msg is None:
+        RanaLogger.warning(f"Message need to be there.")
+        return None
+
+    if not msg.text:
+        return None
+
+    user_question = msg.text
+    first_reply_text = (
+        f"👋 Hello {user.mention_html()},\n\n"
+        f"⏳ Please wait while I process your question using our AI model 🤖..."
+    )
+    await msg.reply_html(text=first_reply_text)
+
+    await msg.reply_chat_action(ChatAction.TYPING)
+
+    try:
+        user_answer = answer_question_from_ai(user_question)
+        if user_answer:
+            await msg.reply_html(user_answer)
+        else:
+            await msg.reply_html("⚠️ Sorry, I couldn't get an answer from the AI.")
+
+    except Exception as e:
+        RanaLogger.error(f"AI processing failed: {e}")
+        await msg.reply_html("❌ Something went wrong while processing your question.")

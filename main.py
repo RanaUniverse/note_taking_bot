@@ -40,7 +40,7 @@ from my_modules.conv_handlers_modules import new_note
 from my_modules.database_code.database_make import create_db_and_engine
 
 
-from my_modules.message_handlers_modules.text_msg_module import text_msg_to_txt_file
+from my_modules.message_handlers_modules import text_msg_module
 from my_modules.message_handlers_modules.z_text_related_module import email_find
 
 # This upper two is just for checking string logics
@@ -523,7 +523,7 @@ def main() -> None:
     application.add_handler(
         MessageHandler(
             filters=filters.TEXT & ~filters.COMMAND,
-            callback=text_msg_to_txt_file,
+            callback=text_msg_module.text_msg_come_from_private,
             block=False,
         )
     )
