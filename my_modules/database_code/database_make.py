@@ -15,11 +15,11 @@ from sqlmodel import (
 
 from my_modules import bot_config_settings
 
-
+DATA_FOLDER_NAME = bot_config_settings.DATA_FOLDER_NAME
 DATABASE_FILE_NAME = bot_config_settings.DATABASE_FILE_NAME
 
 
-sqlite_file_name = Path.cwd() / DATABASE_FILE_NAME
+sqlite_file_name = Path.cwd() / DATA_FOLDER_NAME / DATABASE_FILE_NAME
 
 
 sqlite_url = f"sqlite:///{sqlite_file_name}"

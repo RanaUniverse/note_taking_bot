@@ -1,4 +1,6 @@
 import logging
+from pathlib import Path
+
 
 from my_modules import bot_config_settings
 
@@ -21,10 +23,11 @@ logger = logging.getLogger(__name__)
 # which includes use the my log file name from bot_config_settings module
 
 LOG_FILE_NAME = bot_config_settings.LOG_FILE_NAME
-
-
+DATA_FOLDER_NAME = bot_config_settings.DATA_FOLDER_NAME
+LOG_FILE_PATH = Path.cwd() / DATA_FOLDER_NAME / LOG_FILE_NAME
 # 🌟 2️⃣ Custom `RanaLogger` for file logging i will think to use.
 
+LOG_FILE_PATH.parent.mkdir(exist_ok=True)
 
 # from logging.handlers import RotatingFileHandler
 # # Use RotatingFileHandler to manage log size & recreation
@@ -35,7 +38,7 @@ RanaLogger = logging.getLogger("Rana Name")
 RanaLogger.setLevel(logging.INFO)
 
 file_handler = logging.FileHandler(
-    filename=LOG_FILE_NAME,
+    filename=LOG_FILE_PATH,
 )
 
 file_handler.setFormatter(

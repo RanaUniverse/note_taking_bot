@@ -39,8 +39,8 @@ DEFAULT_REGISTER_TOKEN = 3000
 MAX_TITLE_LEN: int = 500
 MAX_CONTENT_LEN: int = 4000
 
-MAX_ADD_POINT = 1001
-MAX_FAKE_NOTE_COUNT = 9999
+MAX_ADD_POINT = 100001
+MAX_FAKE_NOTE_COUNT = 50000
 
 
 NOTES_PER_PAGE = 10
@@ -56,7 +56,7 @@ WILL_TEM_NOTE_DELETE: bool = True
 GROUP_LINK = "RanaUniverse"
 LOG_FILE_NAME = "RanaUniverse_Log_File.log"
 DATABASE_FILE_NAME = "DATABASE.db"
-
+DATA_FOLDER_NAME = "data"
 
 # This below is the link of about the bot and how to use this
 BOT_INFORMATION_WEBSITE = "https://telegra.ph/How-To-Use-Note-Taking-Bot-06-20"
